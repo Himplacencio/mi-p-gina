@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Negocio</title>
+  <meta name="description" content="Mi Negocio: servicios de calidad con atención personalizada.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ===== Navegación ===== -->
+  <header class="nav">
+    <div class="container nav__inner">
+      <a href="#inicio" class="nav__logo">Mi<span>Negocio</span></a>
+      <button class="nav__toggle" aria-label="Abrir menú" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="nav__links">
+        <a href="#servicios">Servicios</a>
+        <a href="#nosotros">Nosotros</a>
+        <a href="#horarios">Horarios</a>
+        <a href="#contacto" class="btn btn--small">Contacto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===== Portada ===== -->
+    <section id="inicio" class="hero">
+      <div class="container hero__content">
+        <p class="eyebrow">Bienvenido</p>
+        <h1>Calidad y atención<br><em>que se notan</em></h1>
+        <p class="hero__text">
+          Escribe aquí una frase corta que explique qué hace tu negocio
+          y por qué la gente debería elegirte.
+        </p>
+        <div class="hero__actions">
+          <a href="#contacto" class="btn">Contáctanos</a>
+          <a href="#servicios" class="btn btn--ghost">Ver servicios</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Servicios ===== -->
+    <section id="servicios" class="section">
+      <div class="container">
+        <p class="eyebrow">Lo que ofrecemos</p>
+        <h2>Nuestros servicios</h2>
+        <div class="cards">
+          <article class="card">
+            <div class="card__icon">✦</div>
+            <h3>Servicio uno</h3>
+            <p>Describe brevemente este servicio o producto y qué beneficio obtiene el cliente.</p>
+          </article>
+          <article class="card">
+            <div class="card__icon">◆</div>
+            <h3>Servicio dos</h3>
+            <p>Describe brevemente este servicio o producto y qué beneficio obtiene el cliente.</p>
+          </article>
+          <article class="card">
+            <div class="card__icon">●</div>
+            <h3>Servicio tres</h3>
+            <p>Describe brevemente este servicio o producto y qué beneficio obtiene el cliente.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Nosotros ===== -->
+    <section id="nosotros" class="section section--alt">
+      <div class="container split">
+        <div>
+          <p class="eyebrow">Nuestra historia</p>
+          <h2>Sobre nosotros</h2>
+          <p>
+            Cuenta aquí cómo nació tu negocio, qué te motiva y qué te hace diferente.
+            Unas pocas frases sinceras conectan más que un texto largo.
+          </p>
+          <p>
+            Puedes mencionar tu experiencia, tus valores o el compromiso que tienes con tus clientes.
+          </p>
+        </div>
+        <ul class="stats">
+          <li><strong>10+</strong><span>años de experiencia</span></li>
+          <li><strong>500+</strong><span>clientes atendidos</span></li>
+          <li><strong>100%</strong><span>compromiso</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ===== Horarios y ubicación ===== -->
+    <section id="horarios" class="section">
+      <div class="container split">
+        <div>
+          <p class="eyebrow">Visítanos</p>
+          <h2>Horarios</h2>
+          <table class="hours">
+            <tr><td>Lunes a viernes</td><td>9:00 – 19:00</td></tr>
+            <tr><td>Sábado</td><td>10:00 – 14:00</td></tr>
+            <tr><td>Domingo</td><td>Cerrado</td></tr>
+          </table>
+        </div>
+        <div>
+          <p class="eyebrow">Dónde estamos</p>
+          <h2>Ubicación</h2>
+          <p class="address">Calle Ejemplo 123<br>Ciudad, País</p>
+          <a class="btn btn--ghost" href="https://maps.google.com/?q=Calle+Ejemplo+123" target="_blank" rel="noopener">Abrir en Google Maps</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Contacto ===== -->
+    <section id="contacto" class="section section--alt">
+      <div class="container contact">
+        <p class="eyebrow">Hablemos</p>
+        <h2>Contacto</h2>
+        <p>Escríbenos y te responderemos lo antes posible.</p>
+        <form class="form" id="contact-form">
+          <div class="form__row">
+            <label>Nombre<input type="text" name="nombre" required></label>
+            <label>Correo<input type="email" name="correo" required></label>
+          </div>
+          <label>Mensaje<textarea name="mensaje" rows="5" required></textarea></label>
+          <button type="submit" class="btn">Enviar mensaje</button>
+        </form>
+        <div class="contact__links">
+          <a href="tel:+000000000">📞 +00 000 000 000</a>
+          <a href="mailto:contacto@minegocio.com">✉️ contacto@minegocio.com</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© <span id="year"></span> Mi Negocio. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
