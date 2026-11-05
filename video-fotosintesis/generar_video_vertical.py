@@ -14,6 +14,7 @@ import argparse
 import math
 import os
 import random
+import re
 import subprocess
 import sys
 import wave
@@ -879,7 +880,7 @@ SHOTS = [
     (F, dict(day=(0.2, 1.25), z=(1.0, 1.05), f=(540, 1000), sun=((780, 1330), (780, 1010)), expr="neutral", look=0.3),
      [("SALE", 0.7), ("EL SOL.", 1.4)], ["rise"], "bright"),
     (F, closeup(day=1.3, expr="happy", sun=(780, 980)), [("SONRÍES.", 1.0), ("PORQUE TIENES", 0.8), ("UN SUPERPODER:", 1.1)], [], "bright"),
-    (sc_title, {}, [("", 2.0)], ["boom", "chime"], "bright"),
+    (sc_title, {}, [("~LA FOTOSÍNTESIS.", 2.0)], ["boom", "chime"], "bright"),
     (sc_paper, dict(z=(0.9, 1.0)), [("EN TUS HOJAS", 0.8), ("HAY UNA NOTA.", 1.0)], ["whoosh"], "bright"),
     (sc_paper, dict(z=(1.15, 1.22), f=((530, 700), (530, 740))), [("RECETA", 0.6), ("SECRETA.", 0.8), ("SOLO PLANTAS.", 1.0)], [], "bright"),
     (sc_paper, dict(z=(1.2, 1.28), f=(530, RECIPE_Y[1] + 60), circle=1), [("INGREDIENTE", 0.7), ("NÚMERO UNO:", 0.8), ("*LUZ.", 0.9)], ["scribble"], "bright"),
@@ -913,14 +914,122 @@ SHOTS = [
     (F, closeup(day=2.0, expr="smile", z=(3.2, 3.5), look=0.15), [("COMENTA", 0.7), ("1 O 2.", 1.6)], ["boom"], "bright"),
 ]
 
-TIMELINE = []
-_acc = 0.0
-for _sh in SHOTS:
-    _d = sum(dur for _, dur in _sh[2])
-    TIMELINE.append((_acc, _d, _sh))
-    _acc += _d
-TOTAL = _acc
-NFRAMES = int(round(TOTAL * FPS))
+TIMELINE, TOTAL, NFRAMES = [], 0.0, 0
+
+
+def build_timeline(shots):
+    global TIMELINE, TOTAL, NFRAMES
+    TIMELINE = []
+    acc = 0.0
+    for sh in shots:
+        d = sum(dur for _, dur in sh[2])
+        TIMELINE.append((acc, d, sh))
+        acc += d
+    TOTAL = acc
+    NFRAMES = int(round(TOTAL * FPS))
+
+
+build_timeline(SHOTS)
+
+
+# ------------------------------------------------------------------ voz en off
+VOICE_LEAD = 0.35      # segundos de imagen antes de que empiece la voz
+VOICE_TAIL = 1.6       # segundos tras la última palabra
+
+
+def syllables(txt):
+    t = txt.lower().lstrip("*~")
+    t = t.replace("co₂", " ce o dos ").replace("1 o 2", "uno o dos")
+    t = re.sub(r"[^a-záéíóúüñ ]", " ", t)
+    return max(1, len(re.findall(r"[aeiouáéíóúü]+", t)))
+
+
+def speech_segments(path, thr="-35dB", min_sil=0.14):
+    """Tramos con voz (inicio, fin) a partir de los silencios del audio."""
+    dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", path],
+                               capture_output=True, text=True).stdout)
+    log = subprocess.run(["ffmpeg", "-i", path, "-af", f"silencedetect=n={thr}:d={min_sil}", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    st = [float(x) for x in re.findall(r"silence_start: ([0-9.]+)", log)]
+    en = [float(x) for x in re.findall(r"silence_end: ([0-9.]+)", log)]
+    segs, cur = [], 0.0
+    for s, e in zip(st, en):
+        if s - cur > 0.05:
+            segs.append([cur, s])
+        cur = e
+    if dur - cur > 0.05:
+        segs.append([cur, dur])
+    out = []
+    for s in segs:  # descartar respiraciones y chasquidos muy cortos
+        if s[1] - s[0] < 0.16:
+            continue
+        out.append(s)
+    return out
+
+
+def align_voice(segs):
+    """Reparte los subtítulos (en orden) entre los tramos de voz según sus sílabas."""
+    chunks = [txt for sh in SHOTS for txt, _ in sh[2]]
+    syl = [syllables(c) for c in chunks]
+    J, I = len(segs), len(chunks)
+    speech = sum(b - a for a, b in segs)
+    rate = speech / sum(syl)
+    pre = [0]
+    for s in syl:
+        pre.append(pre[-1] + s)
+    punct = [c.rstrip().endswith((".", ",", ":", "?", "!")) for c in chunks]
+    INF = float("inf")
+    dp = [[INF] * (I + 1) for _ in range(J + 1)]
+    bk = [[None] * (I + 1) for _ in range(J + 1)]
+    dp[0][0] = 0
+    for j in range(1, J + 1):
+        for g in range(1, 5):          # un grupo puede unir varios tramos de voz
+            j0 = j - g
+            if j0 < 0:
+                break
+            span = segs[j - 1][1] - segs[j0][0]
+            gaps = span - sum(b - a for a, b in segs[j0:j])
+            dur = span - 0.6 * gaps
+            for i in range(1, I + 1):
+                pen = 0 if (punct[i - 1] or i == I) else 0.5
+                for a in range(max(0, i - 8), i):
+                    if dp[j0][a] == INF:
+                        continue
+                    pred = rate * (pre[i] - pre[a])
+                    cost = dp[j0][a] + ((dur - pred) / (pred + 0.4)) ** 2 + pen + 0.05 * (g - 1)
+                    if cost < dp[j][i]:
+                        dp[j][i], bk[j][i] = cost, (j0, a)
+    i, j, bounds = I, J, []
+    while j > 0:
+        j0, a = bk[j][i]
+        bounds.append((segs[j0][0], segs[j - 1][1], a, i))
+        i, j = a, j0
+    bounds.reverse()
+    times, mapping = [0.0] * I, []
+    for s0, s1, a, b in bounds:
+        tot = pre[b] - pre[a]
+        for k in range(a, b):
+            times[k] = s0 + (s1 - s0) * (pre[k] - pre[a]) / tot
+        mapping.append((s0, s1, chunks[a:b]))
+    return times, mapping
+
+
+def apply_voice(path):
+    """Rehace el guion para que cortes y subtítulos sigan a la voz grabada."""
+    segs = speech_segments(path)
+    times, _ = align_voice(segs)
+    end = segs[-1][1] + VOICE_TAIL
+    starts = [VOICE_LEAD + t - 0.08 for t in times]
+    starts[0] = 0.0
+    ends = starts[1:] + [VOICE_LEAD + end]
+    new, k = [], 0
+    for fn, kw, caps, sfx, mood in SHOTS:
+        nc = []
+        for txt, _ in caps:
+            nc.append((txt, ends[k] - starts[k]))
+            k += 1
+        new.append((fn, kw, nc, sfx, mood))
+    build_timeline(new)
 
 
 # ------------------------------------------------------------------ posproducción
@@ -938,7 +1047,7 @@ def post_assets():
 
 
 def draw_caption(im, txt, tc):
-    if not txt:
+    if not txt or txt.startswith("~"):
         return
     d = ImageDraw.Draw(im, "RGBA")
     words = txt.split(" ")
@@ -1000,7 +1109,7 @@ def render_bytes(i):
 SR = 44100
 
 
-def make_audio(path):
+def make_audio(path, voice=None):
     n = int(TOTAL * SR) + SR
     tt = np.arange(n) / SR
     hz = lambda m: 440 * 2 ** ((m - 69) / 12)
@@ -1097,6 +1206,20 @@ def make_audio(path):
     out[end - SR:end] *= np.linspace(1, 0, SR)
     out[end:] = 0
     out = out / max(1e-9, np.abs(out).max()) * 0.8
+    if voice:
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", voice, "-af",
+                              "highpass=f=80,acompressor=threshold=-22dB:ratio=3:attack=5:release=120",
+                              "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True).stdout
+        v = np.frombuffer(raw, np.float32).astype(np.float64)
+        v = v / max(1e-9, np.abs(v).max()) * 0.95
+        vt = np.zeros(n)
+        a = int(VOICE_LEAD * SR)
+        e = min(n, a + len(v))
+        vt[a:e] = v[: e - a]
+        env = np.convolve(np.abs(vt), np.ones(int(0.3 * SR)) / (0.3 * SR), mode="same")
+        env = np.clip(env / max(1e-9, env.max()) * 4, 0, 1)
+        out = out * 0.45 * (1 - 0.55 * env) + vt
+        out = out / max(1e-9, np.abs(out).max()) * 0.95
     with wave.open(path, "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
@@ -1110,19 +1233,27 @@ def main():
     ap.add_argument("--preview", type=float, nargs="*")
     ap.add_argument("--out", default=os.path.join(AQUI, "fotosintesis_vertical.mp4"))
     ap.add_argument("--workers", type=int, default=os.cpu_count())
+    ap.add_argument("--voz", default=os.path.join(AQUI, "voz.mp3"),
+                    help="audio con la narración (si no existe, el vídeo va sin voz)")
     args = ap.parse_args()
+    voice = args.voz if args.voz and os.path.exists(args.voz) else None
+    if voice:
+        apply_voice(voice)
+        print(f"Sincronizado con la voz: {voice} ({TOTAL:.1f} s)")
     if args.preview is not None:
         for s in args.preview:
             render(s).save(f"v_{s:05.1f}.png")
         print("duración total:", round(TOTAL, 1), "s")
         return
     audio = args.out + ".wav"
-    make_audio(audio)
+    make_audio(audio, voice)
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-           "-r", str(FPS), "-i", "-", "-i", audio, "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+           "-r", str(FPS), "-i", "-", "-i", audio, "-vf", "hqdn3d=3:3:8:8",
+           "-c:v", "libx264", "-preset", "slow", "-crf", "23",
            "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", args.out]
     ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    with Pool(args.workers) as pool:
+    import multiprocessing as mp
+    with mp.get_context("fork").Pool(args.workers) as pool:
         for i, fr in enumerate(pool.imap(render_bytes, range(NFRAMES), chunksize=2)):
             ff.stdin.write(fr)
             if i % (FPS * 5) == 0:

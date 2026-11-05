@@ -30,7 +30,7 @@ Los textos, tiempos y colores están en `generar_video.py`: cada escena es una f
 
 # Versión vertical (estilo historia): «Imagina que eres una planta»
 
-▶️ Vídeo: [`fotosintesis_vertical.mp4`](fotosintesis_vertical.mp4) (1080x1920, 9:16, ~81 s)
+▶️ Vídeo: [`fotosintesis_vertical.mp4`](fotosintesis_vertical.mp4) (1080x1920, 9:16, ~67 s, con voz en off)
 
 Formato para TikTok/Reels/Shorts: narración en segunda persona, personaje maniquí con
 sombreado 3D (con un brote en la cabeza), cortes rápidos cada 1–3 s, subtítulos grandes
@@ -49,3 +49,10 @@ python3 generar_video_vertical.py --preview 3 20  # guarda esos segundos como PN
 
 El guion está en la lista `SHOTS`: cada plano tiene su escena, parámetros de cámara,
 subtítulos con duración, efectos de sonido y ambiente musical.
+
+### Voz en off
+La narración está en `voz.mp3`. Al generar el vídeo, el script detecta las pausas de la
+grabación y reparte los subtítulos según el número de sílabas de cada frase, así que los
+cortes y los subtítulos siguen el ritmo de la voz. La música baja automáticamente cuando
+se habla. Para usar otra grabación: `python3 generar_video_vertical.py --voz otra.mp3`
+(sin `voz.mp3`, el vídeo se genera sin narración).
