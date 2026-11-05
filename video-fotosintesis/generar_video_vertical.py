@@ -169,6 +169,10 @@ class Cv:
             return
         x0, y0 = self.P(p0)
         x1, y1 = self.P(p1)
+        x0, x1 = min(x0, x1), max(x0, x1)
+        y0, y1 = min(y0, y1), max(y0, y1)
+        if x1 - x0 < 0.5 or y1 - y0 < 0.5:
+            return
         self.d.rounded_rectangle([x0, y0, x1, y1], radius=self.L(r), fill=self.c(fill, a) if fill else None,
                                  outline=self.c(outline, a) if outline else None,
                                  width=max(1, int(self.L(width))) if outline else 0)
@@ -1137,18 +1141,49 @@ def make_audio(path, voice=None):
                 continue
             tp = np.arange(Lp) / SR
             bright[p0:p0 + Lp] += 0.45 * np.sin(2 * np.pi * hz(m) * tp) * np.exp(-tp * 5)
-    gains = {"dark": (1, 0, 0), "creepy": (0.7, 0.6, 0), "tense": (0.35, 0.8, 0.25), "bright": (0.1, 0, 1)}
-    g = np.zeros((n, 3))
+    rng = np.random.default_rng(3)
+    moods = {sh[4] for _, _, sh in TIMELINE}
+    fun = np.zeros(n)
+    if "fun" in moods:  # ritmo alegre a 120 bpm (bombo, platillo, bajo y arpegio)
+        beat = 0.5
+        prog_ = [[60, 64, 67], [55, 59, 62], [57, 60, 64], [53, 57, 60]]
+        for b in range(int(TOTAL / beat) + 2):
+            s0 = int(b * beat * SR)
+            if s0 >= n:
+                break
+            ch = prog_[(b // 4) % 4]
+            L = min(int(0.35 * SR), n - s0)
+            tl = np.arange(L) / SR
+            f = 45 + 70 * np.exp(-tl * 30)
+            fun[s0:s0 + L] += 0.9 * np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-tl * 9)
+            fun[s0:s0 + L] += 0.35 * np.sin(2 * np.pi * hz(ch[0] - 24) * tl) * np.exp(-tl * 4)
+            h0 = s0 + int(beat / 2 * SR)
+            if h0 < n:
+                Lh = min(int(0.06 * SR), n - h0)
+                nz = rng.normal(0, 1, Lh)
+                nz -= np.convolve(nz, np.ones(6) / 6, mode="same")
+                fun[h0:h0 + Lh] += 0.25 * nz * np.exp(-np.arange(Lh) / SR * 60)
+            for q in range(2):
+                p0 = s0 + int(q * beat / 2 * SR)
+                if p0 >= n:
+                    continue
+                m = ch[(b * 2 + q) % 3] + 12
+                Lp = min(int(0.3 * SR), n - p0)
+                tp = np.arange(Lp) / SR
+                fun[p0:p0 + Lp] += (0.11 * np.sign(np.sin(2 * np.pi * hz(m) * tp)) * np.exp(-tp * 12)
+                                    + 0.2 * np.sin(2 * np.pi * hz(m) * tp) * np.exp(-tp * 8))
+    gains = {"dark": (1, 0, 0, 0), "creepy": (0.7, 0.6, 0, 0), "tense": (0.35, 0.8, 0.25, 0),
+             "bright": (0.1, 0, 1, 0), "fun": (0, 0, 0.35, 1)}
+    g = np.zeros((n, 4))
     for start, dur, sh in TIMELINE:
         a, b = int(start * SR), int((start + dur) * SR)
         g[a:b] = gains[sh[4]]
     g[int(TOTAL * SR):] = g[int(TOTAL * SR) - 1]
     k = int(0.8 * SR)
     ker = np.ones(k) / k
-    for i in range(3):
+    for i in range(4):
         g[:, i] = np.convolve(g[:, i], ker, mode="same")
-    out = 0.10 * dark * g[:, 0] + 0.07 * tense * g[:, 1] + 0.05 * bright * g[:, 2]
-    rng = np.random.default_rng(3)
+    out = 0.10 * dark * g[:, 0] + 0.07 * tense * g[:, 1] + 0.05 * bright * g[:, 2] + 0.06 * fun * g[:, 3]
 
     def add(at, sig):
         a = int(at * SR)
@@ -1193,6 +1228,14 @@ def make_audio(path, voice=None):
                     tl = np.arange(int(0.12 * SR)) / SR
                     f0 = 500 + 400 * rng.uniform()
                     add(start + 0.3 + j * 0.3, 0.07 * np.sin(2 * np.pi * (f0 + 3000 * tl) * tl) * np.exp(-tl * 30))
+            elif fx == "pop":
+                tl = np.arange(int(0.14 * SR)) / SR
+                f = 380 + 900 * tl / 0.14
+                add(start + 0.02, 0.22 * np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-tl * 18))
+            elif fx == "tick":
+                for j in range(int(dur / 0.42)):
+                    tl = np.arange(int(0.03 * SR)) / SR
+                    add(start + j * 0.42, 0.18 * np.sin(2 * np.pi * (1800 if j % 2 else 1300) * tl) * np.exp(-tl * 120))
             elif fx == "door":
                 x = smooth(noise(1.0), 60) * np.linspace(1, 0, int(1.0 * SR))
                 add(start + 0.1, 0.5 * x)
