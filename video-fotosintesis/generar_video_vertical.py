@@ -944,6 +944,9 @@ VOICE_TAIL = 1.6       # segundos tras la última palabra
 def syllables(txt):
     t = txt.lower().lstrip("*~")
     t = t.replace("co₂", " ce o dos ").replace("1 o 2", "uno o dos")
+    for a, b in (("= 1", " es uno"), ("= 0", " es cero"), ("3.000", " tres mil "), ("60", " sesenta "),
+                 ("8", " ocho "), ("cpu", " ce pe u "), ("gpu", " ge pe u ")):
+        t = t.replace(a, b)
     t = re.sub(r"[^a-záéíóúüñ ]", " ", t)
     return max(1, len(re.findall(r"[aeiouáéíóúü]+", t)))
 

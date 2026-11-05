@@ -1,6 +1,6 @@
 # Vídeo: ¿Qué hace el procesador de un celular o computador?
 
-▶️ Vídeo: [`procesador.mp4`](procesador.mp4) (vertical 1080x1920, ~93 s, con música y efectos)
+▶️ Vídeo: [`procesador.mp4`](procesador.mp4) (vertical 1080x1920, ~87 s, con voz en off, música y efectos)
 
 Pensado para niños (y especialmente para niños con TDAH):
 - **Una idea por pantalla** y cambios de imagen cada 1–3 segundos.
@@ -27,8 +27,7 @@ python3 generar_video_procesador.py --preview 5 30  # guarda esos segundos como 
 Usa el motor de `../video-fotosintesis/generar_video_vertical.py`.
 
 ## Añadir voz en off
-Graba este guion, guárdalo como `voz.mp3` en esta carpeta y vuelve a generar el vídeo:
-los cortes y subtítulos se sincronizan solos con tu voz.
+La narración está en `voz.mp3`: al generar el vídeo, los cortes y subtítulos se sincronizan solos con ella. Para usar otra grabación, reemplaza `voz.mp3` (guion abajo).
 
 > ¿Sabías que tu celular tiene un cerebro? ¡Mira adentro! ¡Aquí está!
 > Se llama procesador. O CPU. Es más pequeño que una galleta, ¡pero súper listo!

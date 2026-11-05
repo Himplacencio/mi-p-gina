@@ -675,6 +675,10 @@ def main():
     voice = args.voz if args.voz and os.path.exists(args.voz) else None
     if voice:
         g.apply_voice(voice)
+        for _, _, sh in g.TIMELINE:  # el resumen sigue el ritmo de la voz
+            if "times" in sh[1]:
+                durs = [dd for _, dd in sh[2]]
+                sh[1]["times"] = [sum(durs[:k + 1]) for k in range(len(durs) - 1)]
         print(f"Sincronizado con la voz: {voice}")
     print(f"Duración: {g.TOTAL:.1f} s")
     if args.preview is not None:
