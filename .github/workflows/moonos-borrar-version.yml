@@ -1,0 +1,26 @@
+name: Borrar una versión de MoonOS
+
+# Se ejecuta a mano (Actions → «Borrar una versión de MoonOS» → Run workflow)
+# indicando la etiqueta de la versión, por ejemplo: moonos-2026.11.27-9
+on:
+  workflow_dispatch:
+    inputs:
+      etiqueta:
+        description: 'Etiqueta de la versión a borrar (ej.: moonos-2026.11.27-9)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  borrar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Borrar la versión y su etiqueta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ETIQUETA: ${{ inputs.etiqueta }}
+        run: |
+          case "$ETIQUETA" in moonos-*) ;; *) echo "Solo se pueden borrar versiones de MoonOS (moonos-...)"; exit 1;; esac
+          gh release delete "$ETIQUETA" -R "$GITHUB_REPOSITORY" --cleanup-tag --yes
+          echo "### Borrada: $ETIQUETA" >> "$GITHUB_STEP_SUMMARY"
