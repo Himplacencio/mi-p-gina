@@ -703,7 +703,7 @@ APPS.terminal = {
       clear: () => { out.innerHTML = ""; },
       exit: () => closeWin("terminal"),
       lspci: () => print(`00:00.0 Host bridge: Advanced Micro Devices, Inc. Raphael Root Complex\n01:00.0 VGA compatible controller: ${esc(GPUS[S.gpu].vendor)} ${esc(GPUS[S.gpu].chip)}\n02:00.0 Network controller: Intel Corporation Wi-Fi 6 AX200\n03:00.0 Audio device: ${esc(GPUS[S.gpu].vendor)} HD Audio Controller`),
-      "gamemoded": a => print(a.includes("-s") ? (S.fx.gamemode ? "gamemode is <span class=\"c-good\">active</span>" : "gamemode is <span class=\"c-mut\">inactive</span>") : "uso: gamemoded -s"),
+      "gamemoded": a => print(a.includes("-s") ? (S.wins.moondust && S.fx.gamemode ? "gamemode is <span class=\"c-good\">active</span>" : "gamemode is <span class=\"c-mut\">inactive</span>" + (S.fx.gamemode ? " (se activa solo al abrir un juego)" : "")) : "uso: gamemoded -s"),
       cat: a => {
         if (a[0] === "/etc/os-release" || a[0] === "/usr/lib/os-release") print('NAME="MoonOS"\nPRETTY_NAME="MoonOS"\nID=moonos\nID_LIKE="cachyos arch"\nBUILD_ID=rolling\nLOGO=moonos');
         else print(`cat: ${esc(a[0] || "")}: No existe el archivo o el directorio`);
@@ -965,7 +965,10 @@ APPS.games = {
     }));
     $$("[data-game]", win.body).forEach(b => b.addEventListener("click", () => {
       const g = GAMES[+b.dataset.game];
-      if (g[5]) openApp("moondust");
+      if (g[5]) {
+        openApp("moondust");
+        if (S.fx.gamemode) toast("Modo juego activado", "CPU y GPU al máximo, prioridad para el juego y tareas de fondo en pausa.", "games", 4500);
+      }
       else toast(g[0], "Es un juego de muestra: en esta demo solo «Polvo Lunar» se puede jugar.", "games", 4000);
     }));
   },
@@ -1056,7 +1059,10 @@ APPS.moondust = {
       }
     };
     raf = requestAnimationFrame(frame);
-    win.onClose = () => { cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku); };
+    win.onClose = () => {
+      cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku);
+      if (S.fx.gamemode) toast("Modo juego desactivado", "El sistema vuelve al modo normal.", "games", 3500);
+    };
     wrap.focus();
   },
 };
