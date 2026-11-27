@@ -312,6 +312,19 @@ class Bienvenida(QMainWindow):
         c.lay.addWidget(row(anim, fija, mia))
         v.addWidget(c)
 
+        # Estilo del escritorio
+        c = Card("Estilo del escritorio", "MoonOS Dock pone una barra arriba, un dock centrado abajo y widgets de vidrio "
+                                          "(reloj, fase lunar, calendario y música) en el escritorio.")
+        g0 = QButtonGroup(self)
+        e_cla = QPushButton("▭  Clásico (barra abajo)"); e_dock = QPushButton("🌙  MoonOS Dock (barra arriba + dock + widgets)")
+        for b in (e_cla, e_dock):
+            b.setCheckable(True); g0.addButton(b)
+        e_cla.setChecked(True)
+        e_cla.clicked.connect(lambda: self.estilo("clasico", "Estilo clásico"))
+        e_dock.clicked.connect(lambda: self.estilo("dock", "Estilo MoonOS Dock 🌙"))
+        c.lay.addWidget(row(e_cla, e_dock))
+        v.addWidget(c)
+
         # Panel
         c = Card("Barra de tareas (panel)")
         g = QButtonGroup(self); pos = []
@@ -369,6 +382,14 @@ class Bienvenida(QMainWindow):
         v.addWidget(row(mas))
         v.addStretch(1)
         return w
+
+    def estilo(self, nombre, aviso):
+        try:
+            js = Path(f"/usr/share/moonos/estilos/{nombre}.js").read_text()
+        except OSError:
+            js = f"// estilo {nombre} (no encontrado en modo prueba)"
+        plasma_script(js)
+        self.notify(aviso)
 
     def barra_vidrio(self, on):
         if on:

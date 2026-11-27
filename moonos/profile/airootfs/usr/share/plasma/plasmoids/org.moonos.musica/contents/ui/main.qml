@@ -43,12 +43,106 @@ PlasmoidItem {
         onTriggered: root.call("updatePosition")
     }
 
-    Plasmoid.status: hasMusic ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.HiddenStatus
+    // En el escritorio es una tarjeta grande de vidrio; en la barra, una fila compacta
+    readonly property bool enEscritorio: Plasmoid.formFactor === PlasmaCore.Types.Planar
+    Plasmoid.backgroundHints: enEscritorio ? PlasmaCore.Types.TranslucentBackground : PlasmaCore.Types.DefaultBackground
+    Plasmoid.status: (hasMusic || enEscritorio) ? PlasmaCore.Types.ActiveStatus : PlasmaCore.Types.HiddenStatus
     preferredRepresentation: fullRepresentation
     toolTipMainText: hasMusic ? track : i18n("Sin música")
     toolTipSubText: artist
 
-    fullRepresentation: Item {
+    fullRepresentation: enEscritorio ? tarjeta : fila
+
+    // ---------- Tarjeta grande (escritorio) ----------
+    Component {
+        id: tarjeta
+        Item {
+            id: card
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 16
+            Layout.preferredHeight: Kirigami.Units.gridUnit * 7
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 12
+            Layout.minimumHeight: Kirigami.Units.gridUnit * 6
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.margins: Kirigami.Units.smallSpacing * 2
+                spacing: Kirigami.Units.smallSpacing
+                RowLayout {
+                    spacing: Kirigami.Units.largeSpacing
+                    Item {
+                        Layout.preferredWidth: card.height * 0.45
+                        Layout.preferredHeight: Layout.preferredWidth
+                        Image {
+                            id: bigCover
+                            anchors.fill: parent
+                            source: root.art
+                            fillMode: Image.PreserveAspectCrop
+                            visible: status === Image.Ready
+                        }
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 10
+                            visible: !bigCover.visible
+                            gradient: Gradient {
+                                GradientStop { position: 0; color: "#a996ff" }
+                                GradientStop { position: 1; color: "#5a3fd8" }
+                            }
+                            Text { anchors.centerIn: parent; text: "♪"; color: "white"; font.pixelSize: parent.height * 0.5 }
+                        }
+                    }
+                    ColumnLayout {
+                        spacing: 2
+                        Layout.fillWidth: true
+                        Text {
+                            text: root.hasMusic ? root.track : "Nada sonando"
+                            color: "#ffffff"; font.pixelSize: 19; font.weight: Font.Bold
+                            elide: Text.ElideRight; Layout.fillWidth: true
+                        }
+                        Text {
+                            text: root.hasMusic ? root.artist : "Abre Spotify y dale play 🎵"
+                            color: "#d8d2ff"; font.pixelSize: 14
+                            elide: Text.ElideRight; Layout.fillWidth: true
+                        }
+                    }
+                }
+                // Progreso con tiempos
+                RowLayout {
+                    spacing: Kirigami.Units.smallSpacing
+                    Text { text: root.fmt(root.positionUs); color: "#d8d2ff"; font.pixelSize: 11; font.family: "monospace" }
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 5
+                        radius: 2.5
+                        color: Qt.rgba(1, 1, 1, 0.2)
+                        Rectangle {
+                            height: parent.height; radius: parent.radius; color: "#ffffff"
+                            width: root.lengthUs > 0 ? parent.width * Math.min(1, root.positionUs / root.lengthUs) : 0
+                        }
+                    }
+                    Text {
+                        text: root.lengthUs > 0 ? "-" + root.fmt(root.lengthUs - root.positionUs) : "-0:00"
+                        color: "#d8d2ff"; font.pixelSize: 11; font.family: "monospace"
+                    }
+                }
+                RowLayout {
+                    Layout.alignment: Qt.AlignHCenter
+                    spacing: Kirigami.Units.gridUnit
+                    PC3.ToolButton { icon.name: "media-skip-backward"; onClicked: root.call("Previous") }
+                    PC3.ToolButton {
+                        icon.name: root.playing ? "media-playback-pause" : "media-playback-start"
+                        icon.width: Kirigami.Units.iconSizes.medium; icon.height: icon.width
+                        onClicked: root.call("PlayPause")
+                    }
+                    PC3.ToolButton { icon.name: "media-skip-forward"; onClicked: root.call("Next") }
+                }
+            }
+        }
+    }
+
+    // ---------- Fila compacta (barra de tareas) ----------
+    Component {
+        id: fila
+    Item {
         id: box
         visible: root.hasMusic
         Layout.minimumWidth: root.hasMusic ? row.implicitWidth + Kirigami.Units.smallSpacing * 2 : 0
@@ -139,5 +233,6 @@ PlasmoidItem {
                 PC3.ToolTip.text: i18n("Siguiente")
             }
         }
+    }
     }
 }

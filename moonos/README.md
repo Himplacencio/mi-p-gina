@@ -14,6 +14,7 @@
 - **Bienvenida a MoonOS** se abre sola al iniciar. En el modo Live tiene el botón **Instalar MoonOS** y muestra el equipo detectado; ya instalado, da la bienvenida y lleva a personalizar. Se puede desactivar con «Mostrar al iniciar».
 - **Hazlo tuyo:** tema oscuro o claro, 8 colores de acento, fondo (luna animada, luna clásica o una imagen propia), panel abajo, arriba o a la izquierda, estilo clásico o dock tipo Mac, panel flotante, ventanas gelatina y animaciones rápidas.
 - **Tienda MoonOS:** instala Spotify, Discord, Chrome, Brave, Heroic, OBS, LibreOffice y más con un clic, o busca cualquier otra app en Flathub. Las apps se instalan aisladas (Flatpak, sin contraseña) y no pueden dañar el sistema. Está anclada en la barra.
+- **Estilo MoonOS Dock** (en «Hazlo tuyo»): barra superior con menú, reloj al centro, música y bandeja; dock centrado y flotante abajo; y widgets de vidrio en el escritorio: reloj, fase lunar (calculada en el equipo), calendario y tarjeta de música. El botón «Clásico» lo deja todo como antes.
 - **Barra de vidrio y música:** barra flotante y translúcida con colores MoonOS; el widget «Música en la barra» muestra la canción de Spotify (u otro reproductor), cuánto falta y botones ⏮ ⏯ ⏭.
 - **Luna animada:** fondo animado para Plasma (`org.moonos.lunaanimada`) con estrellas que titilan, luna que flota, nubes y estrellas fugaces. También aparece en *Configurar escritorio y fondo de pantalla → Tipo de fondo*.
 

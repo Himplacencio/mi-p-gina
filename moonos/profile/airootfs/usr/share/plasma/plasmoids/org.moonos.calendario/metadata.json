@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "MoonOS"
+            }
+        ],
+        "Category": "Date and Time",
+        "Description": "Calendario del mes con el día de hoy marcado",
+        "Icon": "view-calendar",
+        "Id": "org.moonos.calendario",
+        "License": "GPL-3.0-or-later",
+        "Name": "Calendario (MoonOS)",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

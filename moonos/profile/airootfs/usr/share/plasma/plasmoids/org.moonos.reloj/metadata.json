@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "MoonOS"
+            }
+        ],
+        "Category": "Date and Time",
+        "Description": "Reloj grande de vidrio con la fecha",
+        "Icon": "preferences-system-time",
+        "Id": "org.moonos.reloj",
+        "License": "GPL-3.0-or-later",
+        "Name": "Reloj (MoonOS)",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

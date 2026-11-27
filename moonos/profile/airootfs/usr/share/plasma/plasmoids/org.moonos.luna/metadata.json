@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "MoonOS"
+            }
+        ],
+        "Category": "Astronomy",
+        "Description": "La luna de esta noche: fase, porcentaje iluminado y días para la luna llena",
+        "Icon": "weather-clear-night",
+        "Id": "org.moonos.luna",
+        "License": "GPL-3.0-or-later",
+        "Name": "Fase lunar (MoonOS)",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
