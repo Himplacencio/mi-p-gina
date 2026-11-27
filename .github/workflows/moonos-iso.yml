@@ -114,16 +114,21 @@ jobs:
         if: always()
         run: |
           [ -d /tmp/vm ] || exit 0
-          mkdir -p moonos/test-results
-          rm -f moonos/test-results/*
-          sudo cp /tmp/vm/*.png /tmp/vm/consola-serie.log /tmp/vm/resumen.txt moonos/test-results/ 2>/dev/null || true
-          sudo chown -R "$(id -u)" moonos/test-results
-          echo "Ejecución: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (commit ${{ github.sha }})" > moonos/test-results/LEEME.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add moonos/test-results
-          git commit -m "Resultados de la prueba de MoonOS en máquina virtual [skip ci]" || exit 0
-          for i in 1 2 3; do git pull --rebase --no-edit origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
+          # Se parte siempre de la rama actualizada para no chocar con otros resultados
+          for i in 1 2 3 4; do
+            git fetch -q origin "${GITHUB_REF_NAME}" && git reset -q --hard FETCH_HEAD
+            mkdir -p moonos/test-results
+            rm -f moonos/test-results/*
+            sudo cp /tmp/vm/*.png /tmp/vm/consola-serie.log /tmp/vm/resumen.txt moonos/test-results/ 2>/dev/null || true
+            sudo chown -R "$(id -u)" moonos/test-results
+            echo "Ejecución: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (commit ${{ github.sha }})" > moonos/test-results/LEEME.txt
+            git add -A moonos/test-results
+            git commit -q -m "Resultados de la prueba de MoonOS en máquina virtual [skip ci]" || exit 0
+            git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep 5
+          done
 
       - name: Publicar la ISO en GitHub Releases
         # Solo se publica desde main; en otras ramas la ISO se compila y se prueba, sin publicarse
