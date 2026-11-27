@@ -9,6 +9,9 @@ on:
       segundos:
         description: 'Cuántos segundos grabar desde que se enciende'
         default: '42'
+      modo:
+        description: 'arranque (encendido completo) o terminal (fastfetch y free -h)'
+        default: 'arranque'
 
 permissions:
   contents: write
@@ -51,7 +54,7 @@ jobs:
             -nic user,model=virtio-net-pci \
             -monitor unix:/tmp/rec/monitor.sock,server,nowait \
             -daemonize -pidfile /tmp/rec/qemu.pid
-          sudo python3 .github/scripts/grabar-arranque.py /tmp/rec/monitor.sock /tmp/rec/frames "${{ inputs.segundos }}"
+          sudo python3 .github/scripts/grabar-arranque.py /tmp/rec/monitor.sock /tmp/rec/frames "${{ inputs.segundos }}" "${{ inputs.modo }}"
           sudo kill "$(cat /tmp/rec/qemu.pid)" || true
 
       - name: Montar el video en tiempo real
@@ -70,8 +73,8 @@ jobs:
           OUT="$GITHUB_WORKSPACE/moonos/marketing/arranque-real"
           mkdir -p "$OUT"
           ffmpeg -v error -y -f concat -safe 0 -i lista.txt \
-            -vf "fps=30,scale=1920:1080:flags=lanczos,format=yuv420p" -c:v libx264 -crf 18 -preset slow "$OUT/arranque-real.mp4"
-          cp frames.json "$OUT/tiempos.json"
+            -vf "fps=30,scale=1920:1080:flags=lanczos,format=yuv420p" -c:v libx264 -crf 18 -preset slow "$OUT/${{ inputs.modo }}.mp4"
+          cp frames.json "$OUT/tiempos-${{ inputs.modo }}.json"
           ls -lh "$OUT"
 
       - name: Guardar la grabación en el repositorio
