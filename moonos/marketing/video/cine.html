@@ -1,0 +1,205 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style></head>
+<body><canvas id="c" width="1920" height="1080"></canvas>
+<script>
+// Video «cinematográfico» de MoonOS: intro con una línea de neón que dibuja la órbita de la luna,
+// títulos de sección sobre las grabaciones reales y un cierre. render(i) dibuja el cuadro i (30 fps).
+const W = 1920, H = 1080, FPS = 30;
+const c = document.getElementById('c'), x = c.getContext('2d');
+const P = new URLSearchParams(location.search);
+const BASE = P.get('frames');            // carpeta con s1..s9 (cuadros de las grabaciones)
+const INTRO = 5.0, SEC = 4.5, OUTRO = 5.0;
+const SECCIONES = [
+  ['PANTALLA DE CARGA', 'la luna de MoonOS al encender', [960, 470], 1.00, 1.10],
+  ['ESCRITORIO', 'widgets de vidrio, dock y luna animada', [700, 500], 1.00, 1.10],
+  ['BIENVENIDA', 'en español, con un botón para instalar', [760, 300], 1.02, 1.14],
+  ['HAZLO TUYO', 'colores, fondo y estilo a tu gusto', [940, 420], 1.00, 1.12],
+  ['TIENDA', 'Spotify, Discord, Steam… a un clic', [960, 450], 1.00, 1.12],
+  ['COMANDOS', 'la terminal explicada, con ejemplos', [960, 450], 1.00, 1.12],
+  ['MÚSICA', 'la canción en la barra, con sus controles', [1580, 0], 1.00, 1.75],
+  ['TERMINAL', 'poco más de 1 GB de RAM con todo abierto', [420, 330], 1.12, 1.30],
+  ['MENÚ', 'todas tus apps, ordenadas', [400, 500], 1.00, 1.12],
+];
+const TOTAL = INTRO + SECCIONES.length * SEC + OUTRO;
+window.TOTAL_FRAMES = Math.round(TOTAL * FPS);
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const smooth = (a, b, t) => { const u = clamp((t - a) / (b - a)); return u * u * (3 - 2 * u); };
+const easeIO = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+const lerp = (a, b, u) => a + (b - a) * u;
+
+// ---------- trazo de neón: entra ondulando, da vuelta y media a la órbita y sale ----------
+const C = [960, 500], R = 232;
+function orbitaPts() {
+  const pts = [];
+  for (let i = 0; i <= 120; i++) {                       // entrada desde abajo a la izquierda
+    const u = i / 120, px = lerp(-90, C[0] - R, u);
+    const py = lerp(1010, C[1] + 6, Math.pow(u, .9)) + Math.sin(u * Math.PI * 2.2) * 38 * (1 - u);
+    pts.push([px, py]);
+  }
+  for (let i = 1; i <= 420; i++) {                      // órbita (1,5 vueltas) un poco irregular
+    const th = Math.PI + (i / 420) * Math.PI * 3;
+    const r = R * (1 + .035 * Math.sin(3 * th + .6) + .022 * Math.sin(5 * th + 1.3));
+    pts.push([C[0] + r * Math.cos(th), C[1] + r * Math.sin(th)]);
+  }
+  const s = pts[pts.length - 1];
+  for (let i = 1; i <= 120; i++) {                      // salida hacia arriba a la derecha
+    const u = i / 120, px = lerp(s[0], 2010, u);
+    const py = lerp(s[1], 70, Math.pow(u, 1.1)) + Math.sin(u * Math.PI * 2.4) * 34 * u;
+    pts.push([px, py]);
+  }
+  return pts;
+}
+function barridoPts(seed) {                              // línea que cruza la pantalla en las transiciones
+  const pts = [];
+  for (let i = 0; i <= 160; i++) {
+    const u = i / 160;
+    pts.push([lerp(-120, 2040, u), lerp(1060, 40, u) + Math.sin(u * Math.PI * 3 + seed) * 70]);
+  }
+  return pts;
+}
+function largos(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return L; }
+const ORB = orbitaPts(), ORB_L = largos(ORB);
+const BARR = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => { const p = barridoPts(k * 1.7); return [p, largos(p)]; });
+
+function neon(pts, L, desde, hasta, alpha = 1) {        // dibuja el tramo [desde, hasta] (0..1 del largo)
+  const tot = L[L.length - 1], a = desde * tot, b = hasta * tot;
+  const sel = [];
+  for (let i = 0; i < pts.length; i++) if (L[i] >= a && L[i] <= b) sel.push(pts[i]);
+  if (sel.length < 2) return null;
+  const g = x.createLinearGradient(0, 1080, 1920, 0);
+  g.addColorStop(0, '#ff8ad8'); g.addColorStop(.5, '#e07bff'); g.addColorStop(1, '#9d7bff');
+  x.save(); x.globalCompositeOperation = 'lighter'; x.lineCap = 'round'; x.lineJoin = 'round';
+  for (const [w, al, bl] of [[18, .10, 40], [8, .28, 16], [3, .9, 4]]) {
+    x.beginPath(); x.moveTo(sel[0][0], sel[0][1]); for (const p of sel) x.lineTo(p[0], p[1]);
+    x.strokeStyle = g; x.globalAlpha = al * alpha; x.lineWidth = w; x.shadowColor = '#ff8ad8'; x.shadowBlur = bl; x.stroke();
+  }
+  x.restore();
+  return sel[sel.length - 1];
+}
+function punta(p, alpha = 1) {
+  if (!p) return;
+  x.save(); x.globalCompositeOperation = 'lighter'; x.globalAlpha = alpha;
+  const g = x.createRadialGradient(p[0], p[1], 0, p[0], p[1], 34);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,200,240,.8)'); g.addColorStop(1, 'rgba(255,120,220,0)');
+  x.fillStyle = g; x.beginPath(); x.arc(p[0], p[1], 34, 0, 7); x.fill(); x.restore();
+}
+function fondo() {
+  const g = x.createRadialGradient(C[0], C[1], 60, C[0], C[1], 1150);
+  g.addColorStop(0, '#2b1743'); g.addColorStop(.45, '#1a0d29'); g.addColorStop(1, '#06030a');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+}
+function nucleo(alpha) {
+  const g = x.createRadialGradient(C[0], C[1], 0, C[0], C[1], R * 1.05);
+  g.addColorStop(0, 'rgba(4,2,8,.95)'); g.addColorStop(.75, 'rgba(8,4,14,.85)'); g.addColorStop(1, 'rgba(8,4,14,0)');
+  x.save(); x.globalAlpha = alpha; x.fillStyle = g; x.beginPath(); x.arc(C[0], C[1], R * 1.05, 0, 7); x.fill(); x.restore();
+}
+const luna = document.createElement('canvas'); luna.width = luna.height = 260;
+(() => { const l = luna.getContext('2d'); l.fillStyle = '#efeaff'; l.beginPath(); l.arc(130, 130, 74, 0, 7); l.fill();
+  l.globalCompositeOperation = 'destination-out'; l.beginPath(); l.arc(162, 112, 66, 0, 7); l.fill(); })();
+function creciente(alpha, cy) {
+  x.save(); x.globalAlpha = alpha; x.shadowColor = '#c9b8ff'; x.shadowBlur = 40;
+  x.drawImage(luna, C[0] - 130 - 8, cy - 130); x.restore();
+}
+function texto(t, px, py, size, track, alpha, weight = 200, color = '#f4f0ff') {
+  if (alpha <= 0) return;
+  x.save(); x.globalAlpha = alpha; x.font = `${weight} ${size}px "Inter", "Inter Display", sans-serif`;
+  x.letterSpacing = track + 'px'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.shadowColor = 'rgba(200,170,255,.55)'; x.shadowBlur = 18; x.fillStyle = color;
+  x.fillText(t, px + track / 2, py); x.restore();
+}
+
+// ---------- cuadros de las grabaciones ----------
+const cache = new Map();
+function cargar(src) {
+  if (cache.has(src)) return cache.get(src);
+  const pr = new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+  cache.set(src, pr); if (cache.size > 40) cache.delete(cache.keys().next().value); return pr;
+}
+function cuadro(k, u) {
+  if (k === 2) return `${BASE}/s3/still.png`;
+  const n = clamp(Math.floor(u * FPS) + 1, 1, 138);
+  return `${BASE}/s${k + 1}/f_${String(n).padStart(4, '0')}.jpg`;
+}
+function dibujaGrab(im, k, u, extraBlur = 0, dark = 0, alpha = 1) {
+  if (!im) return;
+  const [, , F, z0, z1] = SECCIONES[k];
+  const z = lerp(z0, z1, easeIO(clamp(u / SEC)));
+  const base = Math.max(W / im.width, H / im.height);  // cubrir la pantalla
+  x.save(); x.globalAlpha = alpha;
+  if (extraBlur > .3) x.filter = `blur(${extraBlur.toFixed(1)}px)`;
+  const fx = F[0], fy = F[1];
+  x.translate(fx, fy); x.scale(z, z); x.translate(-fx, -fy);
+  const w = im.width * base, h = im.height * base;
+  x.drawImage(im, (W - w) / 2, (H - h) / 2, w, h);
+  x.restore();
+  if (dark > 0) { x.save(); x.globalAlpha = dark * alpha; x.fillStyle = '#07030d'; x.fillRect(0, 0, W, H); x.restore(); }
+}
+function vineta() {
+  const g = x.createRadialGradient(W / 2, H / 2, H * .45, W / 2, H / 2, H * 1.05);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(6,2,12,.55)');
+  x.fillStyle = g; x.fillRect(0, 0, W, H);
+}
+function marca(alpha) { texto('IMÁGENES REALES  ·  MOONOS BETA', 300, 1040, 19, 5, .5 * alpha, 400, '#e9e3ff'); }
+
+async function seccion(k, u, alpha = 1) {
+  const im = await cargar(cuadro(k, u));
+  const claro = smooth(.75, 1.55, u);
+  dibujaGrab(im, k, u, 20 * (1 - claro), .62 * (1 - claro), alpha);
+  if (alpha < 1) return;
+  vineta();
+  const [tit, sub] = SECCIONES[k];
+  const a = smooth(.05, .45, u) * (1 - smooth(1.05, 1.5, u));
+  texto(tit, W / 2, H / 2 - 26, 104, lerp(38, 22, smooth(0, 1.5, u)), a, 200);
+  const lw = 520 * smooth(.15, .7, u);                    // rayita de neón bajo el título
+  if (a > 0 && lw > 2) { x.save(); x.globalAlpha = a; x.globalCompositeOperation = 'lighter';
+    const g = x.createLinearGradient(W / 2 - lw / 2, 0, W / 2 + lw / 2, 0);
+    g.addColorStop(0, 'rgba(255,138,216,0)'); g.addColorStop(.5, 'rgba(224,123,255,1)'); g.addColorStop(1, 'rgba(157,123,255,0)');
+    x.fillStyle = g; x.shadowColor = '#e07bff'; x.shadowBlur = 16; x.fillRect(W / 2 - lw / 2, H / 2 + 48, lw, 2.5); x.restore(); }
+  texto(sub, W / 2, H / 2 + 100, 34, 3, a * .9, 300, '#e6ddff');
+  marca(smooth(1.2, 1.8, u));
+}
+
+async function render(i) {
+  const t = i / FPS;
+  x.save(); x.clearRect(0, 0, W, H); x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
+  if (t < INTRO) {
+    // ---- intro ----
+    const zoom = 1 + Math.pow(smooth(4.2, 5.0, t), 2) * 5;
+    x.save(); x.translate(C[0], C[1]); x.scale(zoom, zoom); x.translate(-C[0], -C[1]);
+    fondo();
+    nucleo(smooth(1.2, 2.6, t));
+    const p = easeIO(clamp((t - .25) / 3.1));
+    const cab = neon(ORB, ORB_L, Math.max(0, p - .62), p);
+    if (p < .999) punta(cab);
+    creciente(smooth(2.4, 3.3, t), C[1] - 50);
+    texto('MOONOS', C[0], C[1] + 78, 46, lerp(30, 16, smooth(2.6, 4.2, t)), smooth(2.7, 3.5, t), 200);
+    texto('LINUX PARA JUGAR', C[0], C[1] + R + 110, 24, 10, smooth(3.3, 3.9, t) * .75, 300, '#e6ddff');
+    x.restore();
+    x.fillStyle = `rgba(0,0,0,${(1 - smooth(0, .5, t)) + smooth(4.55, 5.0, t)})`; x.fillRect(0, 0, W, H);
+  } else if (t < INTRO + SECCIONES.length * SEC) {
+    // ---- secciones con transición ----
+    const ts = t - INTRO, k = Math.floor(ts / SEC), u = ts - k * SEC;
+    await seccion(k, u);
+    if (k > 0 && u < .3) { const prev = await cargar(cuadro(k - 1, SEC - .01)); dibujaGrab(prev, k - 1, SEC, 0, 0, 1 - smooth(0, .3, u)); }
+    if (k === 0) { x.fillStyle = `rgba(0,0,0,${1 - smooth(0, .45, u)})`; x.fillRect(0, 0, W, H); }
+    const [bp, bl] = BARR[k];                              // barrido de neón al empezar cada sección
+    const q = (u + .1) / .75;
+    if (k > 0 && q > 0 && q < 1.5) { const cab = neon(bp, bl, Math.max(0, q - .45), Math.min(1, q), 1); if (q < 1) punta(cab, .9); }
+  } else {
+    // ---- cierre ----
+    const v = t - INTRO - SECCIONES.length * SEC;
+    fondo(); nucleo(smooth(.3, 1.3, v));
+    const p = easeIO(clamp(v / 1.8));
+    const cab = neon(ORB, ORB_L, Math.max(0, p - .62), p); if (p < .999) punta(cab);
+    creciente(smooth(1.0, 1.8, v), C[1] - 50);
+    texto('MOONOS', C[0], C[1] + 78, 46, lerp(28, 16, smooth(1.2, 2.6, v)), smooth(1.2, 2.0, v), 200);
+    texto('«BETA»   ·   LLEGA EN 2027', C[0], C[1] + R + 105, 26, 9, smooth(2.0, 2.7, v) * .9, 300, '#f1c6ff');
+    texto('síguenos para verlo nacer', C[0], C[1] + R + 160, 26, 4, smooth(2.6, 3.3, v) * .7, 300, '#e6ddff');
+    x.fillStyle = `rgba(0,0,0,${smooth(4.4, 5.0, v)})`; x.fillRect(0, 0, W, H);
+  }
+  x.restore();
+}
+window.render = render;
+window.listo = document.fonts.load('200 60px "Inter"').then(() => document.fonts.load('300 30px "Inter"'));
+</script></body></html>
