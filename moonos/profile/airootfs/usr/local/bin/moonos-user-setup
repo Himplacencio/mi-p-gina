@@ -22,16 +22,28 @@ plasma_js() {
     busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s "$1" >/dev/null 2>&1 || true
 }
 
+# Estilo de inicio por defecto: MoonOS Dock (en «Hazlo tuyo» se puede volver al clásico)
+if [[ -f /usr/share/moonos/estilos/dock.js ]]; then
+    plasma_js "$(cat /usr/share/moonos/estilos/dock.js)"
+fi
+
+# A veces el dock nace sin su lista de apps: se vuelve a poner si quedó vacía
+sleep 3
+plasma_js "
+var APPS = 'preferred://filemanager,preferred://browser,applications:steam.desktop,applications:moonos-tienda.desktop,applications:org.kde.konsole.desktop';
+panels().forEach(function (p) {
+    p.widgets('org.kde.plasma.icontasks').forEach(function (w) {
+        w.currentConfigGroup = ['General'];
+        var l = String(w.readConfig('launchers', ''));
+        if (l.indexOf('moonos-tienda') < 0) { w.writeConfig('launchers', APPS); w.reloadConfig(); }
+    });
+});"
+
 # Fondo: la luna animada si se pidió en el arranque (videos de demostración); si no, la fija
 if grep -q 'moonos.demo=' /proc/cmdline 2>/dev/null; then
     plasma_js "desktops().forEach(function (d) { d.wallpaperPlugin = 'org.moonos.lunaanimada'; d.currentConfigGroup = ['Wallpaper', 'org.moonos.lunaanimada', 'General']; });"
 else
     plasma-apply-wallpaperimage /usr/share/wallpapers/MoonOS/contents/images/1920x1080.png >/dev/null 2>&1 || true
-fi
-
-# Estilo de inicio por defecto: MoonOS Dock (en «Hazlo tuyo» se puede volver al clásico)
-if [[ -f /usr/share/moonos/estilos/dock.js ]]; then
-    plasma_js "$(cat /usr/share/moonos/estilos/dock.js)"
 fi
 
 mkdir -p "$(dirname "$flag")"
