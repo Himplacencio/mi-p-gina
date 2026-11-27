@@ -16,6 +16,8 @@ done
 sleep 2
 
 plasma-apply-lookandfeel -a org.kde.breezedark.desktop >/dev/null 2>&1 || true
+# Pantalla de carga propia de MoonOS (el tema de arriba pone la de KDE)
+kwriteconfig6 --file ksplashrc --group KSplash --key Theme org.moonos.splash >/dev/null 2>&1 || true
 plasma-apply-colorscheme MoonOS >/dev/null 2>&1 || true
 
 plasma_js() {

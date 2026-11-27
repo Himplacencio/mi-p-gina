@@ -280,8 +280,8 @@ class Bienvenida(QMainWindow):
         for b in (osc, cla):
             b.setCheckable(True); g.addButton(b)
         osc.setChecked(True)
-        osc.clicked.connect(lambda: (run("plasma-apply-lookandfeel", "-a", "org.kde.breezedark.desktop"), self.notify("Tema oscuro")))
-        cla.clicked.connect(lambda: (run("plasma-apply-lookandfeel", "-a", "org.kde.breeze.desktop"), self.notify("Tema claro")))
+        osc.clicked.connect(lambda: (run("plasma-apply-lookandfeel", "-a", "org.kde.breezedark.desktop", detached=False), splash_moonos(), self.notify("Tema oscuro")))
+        cla.clicked.connect(lambda: (run("plasma-apply-lookandfeel", "-a", "org.kde.breeze.desktop", detached=False), splash_moonos(), self.notify("Tema claro")))
         c.lay.addWidget(row(osc, cla))
         v.addWidget(c)
 
@@ -461,6 +461,11 @@ class Bienvenida(QMainWindow):
             c.lay.addWidget(row(b))
         v.addWidget(c); v.addStretch(1)
         return w
+
+
+def splash_moonos():
+    """Al cambiar de tema, KDE vuelve a su pantalla de carga: se deja la de MoonOS."""
+    run("kwriteconfig6", "--file", "ksplashrc", "--group", "KSplash", "--key", "Theme", "org.moonos.splash", detached=False)
 
 
 def main():

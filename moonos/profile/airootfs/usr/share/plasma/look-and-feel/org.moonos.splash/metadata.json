@@ -1,0 +1,12 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [{ "Name": "MoonOS" }],
+        "Description": "Pantalla de carga de MoonOS",
+        "Id": "org.moonos.splash",
+        "License": "GPL-2.0+",
+        "Name": "MoonOS",
+        "Version": "1.0"
+    },
+    "X-Plasma-APIVersion": "2"
+}
