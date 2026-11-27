@@ -10,7 +10,7 @@ on:
         description: 'Cuántos segundos grabar desde que se enciende'
         default: '42'
       modo:
-        description: 'arranque (encendido completo), terminal (fastfetch y free -h) o musica (barra y widget de música)'
+        description: 'arranque (encendido completo), terminal (fastfetch y free -h) musica (barra y widget de música) o recorrido (Bienvenida, Tienda, dock y menú)'
         default: 'arranque'
 
 permissions:
@@ -42,7 +42,7 @@ jobs:
           sudo apt-get install -y -qq qemu-system-x86 xorriso ffmpeg >/dev/null
           ISO="$(ls /tmp/iso/*.iso)"
           EXTRA=""
-          if [ "${{ inputs.modo }}" = "musica" ]; then EXTRA="moonos.demo=musica"; fi
+          case "${{ inputs.modo }}" in musica|recorrido) EXTRA="moonos.demo=${{ inputs.modo }}";; esac
           LABEL="$(xorriso -indev "$ISO" -pvd_info 2>/dev/null | sed -n 's/^Volume Id *: *//p')"
           mkdir -p /tmp/rec
           xorriso -osirrox on -indev "$ISO" \

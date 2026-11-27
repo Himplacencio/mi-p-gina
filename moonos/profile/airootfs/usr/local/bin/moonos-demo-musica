@@ -12,7 +12,7 @@ import sys
 import time
 from pathlib import Path
 
-if "moonos.demo=musica" not in Path("/proc/cmdline").read_text() and "--forzar" not in sys.argv:
+if not any(f"moonos.demo={m}" in Path("/proc/cmdline").read_text() for m in ("musica", "recorrido")) and "--forzar" not in sys.argv:
     sys.exit(0)
 
 from PyQt6.QtCore import QCoreApplication, QObject, QTimer, pyqtClassInfo, pyqtProperty, pyqtSlot

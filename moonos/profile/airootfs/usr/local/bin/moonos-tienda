@@ -444,6 +444,15 @@ def main():
     app.setDesktopFileName("moonos-tienda")
     app.setStyleSheet(STYLE)
     w = Tienda(); w.show()
+    try:
+        recorrido = "moonos.demo=recorrido" in Path("/proc/cmdline").read_text()
+    except OSError:
+        recorrido = False
+    if recorrido:  # grabación de demostración: muestra los comandos y se cierra
+        def comandos():
+            w.navs.button(len(CATALOGO) + 2).setChecked(True); w.show_category("💻  Comandos")
+        QTimer.singleShot(8000, comandos)
+        QTimer.singleShot(17000, app.quit)
     if os.environ.get("MOONOS_SHOT"):
         def shot():
             w.grab().save(os.environ["MOONOS_SHOT"] + "-todas.png")

@@ -11,6 +11,8 @@ Modos:
             «free -h» tecla por tecla; solo graba esa parte
   musica    con el reproductor de demostración: graba la barra de vidrio y
             el widget de música, y usa las teclas multimedia
+  recorrido con «moonos.demo=recorrido»: la Bienvenida pasa sola por sus
+            páginas y abre la Tienda (Comandos); luego el escritorio y el menú
 
 Uso: grabar-arranque.py <socket-monitor> <carpeta-salida> <segundos> [modo]
 """
@@ -74,6 +76,10 @@ elif mode == "musica":
     rec_from = 84.0
     actions = [(92.0, "audionext"), (98.0, "audioplay"), (101.0, "audioplay"), (105.0, "audioprev")]
     total = max(total, 110.0)
+elif mode == "recorrido":
+    rec_from = 70.0
+    total = max(total, 140.0)
+    actions = [(total - 12, "meta_l"), (total - 5, "esc")]
 else:
     rec_from = 0.0
     actions = [(total - 9, "meta_l"), (total - 4, "esc")]  # abrir y cerrar el menú al final
