@@ -75,8 +75,8 @@ NOTAS = [
 ]
 END = SHOTS[-1][1]
 TOP = 230          # dónde van los textos
-CY = 1010          # centro vertical de la grabación
-FW = 1000          # ancho de la grabación en el video
+CY = 1075          # centro vertical de la grabación
+FW = 1040          # ancho de la grabación en el video (casi toda la pantalla)
 
 
 def run(*a):
@@ -112,8 +112,8 @@ parts = []
 for i, (a, z, src, ss, (x, y, cw, ch), z0, z1) in enumerate(SHOTS):
     d = z - a
     n = max(1, round(d * FPS))
-    fh = min(1240, round(FW * ch / cw / 2) * 2)
-    fw = FW if fh < 1240 else round(1240 * cw / ch / 2) * 2
+    fh = min(1300, round(FW * ch / cw / 2) * 2)
+    fw = FW if fh < 1300 else round(1300 * cw / ch / 2) * 2
     img = src.endswith('.png')
     inp = (['-loop', '1', '-framerate', str(FPS), '-t', f'{d:.3f}', '-i', src] if img
            else ['-ss', f'{ss:.3f}', '-t', f'{d + 0.2:.3f}', '-i', src])
@@ -138,7 +138,7 @@ for i, (a, z, _) in enumerate(CAPTIONS):
     last, k = f'c{i}', k + 1
 for i, (a, z, _) in enumerate(NOTAS):
     inputs += ['-i', f'{TMP}/nota{i}.png']
-    fc.append(f"[{last}][{k}:v]overlay=(W-w)/2:1700:enable='between(t,{a},{z - 0.001})'[n{i}]")
+    fc.append(f"[{last}][{k}:v]overlay=(W-w)/2:1770:enable='between(t,{a},{z - 0.001})'[n{i}]")
     last, k = f'n{i}', k + 1
 fc[-1] = fc[-1].rsplit('[', 1)[0] + '[out]'
 run('ffmpeg', '-v', 'error', '-y', *inputs, '-i', VOZ, '-filter_complex', ';'.join(fc),
