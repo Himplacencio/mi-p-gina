@@ -182,6 +182,19 @@ td.rec { color: var(--moonlight); }
 pre.cmd { margin: 0; font-family: var(--font-mono); font-size: 0.82rem; padding: 12px 14px; border-radius: 8px; background: var(--sky); border: 1px solid var(--line); overflow-x: auto; color: var(--ink-soft); }
 .small { font-size: 0.88rem; color: var(--ink-faint); }
 
+/* Support */
+.support { position: relative; overflow: hidden; border-radius: 20px; border: 1px solid rgba(244, 236, 208, 0.22); background: radial-gradient(ellipse 70% 120% at 100% 0%, rgba(244, 236, 208, 0.12), transparent 60%), var(--card); padding: 40px; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 36px; align-items: center; }
+.support h2 { margin: 10px 0 14px; }
+.support p { color: var(--ink-soft); max-width: 56ch; }
+.support-actions { display: grid; gap: 12px; justify-items: start; }
+.btn-moon { background: var(--moonlight); color: #2a2110; }
+.btn-moon:hover { background: #fff6dc; transform: translateY(-1px); }
+.btn[aria-disabled="true"] { opacity: .55; pointer-events: none; }
+.funds { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; font-size: 0.92rem; color: var(--ink-soft); }
+.funds li { display: flex; gap: 10px; }
+.funds li::before { content: "☾"; color: var(--moonlight); }
+.nav-links a.donate-link { color: var(--moonlight); }
+
 /* FAQ */
 .faq { display: grid; gap: 10px; max-width: 820px; }
 details { border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 0 20px; }
@@ -199,7 +212,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: 
 footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
 
 @media (max-width: 900px) {
-  .hero .wrap, .dl { grid-template-columns: minmax(0, 1fr); }
+  .hero .wrap, .dl, .support { grid-template-columns: minmax(0, 1fr); }
   .screen { transform: none; }
   .big-moon { width: 280px; top: -110px; right: -90px; opacity: .3; }
   .moon-glow { width: 520px; right: -170px; top: -200px; }
@@ -212,7 +225,7 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
   .nav-links a:not(.btn) { display: none; }
   .features, .steps { grid-template-columns: minmax(0, 1fr); }
   section { padding-block: 52px; }
-  .dl { padding: 22px; }
+  .dl, .support { padding: 22px; }
   .hero { padding-top: 36px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -233,6 +246,7 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
       <a href="#caracteristicas">Características</a>
       <a href="#requisitos">Requisitos</a>
       <a href="#instalar">Instalar</a>
+      <a class="donate-link" href="#apoyar">Apoyar</a>
       <a class="btn btn-primary btn-small" href="#descargar">Descargar</a>
     </nav>
   </div>
@@ -381,6 +395,7 @@ gamemode is active</pre></div>
           <div class="parts" id="dl-buttons">
             <a class="btn btn-primary" id="dl-main" href="https://github.com/Himplacencio/mi-p-gina/releases/latest" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Ver versiones en GitHub</a>
           </div>
+          <p class="small">MoonOS es gratis. Si te gusta, puedes <a href="#apoyar">apoyar el proyecto</a>.</p>
           <p class="small" id="dl-note">Las descargas se publican en GitHub Releases. Son gratuitas y no necesitas cuenta.</p>
         </div>
         <div class="verify">
@@ -401,6 +416,27 @@ gamemode is active</pre></div>
     </div>
   </section>
 
+  <section id="apoyar">
+    <div class="wrap">
+      <div class="support">
+        <div>
+          <span class="eyebrow" style="color:var(--moonlight)">Apoya el proyecto</span>
+          <h2>MoonOS es gratis y lo seguirá siendo</h2>
+          <p>No hay versión de pago ni anuncios: la descarga es la misma para todos. Si MoonOS te sirve, una donación ayuda a dedicarle más horas.</p>
+        </div>
+        <div class="support-actions">
+          <a class="btn btn-moon" data-donate href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.4.7-1.2 2.2-2.4 4.3-2.4 3.7 0 5.8 3.8 4.3 7.2C19.5 16.4 12 21 12 21z"/></svg><span data-donate-label>Donar</span></a>
+          <ul class="funds">
+            <li>Probarlo en más PCs y tarjetas gráficas</li>
+            <li>Corregir errores y sacar nuevas versiones</li>
+            <li>Mantener la página y las descargas</li>
+          </ul>
+          <p class="small" id="donate-note">Donar es voluntario y puedes elegir la cantidad.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="preguntas">
     <div class="wrap">
       <div class="section-head">
@@ -408,7 +444,7 @@ gamemode is active</pre></div>
         <h2>Antes de instalar</h2>
       </div>
       <div class="faq">
-        <details><summary>¿MoonOS es gratis?</summary><p>Sí. MoonOS y todos sus programas son software libre. Algunos juegos y Steam tienen sus propias condiciones.</p></details>
+        <details><summary>¿MoonOS es gratis?</summary><p>Sí, y lo seguirá siendo. MoonOS y sus programas son software libre (algunos juegos y Steam tienen sus propias condiciones). Si quieres apoyar el proyecto, puedes hacer una donación voluntaria.</p></details>
         <details><summary>¿Puedo instalarlo junto a Windows?</summary><p>Sí. El instalador ofrece “Instalar junto a Windows”: reduce la partición de Windows y al encender el PC eliges qué sistema usar.</p></details>
         <details><summary>¿Funcionan mis juegos de Windows?</summary><p>Muchos sí, gracias a Proton (en Steam) y a Lutris. Algunos juegos con antitrampas no funcionan en Linux. Consulta tu juego en protondb.com antes de cambiarte.</p></details>
         <details><summary>¿Qué pasa con mi tarjeta NVIDIA antigua?</summary><p>El modo Live usa el driver NVIDIA “open”, que necesita una GTX 16xx o más nueva. Con tarjetas más antiguas el Live puede quedarse en pantalla negra. Una vez instalado, chwd elige el driver correcto.</p></details>
@@ -421,7 +457,7 @@ gamemode is active</pre></div>
 <footer>
   <div class="wrap">
     <div class="moonphase"><canvas id="phase" width="56" height="56" aria-hidden="true"></canvas><span id="phase-text">Fase lunar de hoy</span></div>
-    <p>MoonOS es un proyecto personal basado en Arch Linux y CachyOS. No está afiliado a esos proyectos. Código en <a href="https://github.com/Himplacencio/mi-p-gina/tree/main/moonos" target="_blank" rel="noopener">GitHub</a>.</p>
+    <p>MoonOS es un proyecto personal basado en Arch Linux y CachyOS. No está afiliado a esos proyectos. Código en <a href="https://github.com/Himplacencio/mi-p-gina/tree/main/moonos" target="_blank" rel="noopener">GitHub</a> · <a href="#apoyar">Apoyar MoonOS</a>.</p>
   </div>
 </footer>
 
@@ -429,6 +465,9 @@ gamemode is active</pre></div>
 (() => {
   "use strict";
   const REPO = "Himplacencio/mi-p-gina";
+  /* Enlace de donación: pega aquí tu página de Ko-fi, PayPal.me o GitHub Sponsors */
+  const DONATE_URL = "";
+  const DONATE_NAME = "Ko-fi";
   const $ = id => document.getElementById(id);
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -463,6 +502,19 @@ gamemode is active</pre></div>
     c.ellipse(cx, cy, Math.abs(k) * R, R, 0, Math.PI / 2, -Math.PI / 2, (k > 0) === waxing);
     c.fill();
   })();
+
+  /* Botones de donación */
+  document.querySelectorAll("[data-donate]").forEach(a => {
+    if (DONATE_URL) {
+      a.href = DONATE_URL;
+      a.querySelector("[data-donate-label]").textContent = `Donar con ${DONATE_NAME}`;
+    } else {
+      a.setAttribute("aria-disabled", "true");
+      a.removeAttribute("href");
+      a.querySelector("[data-donate-label]").textContent = "Donaciones: muy pronto";
+    }
+  });
+  if (!DONATE_URL) $("donate-note").textContent = "El enlace para donar se activará muy pronto.";
 
   /* Copiar huella */
   $("copy-sha").addEventListener("click", async () => {
