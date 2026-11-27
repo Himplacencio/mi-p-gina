@@ -34,12 +34,13 @@ dock.height = Math.round(gridUnit * 3.4);
 lanzadores(dock.addWidget('org.kde.plasma.icontasks'));
 try { dock.lengthMode = 'fit'; dock.alignment = 'center'; dock.floating = true; dock.opacity = 'translucent'; } catch (e) {}
 
-// 3) Widgets de vidrio en el escritorio (pantalla principal)
+// 3) Widgets de vidrio en el escritorio (pantalla principal), dejando libre
+//    la columna de iconos de la izquierda (p. ej. «Instalar MoonOS»)
 var d = desktopForScreen(0) || desktops()[0];
 if (d && d.widgets('org.moonos.reloj').length === 0) {
     var g = gridUnit;
-    d.addWidget('org.moonos.reloj', g * 2, g * 3, g * 15, g * 10.5);
-    d.addWidget('org.moonos.luna', g * 18, g * 3, g * 17, g * 10.5);
-    d.addWidget('org.moonos.calendario', g * 2, g * 14.5, g * 33, g * 12);
-    d.addWidget('org.moonos.musica', g * 2, g * 27.5, g * 33, g * 11.5);
+    d.addWidget('org.moonos.reloj', g * 7, g * 3, g * 15, g * 10.5);
+    d.addWidget('org.moonos.luna', g * 23, g * 3, g * 17, g * 10.5);
+    d.addWidget('org.moonos.calendario', g * 7, g * 14.5, g * 33, g * 12);
+    d.addWidget('org.moonos.musica', g * 7, g * 27.5, g * 33, g * 11.5);
 }
