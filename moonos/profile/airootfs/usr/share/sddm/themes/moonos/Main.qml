@@ -177,7 +177,7 @@ Rectangle {
             Text {
                 id: error
                 width: parent.width; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.WordWrap
-                color: "#ffb4c8"; font.pixelSize: 16; text: ""
+                color: "#ffb4c8"; font.pixelSize: 16; text: ""; visible: text !== ""
             }
             Text {
                 width: parent.width; horizontalAlignment: Text.AlignHCenter
