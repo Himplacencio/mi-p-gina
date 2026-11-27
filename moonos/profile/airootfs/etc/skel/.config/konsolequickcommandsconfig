@@ -1,0 +1,57 @@
+# Comandos rápidos de Konsole que trae MoonOS
+# (Konsole → menú Complementos → Mostrar comandos rápidos; doble clic para ejecutar)
+
+[Sistema][Actualizar todo el sistema]
+command=sudo pacman -Syu
+name=Actualizar todo el sistema
+tooltip=Actualiza MoonOS y todos los programas
+
+[Sistema][Actualizar apps de Flathub]
+command=flatpak update
+name=Actualizar apps de Flathub
+tooltip=Actualiza las apps instaladas desde la Tienda
+
+[Sistema][Limpiar paquetes que sobran]
+command=sudo pacman -Rns $(pacman -Qdtq)
+name=Limpiar paquetes que sobran
+tooltip=Borra paquetes huérfanos que ya nadie usa
+
+[Sistema][Liberar espacio de instaladores]
+command=sudo pacman -Sc
+name=Liberar espacio de instaladores
+tooltip=Borra instaladores viejos guardados
+
+[Información][Resumen del sistema]
+command=fastfetch
+name=Resumen del sistema
+tooltip=Muestra MoonOS, kernel, CPU, GPU y RAM
+
+[Información][Ver la RAM]
+command=free -h
+name=Ver la RAM
+tooltip=Cuánta memoria RAM estás usando
+
+[Información][Espacio en disco]
+command=df -h
+name=Espacio en disco
+tooltip=Cuánto espacio libre queda
+
+[Información][Tarjeta gráfica y driver]
+command=lspci -k | grep -A3 -E 'VGA|3D'
+name=Tarjeta gráfica y driver
+tooltip=Tu tarjeta gráfica y el driver que usa
+
+[Información][Qué está usando la CPU]
+command=htop
+name=Qué está usando la CPU
+tooltip=Monitor de procesos (sal con F10)
+
+[Juegos][¿Modo juego activo?]
+command=gamemoded -s
+name=¿Modo juego activo?
+tooltip=Dice si el modo juego está funcionando
+
+[Juegos][Reinstalar drivers de la GPU]
+command=sudo chwd -a
+name=Reinstalar drivers de la GPU
+tooltip=Detecta tu tarjeta e instala los drivers correctos

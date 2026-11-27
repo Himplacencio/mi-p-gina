@@ -8,6 +8,7 @@ administrador y sin riesgo de romper MoonOS). Lo que ya viene en MoonOS
 Con MOONOS_DRY=1 no instala nada (solo para pruebas).
 """
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -16,7 +17,7 @@ from pathlib import Path
 from PyQt6.QtCore import Qt, QProcess, QTimer
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import (QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit,
-                             QMainWindow, QProgressBar, QPushButton, QScrollArea, QVBoxLayout, QWidget)
+                             QInputDialog, QMainWindow, QProgressBar, QPushButton, QScrollArea, QVBoxLayout, QWidget)
 
 DRY = os.environ.get("MOONOS_DRY") == "1"
 LOGO = "/usr/share/pixmaps/moonos.png"
@@ -120,9 +121,19 @@ COMANDOS = {
     ],
 }
 
+# Comandos que no tiene sentido ejecutar con un botón (son atajos, van dentro de Steam
+# o necesitan dos datos y podrían borrar cosas por error)
+NO_EJECUTAR = {"Ctrl+C", "Tab", "↑ (flecha arriba)", "mangohud %command%", "gamemoderun %command%",
+               "cd Carpeta", "cp origen destino", "mv origen destino", "rm archivo"}
+# Palabras del comando que se reemplazan por lo que escriba la persona
+HUECOS = {"nombre": "el nombre", "id.de.la.app": "el ID de la app (ej.: com.spotify.Client)"}
+
 STYLE = """
 * { font-family: 'Noto Sans', sans-serif; color: #eeeaff; }
 #root, QScrollArea, QWidget#page { background: #0f0d26; border: 0; }
+QDialog { background: #15123a; }
+QDialog QLabel { color: #eeeaff; font-size: 14px; }
+QDialog QLineEdit { padding: 8px 10px; font-size: 15px; }
 #side { background: #15123a; border-right: 1px solid #2c2766; }
 #brand { font-size: 20px; font-weight: 800; }
 QPushButton#nav { text-align: left; padding: 10px 14px; border: 0; border-radius: 10px; font-size: 14px; color: #b4aedb; background: transparent; }
@@ -278,7 +289,9 @@ class Tienda(QMainWindow):
         abrir = QPushButton("💻  Abrir la terminal"); abrir.setObjectName("install")
         abrir.clicked.connect(lambda: self.launch("konsole"))
         top = QHBoxLayout(); top.addWidget(abrir); top.addStretch(1); v.addLayout(top)
-        tip = QLabel("Copia un comando, pégalo en la terminal con Ctrl+Shift+V y cambia «nombre» por lo que quieras. "
+        tip = QLabel("Pulsa «▶ Ejecutar» y MoonOS abre la terminal y lo escribe por ti (si hace falta un nombre, te lo pregunta). "
+                     "También puedes copiarlo y pegarlo en la terminal con Ctrl+Shift+V. "
+                     "Dentro de la terminal, el panel «Comandos rápidos» (Ctrl+Shift+F1) los ejecuta con doble clic. "
                      "«sudo» pide tu contraseña porque el comando cambia el sistema; al escribirla no se ven las letras, es normal.")
         tip.setObjectName("muted"); tip.setWordWrap(True); v.addWidget(tip)
         for section, cmds in COMANDOS.items():
@@ -293,10 +306,33 @@ class Tienda(QMainWindow):
                 h.addLayout(col, 1)
                 b = QPushButton("Copiar"); b.clicked.connect(lambda _=False, cmd=cmd, b=b: self.copy(cmd, b))
                 h.addWidget(b, 0, Qt.AlignmentFlag.AlignTop)
+                if cmd not in NO_EJECUTAR:
+                    e = QPushButton("▶  Ejecutar"); e.setObjectName("install")
+                    e.clicked.connect(lambda _=False, cmd=cmd, desc=desc: self.ejecutar(cmd, desc))
+                    h.addWidget(e, 0, Qt.AlignmentFlag.AlignTop)
                 v.addWidget(row)
                 self.cmd_rows.append((row, (cmd + " " + desc + " " + section).lower()))
         v.addStretch(1)
         return host
+
+    def ejecutar(self, cmd, desc):
+        """Abre la terminal y ejecuta el comando; si tiene un hueco («nombre»), primero lo pregunta."""
+        partes = cmd.split(" ")
+        for hueco, que in HUECOS.items():
+            if hueco in partes:
+                d = QInputDialog(self); d.setWindowTitle("Ejecutar comando")
+                d.setLabelText(f"{desc}\n\nEscribe {que}:")
+                d.setOkButtonText("▶  Ejecutar"); d.setCancelButtonText("Cancelar"); d.resize(480, 170)
+                if not d.exec():
+                    return
+                texto = d.textValue().strip()
+                if not texto:
+                    return
+                partes = [shlex.quote(texto) if p == hueco else p for p in partes]
+        final = " ".join(partes)
+        guion = (f"printf '\\033[1;38;2;169;150;255m$ %s\\033[0m\\n' {shlex.quote(final)}; {final}; "
+                 "echo; read -rp 'Listo. Pulsa Enter para cerrar esta ventana… '")
+        self.launch("konsole", "-e", "bash", "-c", guion)
 
     def copy(self, cmd, btn):
         QApplication.clipboard().setText(cmd)
@@ -343,7 +379,7 @@ class Tienda(QMainWindow):
                                        else "Buscar apps…  (ej.: discord, spotify, chrome)")
         self.title.setText("Todas las apps" if cat == "⭐  Todas" else cat.split("  ", 1)[1])
         if comandos:
-            self.lead.setText("Los comandos más usados en MoonOS, explicados. Pulsa «Copiar» y pégalo en la terminal.")
+            self.lead.setText("Los comandos más usados en MoonOS, explicados. Pulsa «▶ Ejecutar» y la terminal lo hace por ti.")
             self.filter_commands()
             return
         if cat == "🔍  Buscar en Flathub":
