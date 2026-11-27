@@ -1,4 +1,4 @@
-[    0.108123] virt/tdx: TDX not supported by the host platform
+[    0.152210] virt/tdx: TDX not supported by the host platform
 :: running early hook [udev]
 Starting systemd-udevd version 262.2-1-arch
 :: running early hook [archiso_pxe_nbd]
@@ -21,7 +21,7 @@ Starting systemd-udevd version 262.2-1-arch
 P+q6E616D65\[18t7[32766;32766H[6n8[!p]104\[0m[?7h[1G[0J
 [0;1;39mWelcome to [0m[38;2;170;150;255mMoonOS[0m[0;1;39m![0m
 
-]3008;start=701f6cf17ec147439e4d88100c909084;user=root;hostname=moonos;machineid=4f791662cfa0443c85f8978bebb499aa;bootid=ff0661b6fb244979950f985877a3d3b0;pid=1;pidfdid=1;comm=systemd;type=boot\[    5.427555] systemd[1]: Failed to preset all unit: Unit /etc/systemd/system/systemd-networkd-wait-online.service is masked
+]3008;start=91168ddbf67549a7952e263cca753916;user=root;hostname=moonos;machineid=7b5f95092b0645908e50c7b1713200ae;bootid=b43fd7afd071402eb164949c71715048;pid=1;pidfdid=1;comm=systemd;type=boot\[    6.772587] systemd[1]: Failed to preset all unit: Unit /etc/systemd/system/systemd-networkd-wait-online.service is masked
 [[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/dirmngr[0m.
 [[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/getty[0m.
 [[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/gpg-agent[0m.
@@ -95,38 +95,37 @@ Starting systemd-udevd version 262.2-1-arch
 [[0;32m  OK  [0m] Reached target [0;1;39mLocal Encrypted Volumes[0m.
          Starting [0;1;39mLoad udev Rules from Credentials[0m...
          Starting [0;1;39mColdplug All udev Devices[0m...
-[[0;32m  OK  [0m] Finished [0;1;39mCreate List of Static Device Nodes[0m.
-         Starting [0;1;39mCreate Static Device Nodes in /dev gracefully[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mRemount Root and Kernel File Systems[0m.
          Starting [0;1;39mLoad/Save OS Random Seed[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mCreate List of Static Device Nodes[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mGenerate Network Units from Kernel Command Line[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mPreparation for Network[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mNetwork Management Resolve Hook Socket[0m.
+         Starting [0;1;39mCreate Static Device Nodes in /dev gracefully[0m...
 [[0;32m  OK  [0m] Mounted [0;1;39mHuge Pages File System[0m.
 [[0;32m  OK  [0m] Mounted [0;1;39mPOSIX Message Queue File System[0m.
 [[0;32m  OK  [0m] Mounted [0;1;39mKernel Debug File System[0m.
 [[0;32m  OK  [0m] Mounted [0;1;39mKernel Trace File System[0m.
 [[0;32m  OK  [0m] Mounted [0;1;39mKernel Configuration File System[0m.
 [[0;32m  OK  [0m] Mounted [0;1;39mFUSE Control File System[0m.
-[[0;32m  OK  [0m] Finished [0;1;39mGenerate Network Units from Kernel Command Line[0m.
-[[0;32m  OK  [0m] Reached target [0;1;39mPreparation for Network[0m.
-[[0;32m  OK  [0m] Listening on [0;1;39mNetwork Management Resolve Hook Socket[0m.
-[[0;32m  OK  [0m] Finished [0;1;39mLoad udev Rules from Credentials[0m.
-[[0;32m  OK  [0m] Started [0;1;39mJournal Service[0m.
-         Starting [0;1;39mFlush Journal to Persistent Storage[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mLoad/Save OS Random Seed[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mLoad udev Rules from Credentials[0m.
 [[0;32m  OK  [0m] Reached target [0;1;39mFirst Boot Complete[0m.
 [[0;32m  OK  [0m] Finished [0;1;39mColdplug All udev Devices[0m.
-[[0;32m  OK  [0m] Finished [0;1;39mFlush Journal to Persistent Storage[0m.
+[[0;32m  OK  [0m] Started [0;1;39mJournal Service[0m.
+         Starting [0;1;39mFlush Journal to Persistent Storage[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mLoad Kernel Modules[0m.
          Starting [0;1;39mApply Kernel Variables[0m...
-         Starting [0;1;39mUser Database Manager[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mFlush Journal to Persistent Storage[0m.
 [[0;32m  OK  [0m] Finished [0;1;39mApply Kernel Variables[0m.
+         Starting [0;1;39mUser Database Manager[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mMonitoring of LVM2 mirror…using dmeventd or progress polling[0m.
 [[0;32m  OK  [0m] Started [0;1;39mUser Database Manager[0m.
          Starting [0;1;39mLoad Kernel Module tun[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mLoad Kernel Module tun[0m.
          Starting [0;1;39mNamespace Resource Manager[0m...
-[[0m[0;31m*     [0m] (1 of 4) A start job is running for…in /dev gracefully (3s / no limit)
-M[K[[0;32m  OK  [0m] Started [0;1;39mNamespace Resource Manager[0m.
-[K[[0;32m  OK  [0m] Finished [0;1;39mCreate Static Device Nodes in /dev gracefully[0m.
+[[0;32m  OK  [0m] Started [0;1;39mNamespace Resource Manager[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mCreate Static Device Nodes in /dev gracefully[0m.
          Starting [0;1;39mCreate System Users[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mCreate System Users[0m.
          Starting [0;1;39mJournal Metrics Report Socket[0m...
@@ -148,19 +147,17 @@ Starting systemd-udevd version 262.2-1-arch
 [[0;32m  OK  [0m] Found device [0;1;39m/dev/zram0[0m.
          Starting [0;1;39mCreate swap on /dev/zram0[0m...
 [[0;32m  OK  [0m] Found device [0;1;39m/dev/ttyS0[0m.
-         Starting [0;1;39mVirtual Console Setup[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mCreate swap on /dev/zram0[0m.
 [[0;32m  OK  [0m] Listening on [0;1;39mLoad/Save RF Kill Switch Status /dev/rfkill Watch[0m.
          Activating swap [0;1;39mCompressed Swap on /dev/zram0[0m...
-[[0;32m  OK  [0m] Activated swap [0;1;39mCompressed Swap on /dev/zram0[0m.
-[[0;32m  OK  [0m] Reached target [0;1;39mSwaps[0m.
-         Starting [0;1;39mUserspace Out-Of-Memory (OOM) Killer[0m...
-[[0;32m  OK  [0m] Started [0;1;39mNetwork Management[0m.
-         Starting [0;1;39mEnable Persistent Storage in systemd-networkd[0m...
-         Mounting [0;1;39mDirectorio temporal /etc/pacman.d/gnupg (solo modo Live)[0m...
-         Mounting [0;1;39mTemporary Directory /tmp[0m...
+         Starting [0;1;39mVirtual Console Setup[0m...
 [[0;32m  OK  [0m] Reached target [0;1;39mVirtual Machines and Containers[0m.
 [[0;32m  OK  [0m] Listening on [0;1;39mDisk Image Download Service Socket[0m.
+[[0;32m  OK  [0m] Activated swap [0;1;39mCompressed Swap on /dev/zram0[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSwaps[0m.
+         Mounting [0;1;39mDirectorio temporal /etc/pacman.d/gnupg (solo modo Live)[0m...
+         Mounting [0;1;39mTemporary Directory /tmp[0m...
+         Starting [0;1;39mUserspace Out-Of-Memory (OOM) Killer[0m...
 [[0;32m  OK  [0m] Mounted [0;1;39mDirectorio temporal /etc/pacman.d/gnupg (solo modo Live)[0m.
 [[0;32m  OK  [0m] Mounted [0;1;39mTemporary Directory /tmp[0m.
 [[0;32m  OK  [0m] Reached target [0;1;39mLocal File Systems[0m.
@@ -172,17 +169,19 @@ Starting systemd-udevd version 262.2-1-arch
          Starting [0;1;39mLoad JSON user/group Records from Credentials[0m...
          Starting [0;1;39mListen Kernel Core Dump Socket[0m...
 [[0;32m  OK  [0m] Started [0;1;39mUserspace Out-Of-Memory (OOM) Killer[0m.
-[[0;32m  OK  [0m] Finished [0;1;39mVirtual Console Setup[0m.
-[[0;32m  OK  [0m] Finished [0;1;39mEnable Persistent Storage in systemd-networkd[0m.
-[[0;32m  OK  [0m] Finished [0;1;39mSave Transient machine-id to Disk[0m.
 [[0;32m  OK  [0m] Finished [0;1;39mLoad JSON user/group Records from Credentials[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mSave Transient machine-id to Disk[0m.
+[[0;32m  OK  [0m] Started [0;1;39mNetwork Management[0m.
+         Starting [0;1;39mEnable Persistent Storage in systemd-networkd[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mEnable Persistent Storage in systemd-networkd[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mVirtual Console Setup[0m.
+[[0;32m  OK  [0m] Started [0;1;39mListen Kernel Core Dump Socket[0m.
+         Starting [0;1;39mKernel Core Pattern Register[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mKernel Core Pattern Register[0m.
 [[0;32m  OK  [0m] Finished [0;1;39mCreate System Files and Directories[0m.
          Starting [0;1;39mRebuild Journal Catalog[0m...
          Starting [0;1;39mRecord System Boot/Shutdown in UTMP[0m...
-[[0;32m  OK  [0m] Started [0;1;39mListen Kernel Core Dump Socket[0m.
 [[0;32m  OK  [0m] Finished [0;1;39mRecord System Boot/Shutdown in UTMP[0m.
-         Starting [0;1;39mKernel Core Pattern Register[0m...
-[[0;32m  OK  [0m] Finished [0;1;39mKernel Core Pattern Register[0m.
 [[0;32m  OK  [0m] Finished [0;1;39mRebuild Journal Catalog[0m.
          Starting [0;1;39mUpdate is Completed[0m...
 [[0;32m  OK  [0m] Finished [0;1;39mUpdate is Completed[0m.
@@ -235,19 +234,12 @@ Starting systemd-udevd version 262.2-1-arch
 [[0;32m  OK  [0m] Started [0;1;39mSimple Desktop Display Manager[0m.
 [[0;32m  OK  [0m] Started [0;1;39mSerial Getty on ttyS0[0m.
 [[0;32m  OK  [0m] Reached target [0;1;39mLogin Prompts[0m.
-[[0;32m  OK  [0m] Finished [0;1;39mInicializa el llavero de pacman (solo modo Live)[0m.
-[[0;32m  OK  [0m] Reached target [0;1;39mMulti-User System[0m.
-         Starting [0;1;39mPower Profiles daemon[0m...
-         Starting [0;1;39mAuthorization Manager[0m...
-[[0;32m  OK  [0m] Started [0;1;39mAuthorization Manager[0m.
-[[0;32m  OK  [0m] Started [0;1;39mPower Profiles daemon[0m.
-[[0;32m  OK  [0m] Reached target [0;1;39mGraphical Interface[0m.
-[!p]104\[0m[?7h[1G[0J7[32766;32766H[6n8[!p]104\[0m[?7h[1G[0J7[32766;32766H[6n8]3008;start=7685aafc19a24d2c85c5acc199a4ba0b;user=root;hostname=moonos;machineid=4f791662cfa0443c85f8978bebb499aa;bootid=ff0661b6fb244979950f985877a3d3b0;pid=707;pidfdid=299;comm=(agetty);servicename=serial-getty@ttyS0.service;invocationid=e835c2dd1539467cad3461ccd827c105;type=service\P+q6E616D65\
+[!p]104\[0m[?7h[1G[0J7[32766;32766H[6n8[!p]104\[0m[?7h[1G[0J7[32766;32766H[6n8]3008;start=27b09a4df58d4640809a2e248eebfcdf;user=root;hostname=moonos;machineid=7b5f95092b0645908e50c7b1713200ae;bootid=b43fd7afd071402eb164949c71715048;pid=699;pidfdid=4294;comm=(agetty);servicename=serial-getty@ttyS0.service;invocationid=d656d205cec84efb9044582b336fd012;type=service\P+q6E616D65\
 MoonOS 7.3.5-2-cachyos (ttyS0)
 
 moonos login: liveuser
-]3008;start=12319a6949564b129b19b9083897e9a3;user=root;hostname=moonos;machineid=4f791662cfa0443c85f8978bebb499aa;bootid=ff0661b6fb244979950f985877a3d3b0;pid=707;pidfdid=299;comm=login;targetuser=liveuser;sessionid=3;type=session\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[?2004h[liveuser@moonos ~]$ export TERM=dumb PAGER=cat SYSTEMD_PAGER=cat
-[?2004l]3008;start=0d4bd0ef-98ad-4f0d-b7cd-77d49cb37414;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\]3008;end=0d4bd0ef-98ad-4f0d-b7cd-77d49cb37414;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\echo ===MOONOS-TEST-START===
+]3008;start=19e841474b224fe792a132b386532ad5;user=root;hostname=moonos;machineid=7b5f95092b0645908e50c7b1713200ae;bootid=b43fd7afd071402eb164949c71715048;pid=699;pidfdid=4294;comm=login;targetuser=liveuser;sessionid=3;type=session\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[?2004h[liveuser@moonos ~]$ export TERM=dumb PAGER=cat SYSTEMD_PAGER=cat
+[?2004l]3008;start=7aff90f1-22b1-40ba-b569-b0a675a67873;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\]3008;end=7aff90f1-22b1-40ba-b569-b0a675a67873;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\echo ===MOONOS-TEST-START===
 echo '--- Sistema'; grep -E '^(NAME|PRETTY_NAME)=' /etc/os-release; uname -r
 echo '--- Estado de systemd'; systemctl is-system-running
 echo '--- Servicios con error'; systemctl --failed --no-legend --plain || true
@@ -271,22 +263,22 @@ echo '--- Paquetes clave'; pacman -Q linux-cachyos plasma-workspace steam gamemo
 echo '--- Errores del arranque'; sudo journalctl -b -p err --no-pager | tail -40
 echo ===MOONOS-TEST-$((1+1))-END===
 [liveuser@moonos ~]$ echo ===MOONOS-TEST-START===
-]3008;start=c1959516-9079-40b5-8326-ed90bf1d3dd9;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\===MOONOS-TEST-START===
-]3008;end=c1959516-9079-40b5-8326-ed90bf1d3dd9;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <-E '^(NAME|PRETTY_NAME)=' /etc/os-release; uname -r
-]3008;start=4f782e4c-2fec-4324-a064-96c3a4463e68;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Sistema
+]3008;start=1159d178-cb45-4307-8148-d82120ce14ff;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\===MOONOS-TEST-START===
+]3008;end=1159d178-cb45-4307-8148-d82120ce14ff;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <-E '^(NAME|PRETTY_NAME)=' /etc/os-release; uname -r
+]3008;start=db741c5c-eb19-420d-9468-916e56d2035c;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Sistema
 NAME="MoonOS"
 PRETTY_NAME="MoonOS"
 7.3.5-2-cachyos
-]3008;end=4f782e4c-2fec-4324-a064-96c3a4463e68;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <--- Estado de systemd'; systemctl is-system-running
-]3008;start=8155931f-247c-447b-964b-073b01b03fe3;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Estado de systemd
+]3008;end=db741c5c-eb19-420d-9468-916e56d2035c;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <--- Estado de systemd'; systemctl is-system-running
+]3008;start=1853d432-2bbe-4269-8232-7f388016062c;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Estado de systemd
 running
-]3008;end=8155931f-247c-447b-964b-073b01b03fe3;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <or'; systemctl --failed --no-legend --plain || true
-]3008;start=38595387-7da9-47bd-a692-2b6bcdf6547e;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Servicios con error
-]3008;end=38595387-7da9-47bd-a692-2b6bcdf6547e;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <l show-session "$id" -p Name -p Type -p State; done
-]3008;start=e1d53403-d35d-4991-80d5-d76680be4b88;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Sesiones gráficas
-1 1000 liveuser seat0 960 user    tty1  no -
-2 1000 liveuser -     965 manager -     no -
-3 1000 liveuser -     707 user    ttyS0 no -
+]3008;end=1853d432-2bbe-4269-8232-7f388016062c;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <or'; systemctl --failed --no-legend --plain || true
+]3008;start=64c144e4-3acc-4b79-83a8-548834da78ab;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Servicios con error
+]3008;end=64c144e4-3acc-4b79-83a8-548834da78ab;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <l show-session "$id" -p Name -p Type -p State; done
+]3008;start=161316de-050d-4e83-a034-d3c66feb170d;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Sesiones gráficas
+1 1000 liveuser seat0 961 user    tty1  no -
+2 1000 liveuser -     967 manager -     no -
+3 1000 liveuser -     699 user    ttyS0 no -
 Name=liveuser
 Type=wayland
 State=active
@@ -296,122 +288,122 @@ State=active
 Name=liveuser
 Type=tty
 State=active
-]3008;end=e1d53403-d35d-4991-80d5-d76680be4b88;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <lasmashell || echo 'plasmashell NO está corriendo'
-]3008;start=d21f12c4-9e07-4383-8ac0-952ce7ca617e;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Procesos del escritorio
-706 /usr/bin/sddm
-960 /usr/lib/sddm/sddm-helper --socket /tmp/sddm-auth-e624d9af-b119-4b4c-9a84-159144958143 --id 1 --start /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland --user liveuser --autologin
-1018 /usr/bin/kwin_wayland_wrapper --xwayland
-1022 /usr/bin/kwin_wayland --wayland-fd 7 --socket wayland-1 --xwayland-fd 8 --xwayland-fd 9 --xwayland-display :1 --xwayland-initfd 11 --xwayland-init-display :2 --xwayland-xauthority /run/user/1000/xauth_ASQKKQ --xwayland
-1032 /usr/bin/plasmashell --no-respawn
-]3008;end=d21f12c4-9e07-4383-8ac0-952ce7ca617e;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <analyze; systemd-analyze blame --no-pager | head -8
-]3008;start=ecd3d1fa-d7d2-4da2-9a17-878aa6c3658d;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Tiempo de arranque
-Startup finished in 2.157s (kernel) + 13.498s (userspace) = 15.655s 
-graphical.target reached after 13.496s in userspace.
-4.903s pacman-init.service
-4.132s dev-sr0.device
-3.717s dev-loop0.device
-3.099s systemd-tmpfiles-setup-dev-early.service
-2.583s systemd-nsresourced.service
-2.201s moonos-live-setup.service
-1.907s NetworkManager.service
-1.435s udisks2.service
-]3008;end=ecd3d1fa-d7d2-4da2-9a17-878aa6c3658d;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ < systemd-analyze --user blame --no-pager | head -12
-]3008;start=e113898c-8274-407d-97cb-673c7f52dbee;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Diagnóstico pantalla negra
-[    5.995828] moonos systemd[1]: Failed to preset all unit: Unit /etc/systemd/system/systemd-networkd-wait-online.service is masked
-[    5.996389] moonos kernel: clocksource: Watchdog remote CPU 2 read timed out
-[    9.862255] moonos (udev-worker)[528]: cfg80211: Process '/usr/bin/set-wireless-regdom' failed with exit code 1.
-[   12.336469] moonos NetworkManager[613]: <info>  [1795810248.6336] dhcp4 (ens2): activation: beginning transaction (timeout in 45 seconds)
-[   12.664767] moonos audit[1]: SERVICE_START pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=sddm comm="systemd" exe="/usr/lib/systemd/systemd" hostname=? addr=? terminal=? res=success'
-[   13.358142] moonos sddm[706]: Initializing...
-[   13.360966] moonos sddm[706]: Starting...
-[   13.361317] moonos sddm[706]: Logind interface found
-[   13.363440] moonos sddm[706]: Adding new display...
-[   13.363593] moonos sddm[706]: Loaded empty theme configuration
-[   13.364837] moonos sddm[706]: Xauthority path: "/run/sddm/xauth_CRoCvT"
-[   13.364884] moonos sddm[706]: Using VT 2
-[   13.364897] moonos sddm[706]: Display server starting...
-[   13.364901] moonos sddm[706]: Writing cookie to "/run/sddm/xauth_CRoCvT"
-[   13.364940] moonos sddm[706]: Running: /usr/bin/X -nolisten tcp -background none -seat seat0 vt2 -auth /run/sddm/xauth_CRoCvT -noreset -displayfd 16
-[   15.526715] moonos polkitd[932]: Started polkitd version 128
-[   15.648768] moonos audit[1]: SERVICE_START pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=polkit comm="systemd" exe="/usr/lib/systemd/systemd" hostname=? addr=? terminal=? res=success'
-[   19.183911] moonos sddm[706]: Setting default cursor
-[   19.185729] moonos sddm[706]: Could not setup default cursor
-[   19.185745] moonos sddm[706]: Running display setup script  "/usr/share/sddm/scripts/Xsetup"
-[   19.199145] moonos sddm[706]: Display server started.
-[   19.200542] moonos sddm[706]: Reading from "/usr/local/share/wayland-sessions/plasma.desktop"
-[   19.200564] moonos sddm[706]: Reading from "/usr/share/wayland-sessions/plasma.desktop"
-[   19.213325] moonos sddm[706]: Session "/usr/share/wayland-sessions/plasma.desktop" selected, command: "/usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland" for VT 1
-[   19.396624] moonos sddm-helper[960]: [PAM] Starting...
-[   19.396643] moonos sddm-helper[960]: [PAM] Authenticating...
-[   19.397825] moonos sddm-helper[960]: pam_kwallet5(sddm-autologin:auth): pam_kwallet5: pam_sm_authenticate
-[   19.397845] moonos sddm-helper[960]: pam_kwallet5(sddm-autologin:auth): pam_kwallet5: Couldn't get password (it is empty)
-[   19.397850] moonos sddm-helper[960]: [PAM] Preparing to converse...
-[   19.397855] moonos sddm-helper[960]: [PAM] Conversation with 1 messages
-[   19.398461] moonos sddm-helper[960]: pam_kwallet5(sddm-autologin:auth): pam_kwallet5: Empty or missing password, doing nothing
-[   19.397768] moonos audit[960]: USER_AUTH pid=960 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:authentication grantors=pam_faillock,pam_shells,pam_permit acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
-[   19.398539] moonos sddm-helper[960]: [PAM] returning.
-[   19.399163] moonos kernel: audit: type=1100 audit(1795810256.179:154): pid=960 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:authentication grantors=pam_faillock,pam_shells,pam_permit acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
-[   19.427768] moonos audit[960]: USER_ACCT pid=960 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting grantors=pam_access,pam_unix,pam_permit,pam_time acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
-[   19.428831] moonos sddm[706]: Authentication for user  "liveuser"  successful
-[   19.429038] moonos kernel: audit: type=1101 audit(1795810256.209:155): pid=960 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting grantors=pam_access,pam_unix,pam_permit,pam_time acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
-[   19.438733] moonos sddm-helper[960]: pam_kwallet5(sddm-autologin:setcred): pam_kwallet5: pam_sm_setcred
-[   19.437768] moonos audit[960]: CRED_ACQ pid=960 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred grantors=pam_faillock,pam_shells,pam_permit acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
-[   19.437767] moonos audit[960]: SYSCALL arch=c000003e syscall=1 success=yes exit=4 a0=f a1=7ffdb06daa00 a2=4 a3=0 items=0 ppid=706 pid=960 auid=1000 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=1 comm="sddm-helper" exe="/usr/lib/sddm/sddm-helper" key=(null)
-[   19.439065] moonos kernel: audit: type=1103 audit(1795810256.219:156): pid=960 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred grantors=pam_faillock,pam_shells,pam_permit acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
-[   19.439088] moonos kernel: audit: type=1300 audit(1795810256.219:157): arch=c000003e syscall=1 success=yes exit=4 a0=f a1=7ffdb06daa00 a2=4 a3=0 items=0 ppid=706 pid=960 auid=1000 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=1 comm="sddm-helper" exe="/usr/lib/sddm/sddm-helper" key=(null)
-[   19.442135] moonos sddm-helper[960]: pam_unix(sddm-autologin:session): session opened for user liveuser(uid=1000) by liveuser(uid=0)
-[   19.524768] moonos audit[965]: CRED_ACQ pid=965 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred grantors=? acct="liveuser" exe="/usr/lib/systemd/systemd-executor" hostname=? addr=? terminal=? res=failed'
-[   19.526055] moonos kernel: audit: type=1103 audit(1795810256.306:160): pid=965 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred grantors=? acct="liveuser" exe="/usr/lib/systemd/systemd-executor" hostname=? addr=? terminal=? res=failed'
-[   19.701646] moonos sddm-helper[960]: pam_kwallet5(sddm-autologin:session): pam_kwallet5: pam_sm_open_session
-[   19.701678] moonos sddm-helper[960]: pam_kwallet5(sddm-autologin:session): pam_kwallet5: open_session called without kwallet5_key
-[   19.700768] moonos audit[960]: USER_START pid=960 uid=0 auid=1000 ses=1 msg='op=PAM:session_open grantors=pam_loginuid,pam_keyinit,pam_systemd_home,pam_limits,pam_unix,pam_permit,pam_lastlog2,pam_mail,pam_umask,pam_systemd,pam_env acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=moonos addr=? terminal=/dev/tty1 res=success'
-[   19.701786] moonos sddm-helper[960]: Starting Wayland user session: "/usr/share/sddm/scripts/wayland-session" "/usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
-[   19.702480] moonos sddm-helper[979]: Jumping to VT 1
-[   19.702516] moonos sddm-helper[979]: VT mode didn't need to be fixed
-[   19.725183] moonos sddm[706]: Session started true
-[   20.930286] moonos dbus-broker-launch[1006]: Service file '/usr/share//dbus-1/services/org.kde.plasma.Notifications.service' is not named after the D-Bus name 'org.freedesktop.Notifications'.
-[   20.936698] moonos systemd[965]: Reload requested from client PID 979 ('startplasma-way')...
-[   21.097077] moonos systemd[965]: Started Unlock kwallet from pam credentials.
-[   22.238267] moonos systemd[965]: Starting KDE Plasma Workspace...
-[   22.839048] moonos kwin_wayland[1022]: No backend specified, automatically choosing drm
-[   24.013604] moonos kwin_wayland_wrapper[1022]: MESA: info: could not get caps: Función no implementada
-[   24.013604] moonos kwin_wayland_wrapper[1022]: MESA: error: vdrm_device_connect failed
-[   24.013604] moonos kwin_wayland_wrapper[1022]: radv/amdgpu: failed to initialize device.
+]3008;end=161316de-050d-4e83-a034-d3c66feb170d;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <lasmashell || echo 'plasmashell NO está corriendo'
+]3008;start=56a40a1d-f39a-4354-8b5b-5e6b92dc76cb;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Procesos del escritorio
+698 /usr/bin/sddm
+961 /usr/lib/sddm/sddm-helper --socket /tmp/sddm-auth-e29595d6-7707-44e4-8e34-1503803e8bb3 --id 1 --start /usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland --user liveuser --autologin
+1020 /usr/bin/kwin_wayland_wrapper --xwayland
+1024 /usr/bin/kwin_wayland --wayland-fd 7 --socket wayland-1 --xwayland-fd 8 --xwayland-fd 9 --xwayland-display :1 --xwayland-initfd 11 --xwayland-init-display :2 --xwayland-xauthority /run/user/1000/xauth_UCISlA --xwayland
+1053 /usr/bin/plasmashell --no-respawn
+]3008;end=56a40a1d-f39a-4354-8b5b-5e6b92dc76cb;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <analyze; systemd-analyze blame --no-pager | head -8
+]3008;start=d2dae738-9def-40c8-a68d-b0bd7968c188;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Tiempo de arranque
+Startup finished in 2.666s (kernel) + 19.811s (userspace) = 22.477s 
+graphical.target reached after 19.810s in userspace.
+10.367s pacman-init.service
+ 3.633s dev-sr0.device
+ 3.258s dev-loop0.device
+ 2.805s moonos-live-setup.service
+ 2.449s NetworkManager.service
+ 2.410s systemd-tmpfiles-setup-dev-early.service
+ 2.297s udisks2.service
+ 1.744s systemd-nsresourced.service
+]3008;end=d2dae738-9def-40c8-a68d-b0bd7968c188;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ < systemd-analyze --user blame --no-pager | head -12
+]3008;start=96111b2d-0bc7-4053-ac2e-bcd7342b31de;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Diagnóstico pantalla negra
+[    7.575805] moonos kernel: clocksource: Watchdog remote CPU 1 read timed out
+[    7.575843] moonos systemd[1]: Failed to preset all unit: Unit /etc/systemd/system/systemd-networkd-wait-online.service is masked
+[   10.887616] moonos (udev-worker)[520]: cfg80211: Process '/usr/bin/set-wireless-regdom' failed with exit code 1.
+[   14.245474] moonos NetworkManager[614]: <info>  [1795817945.5054] dhcp4 (ens2): activation: beginning transaction (timeout in 45 seconds)
+[   14.670973] moonos audit[1]: SERVICE_START pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=sddm comm="systemd" exe="/usr/lib/systemd/systemd" hostname=? addr=? terminal=? res=success'
+[   15.663007] moonos sddm[698]: Initializing...
+[   15.666821] moonos sddm[698]: Starting...
+[   15.667089] moonos sddm[698]: Logind interface found
+[   15.668575] moonos sddm[698]: Adding new display...
+[   15.668755] moonos sddm[698]: Loaded empty theme configuration
+[   15.669574] moonos sddm[698]: Xauthority path: "/run/sddm/xauth_LNYZxG"
+[   15.669648] moonos sddm[698]: Using VT 2
+[   15.669665] moonos sddm[698]: Display server starting...
+[   15.669671] moonos sddm[698]: Writing cookie to "/run/sddm/xauth_LNYZxG"
+[   15.669727] moonos sddm[698]: Running: /usr/bin/X -nolisten tcp -background none -seat seat0 vt2 -auth /run/sddm/xauth_LNYZxG -noreset -displayfd 16
+[   22.347196] moonos polkitd[933]: Started polkitd version 128
+[   22.472973] moonos audit[1]: SERVICE_START pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=polkit comm="systemd" exe="/usr/lib/systemd/systemd" hostname=? addr=? terminal=? res=success'
+[   22.475053] moonos kernel: audit: type=1130 audit(1795817953.733:150): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=polkit comm="systemd" exe="/usr/lib/systemd/systemd" hostname=? addr=? terminal=? res=success'
+[   24.116742] moonos sddm[698]: Setting default cursor
+[   24.118634] moonos sddm[698]: Could not setup default cursor
+[   24.118661] moonos sddm[698]: Running display setup script  "/usr/share/sddm/scripts/Xsetup"
+[   24.138132] moonos sddm[698]: Display server started.
+[   24.139963] moonos sddm[698]: Reading from "/usr/local/share/wayland-sessions/plasma.desktop"
+[   24.139992] moonos sddm[698]: Reading from "/usr/share/wayland-sessions/plasma.desktop"
+[   24.159680] moonos sddm[698]: Session "/usr/share/wayland-sessions/plasma.desktop" selected, command: "/usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland" for VT 1
+[   24.424847] moonos sddm-helper[961]: [PAM] Starting...
+[   24.424889] moonos sddm-helper[961]: [PAM] Authenticating...
+[   24.426498] moonos sddm-helper[961]: pam_kwallet5(sddm-autologin:auth): pam_kwallet5: pam_sm_authenticate
+[   24.426529] moonos sddm-helper[961]: pam_kwallet5(sddm-autologin:auth): pam_kwallet5: Couldn't get password (it is empty)
+[   24.426543] moonos sddm-helper[961]: [PAM] Preparing to converse...
+[   24.426550] moonos sddm-helper[961]: [PAM] Conversation with 1 messages
+[   24.427532] moonos sddm-helper[961]: pam_kwallet5(sddm-autologin:auth): pam_kwallet5: Empty or missing password, doing nothing
+[   24.425973] moonos audit[961]: USER_AUTH pid=961 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:authentication grantors=pam_faillock,pam_shells,pam_permit acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
+[   24.427639] moonos sddm-helper[961]: [PAM] returning.
+[   24.428066] moonos kernel: audit: type=1100 audit(1795817955.686:153): pid=961 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:authentication grantors=pam_faillock,pam_shells,pam_permit acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
+[   24.468973] moonos audit[961]: USER_ACCT pid=961 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting grantors=pam_access,pam_unix,pam_permit,pam_time acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
+[   24.470757] moonos sddm[698]: Authentication for user  "liveuser"  successful
+[   24.471059] moonos kernel: audit: type=1101 audit(1795817955.729:154): pid=961 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting grantors=pam_access,pam_unix,pam_permit,pam_time acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
+[   24.484635] moonos sddm-helper[961]: pam_kwallet5(sddm-autologin:setcred): pam_kwallet5: pam_sm_setcred
+[   24.482973] moonos audit[961]: CRED_ACQ pid=961 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred grantors=pam_faillock,pam_shells,pam_permit acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=? addr=? terminal=? res=success'
+[   24.482973] moonos audit[961]: SYSCALL arch=c000003e syscall=1 success=yes exit=4 a0=f a1=7fff16c34fa0 a2=4 a3=0 items=0 ppid=698 pid=961 auid=1000 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=1 comm="sddm-helper" exe="/usr/lib/sddm/sddm-helper" key=(null)
+[   24.488682] moonos sddm-helper[961]: pam_unix(sddm-autologin:session): session opened for user liveuser(uid=1000) by liveuser(uid=0)
+[   24.595973] moonos audit[967]: CRED_ACQ pid=967 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred grantors=? acct="liveuser" exe="/usr/lib/systemd/systemd-executor" hostname=? addr=? terminal=? res=failed'
+[   24.822754] moonos sddm-helper[961]: pam_kwallet5(sddm-autologin:session): pam_kwallet5: pam_sm_open_session
+[   24.822790] moonos sddm-helper[961]: pam_kwallet5(sddm-autologin:session): pam_kwallet5: open_session called without kwallet5_key
+[   24.820973] moonos audit[961]: USER_START pid=961 uid=0 auid=1000 ses=1 msg='op=PAM:session_open grantors=pam_loginuid,pam_keyinit,pam_systemd_home,pam_limits,pam_unix,pam_permit,pam_lastlog2,pam_mail,pam_umask,pam_systemd,pam_env acct="liveuser" exe="/usr/lib/sddm/sddm-helper" hostname=moonos addr=? terminal=/dev/tty1 res=success'
+[   24.822925] moonos sddm-helper[961]: Starting Wayland user session: "/usr/share/sddm/scripts/wayland-session" "/usr/lib/plasma-dbus-run-session-if-needed /usr/bin/startplasma-wayland"
+[   24.823838] moonos sddm-helper[981]: Jumping to VT 1
+[   24.823883] moonos sddm-helper[981]: VT mode didn't need to be fixed
+[   24.857695] moonos sddm[698]: Session started true
+[   26.545392] moonos dbus-broker-launch[1008]: Service file '/usr/share//dbus-1/services/org.kde.plasma.Notifications.service' is not named after the D-Bus name 'org.freedesktop.Notifications'.
+[   26.553843] moonos systemd[967]: Reload requested from client PID 981 ('startplasma-way')...
+[   26.755878] moonos systemd[967]: Started Unlock kwallet from pam credentials.
+[   28.469139] moonos systemd[967]: Starting KDE Plasma Workspace...
+[   29.337276] moonos kwin_wayland[1024]: No backend specified, automatically choosing drm
+[   30.918900] moonos kwin_wayland_wrapper[1024]: MESA: info: could not get caps: Función no implementada
+[   30.918900] moonos kwin_wayland_wrapper[1024]: MESA: error: vdrm_device_connect failed
+[   30.918900] moonos kwin_wayland_wrapper[1024]: radv/amdgpu: failed to initialize device.
+[   30.919316] moonos kwin_wayland_wrapper[1024]: MESA: info: could not get caps: Función no implementada
+[   30.919204] moonos kwin_wayland[1024]: querying vulkan devices failed: "ErrorInitializationFailed"
   UNIT LOAD ACTIVE SUB DESCRIPTION
 
 0 loaded units listed.
-7.612s plasma-kded6.service
-7.320s xdg-desktop-portal.service
-6.473s plasma-plasmashell.service
-5.444s xdg-desktop-portal-gtk.service
-3.263s plasma-powerdevil.service
-1.408s plasma-kactivitymanagerd.service
-1.142s plasma-ksmserver.service
- 922ms plasma-polkit-agent.service
- 316ms plasma-startupsound.service
- 290ms at-spi-dbus-bus.service
- 268ms kde-baloo.service
- 235ms plasma-xdg-desktop-portal-kde.service
-]3008;end=e113898c-8274-407d-97cb-673c7f52dbee;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <; ls /usr/share/plasma/wallpapers/ | grep -i moonos
-]3008;start=dbe58707-53e3-419a-be7f-bc9331c484a9;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Bienvenida y fondo animado
+11.519s plasma-kded6.service
+10.818s xdg-desktop-portal.service
+ 8.958s plasma-plasmashell.service
+ 7.950s xdg-desktop-portal-gtk.service
+ 4.200s plasma-powerdevil.service
+ 1.713s plasma-ksmserver.service
+ 1.348s plasma-kactivitymanagerd.service
+  655ms plasma-polkit-agent.service
+  528ms xdg-document-portal.service
+  503ms plasma-xdg-desktop-portal-kde.service
+  410ms plasma-startupsound.service
+  335ms at-spi-dbus-bus.service
+]3008;end=96111b2d-0bc7-4053-ac2e-bcd7342b31de;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <; ls /usr/share/plasma/wallpapers/ | grep -i moonos
+]3008;start=da34ea32-4bb2-4919-a103-7b736b336bb1;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Bienvenida y fondo animado
 1209 python3 /usr/local/bin/moonos-bienvenida
 org.moonos.lunaanimada
-]3008;end=dbe58707-53e3-419a-be7f-bc9331c484a9;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <n(w){return w.type})})))' 2>&1 | head -c 1500; echo
-]3008;start=ec099c33-4988-4725-9610-38235bc9d13b;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Paneles de Plasma
+]3008;end=da34ea32-4bb2-4919-a103-7b736b336bb1;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <n(w){return w.type})})))' 2>&1 | head -c 1500; echo
+]3008;start=d6024d13-35b4-4a3a-b1c8-13f9b31c1f1a;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Paneles de Plasma
 /home/liveuser/.config/moonos-user-setup-done
 s "[{\"lugar\":\"top\",\"alto\":31,\"flota\":false,\"widgets\":[\"org.kde.plasma.kickoff\",\"org.kde.plasma.appmenu\",\"org.kde.plasma.panelspacer\",\"org.kde.plasma.digitalclock\",\"org.kde.plasma.panelspacer\",\"org.moonos.musica\",\"org.kde.plasma.systemtray\"]},{\"lugar\":\"bottom\",\"alto\":61,\"flota\":true,\"widgets\":[\"org.kde.plasma.icontasks\"]}][[\"org.moonos.reloj\",\"org.moonos.luna\",\"org.moonos.calendario\",\"org.moonos.musica\"]]"
 
-]3008;end=ec099c33-4988-4725-9610-38235bc9d13b;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <shell.*(error|warn).*(panel|script|qml)' | tail -15
-]3008;start=22377eea-1e04-44b3-8fc5-bdab85b71064;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\]3008;end=22377eea-1e04-44b3-8fc5-bdab85b71064;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ pkill -f moonos-bienvenida; sleep 3
-]3008;start=22be4252-7354-4bd0-b50e-665ae1aeb942;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\]3008;end=22be4252-7354-4bd0-b50e-665ae1aeb942;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <int(JSON.stringify(o))})' 2>&1 | head -c 2500; echo
-]3008;start=d2d18ec9-c43c-476d-a7a2-9b6d311d1c60;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Detalle de paneles
+]3008;end=d6024d13-35b4-4a3a-b1c8-13f9b31c1f1a;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <shell.*(error|warn).*(panel|script|qml)' | tail -15
+]3008;start=0bd8e522-63bb-4c01-b2f3-5e56cdf6fa0d;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\]3008;end=0bd8e522-63bb-4c01-b2f3-5e56cdf6fa0d;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ pkill -f moonos-bienvenida; sleep 3
+]3008;start=8d178cab-68b8-4d18-9c94-bc2e54821978;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\]3008;end=8d178cab-68b8-4d18-9c94-bc2e54821978;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <int(JSON.stringify(o))})' 2>&1 | head -c 2500; echo
+]3008;start=6cd9a50b-7100-4fe9-9024-75dce4b0c315;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Detalle de paneles
 s "{\"lugar\":\"top\",\"alto\":31,\"hiding\":\"none\",\"largo\":\"fill\",\"alin\":\"center\",\"flota\":false,\"opac\":\"translucent\",\"min\":1280,\"max\":1280,\"len\":1280,\"off\":0,\"pantalla\":0}DOCK-ANCHO=361 {\"lugar\":\"bottom\",\"alto\":61,\"hiding\":\"none\",\"largo\":\"fit\",\"alin\":\"center\",\"flota\":true,\"opac\":\"translucent\",\"min\":1280,\"max\":1280,\"len\":361,\"off\":0,\"pantalla\":0,\"launchers\":\"preferred://filemanager,preferred://browser,applications:steam.desktop,applications:moonos-tienda.desktop,applications:org.kde.konsole.desktop\",\"geom\":\"{\\\"x\\\":16,\\\"y\\\":8,\\\"width\\\":345,\\\"height\\\":61}\"}"
 
-]3008;end=d2d18ec9-c43c-476d-a7a2-9b6d311d1c60;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <asks|launcher' | grep -viE 'kf.svg|icon' | tail -30
-]3008;start=b649aff7-f9bb-43ac-98e0-40c5e3b48f63;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- plasmashell en el journal
+]3008;end=6cd9a50b-7100-4fe9-9024-75dce4b0c315;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <asks|launcher' | grep -viE 'kf.svg|icon' | tail -30
+]3008;start=50874bfc-3393-40dd-8ea0-314bfe28c769;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- plasmashell en el journal
 Created slice User Background Tasks Slice.
-]3008;end=b649aff7-f9bb-43ac-98e0-40c5e3b48f63;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <ager -o cat 2>/dev/null | grep -i ksplash | tail -8
-]3008;start=e95134ed-91a6-4220-8c6d-0dc004bd021e;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Pantalla de carga
+]3008;end=50874bfc-3393-40dd-8ea0-314bfe28c769;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <ager -o cat 2>/dev/null | grep -i ksplash | tail -8
+]3008;start=6547083e-e84e-4428-83f2-721088fca52a;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Pantalla de carga
 [KSplash]
 Theme=org.moonos.splash
 [KSplash]
@@ -421,9 +413,9 @@ Theme=org.moonos.splash
 [01;34morg.kde.breeze.desktop[0m      [01;34morg.moonos.splash[0m
 Created slice Slice /app/dbus-:1.2-org.kde.KSplash.
 Started dbus-:1.2-org.kde.KSplash@0.service.
-plasma-ksplash.service: Consumed 6.073s CPU time over 23.623s wall clock time, 199.2M memory peak.
-]3008;end=e95134ed-91a6-4220-8c6d-0dc004bd021e;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <- fastfetch'; fastfetch --pipe true 2>&1 | head -30
-]3008;start=bfda5ece-d767-46c6-bc7a-30cddd6a2b89;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- fastfetch
+plasma-ksplash.service: Consumed 11.255s CPU time over 35.930s wall clock time, 194.8M memory peak.
+]3008;end=6547083e-e84e-4428-83f2-721088fca52a;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <- fastfetch'; fastfetch --pipe true 2>&1 | head -30
+]3008;start=3ad79d57-7892-4e5d-9107-e5ca1cf80e18;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- fastfetch
          .:=*####*=:.              liveuser@moonos
       .=#%%%%%%%%%#=.              ---------------
     .*%%%%%%%%%%%*:                OS: MoonOS x86_64
@@ -433,9 +425,9 @@ plasma-ksplash.service: Consumed 6.073s CPU time over 23.623s wall clock time, 1
  #%%%%%%%%%%%%.                    Shell: bash 5.3.20
  #%%%%%%%%%%%%:        *           Display (QEMU Monitor): 1280x800 in 15", 75 Hz
  +%%%%%%%%%%%%#.                   Terminal: dumb
- .#%%%%%%%%%%%%%+:          .      CPU: AMD EPYC 9V45 96-Core (4) @ 2.60 GHz
+ .#%%%%%%%%%%%%%+:          .      CPU: Intel(R) Xeon(R) Platinum 8370C (4) @ 2.79 GHz
   :#%%%%%%%%%%%%%%#+=-::-=+#:      GPU: RedHat Virtio 1.0 GPU
-   .+%%%%%%%%%%%%%%%%%%%%%%+       Memory: 1.12 GiB / 3.81 GiB (29%)
+   .+%%%%%%%%%%%%%%%%%%%%%%+       Memory: 1.13 GiB / 3.81 GiB (30%)
      :+#%%%%%%%%%%%%%%%%#+:        Swap: 0 B / 3.81 GiB (0%)
         .:=+*######*+=:.           Disk (/): 45.93 MiB / 256.00 MiB (18%) - overlay
                                    Disk (/run/archiso/bootmnt): 3.05 GiB / 3.05 GiB (100%) - iso9660 [Read-only]
@@ -443,19 +435,19 @@ plasma-ksplash.service: Consumed 6.073s CPU time over 23.623s wall clock time, 1
                                    
                                    [40m   [41m   [42m   [43m   [44m   [45m   [46m   [47m   [m
                                    [5m[100m   [101m   [102m   [103m   [104m   [105m   [106m   [107m   [m
-]3008;end=bfda5ece-d767-46c6-bc7a-30cddd6a2b89;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ echo '--- Memoria (MiB)'; free -m
-]3008;start=375fdbea-a42d-45d3-878a-470bd714148a;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Memoria (MiB)
+]3008;end=3ad79d57-7892-4e5d-9107-e5ca1cf80e18;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ echo '--- Memoria (MiB)'; free -m
+]3008;start=a8922a3f-ba5a-41f4-b69c-57b375bc679d;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Memoria (MiB)
                total       usado       libre  compartido   búf/caché  disponible
-Mem:            3905        1151        1124         100        1946        2753
-Inter:          3904           0        3904
-]3008;end=375fdbea-a42d-45d3-878a-470bd714148a;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <áfica'; lspci -k | grep -A3 -Ei 'vga|3d' | head -8
-]3008;start=db041117-7cc4-403a-b180-53c8aa2dcf53;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Kernel y tarjeta gráfica
+Mem:            3904        1161        1108         102        1954        2743
+Inter:          3903           0        3903
+]3008;end=a8922a3f-ba5a-41f4-b69c-57b375bc679d;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <áfica'; lspci -k | grep -A3 -Ei 'vga|3d' | head -8
+]3008;start=56d2e9a4-d6b2-4aea-a85e-a296007a1a3a;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Kernel y tarjeta gráfica
 00:03.0 VGA compatible controller: Red Hat, Inc. Virtio 1.0 GPU (rev 01)
 	Subsystem: Red Hat, Inc. QEMU
 	Kernel driver in use: virtio-pci
 	Kernel modules: virtio_pci
-]3008;end=db041117-7cc4-403a-b180-53c8aa2dcf53;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <'^Exec' /usr/local/share/applications/steam.desktop
-]3008;start=6212e71b-5ee1-4a1d-9f3e-2fbe3b79bcd2;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Modo juego
+]3008;end=56d2e9a4-d6b2-4aea-a85e-a296007a1a3a;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <'^Exec' /usr/local/share/applications/steam.desktop
+]3008;start=c9523c8f-1aa8-4065-a8a2-66459ba6193c;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Modo juego
 ; Configuración de GameMode generada por MoonOS (moonos-gamemode-config)
 ; Se aplica automáticamente mientras un juego está abierto.
 
@@ -476,7 +468,7 @@ disable_splitlock=1
 
 [custom]
 start=/usr/local/bin/moonos-gamemode start
--rw-r--r-- 1 root root 7794 nov 27 19:54 /usr/local/share/applications/steam.desktop
+-rw-r--r-- 1 root root 7794 nov 27 21:49 /usr/local/share/applications/steam.desktop
 Exec=/usr/bin/gamemoderun /usr/bin/steam %U
 Exec=/usr/bin/gamemoderun /usr/bin/steam steam://store
 Exec=/usr/bin/gamemoderun /usr/bin/steam steam://url/CommunityHome/
@@ -487,8 +479,8 @@ Exec=/usr/bin/gamemoderun /usr/bin/steam steam://openurl/https://store.steampowe
 Exec=/usr/bin/gamemoderun /usr/bin/steam steam://open/settings
 Exec=/usr/bin/gamemoderun /usr/bin/steam steam://open/bigpicture
 Exec=/usr/bin/gamemoderun /usr/bin/steam steam://open/friends
-]3008;end=6212e71b-5ee1-4a1d-9f3e-2fbe3b79bcd2;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ </calamares/modules | head -40; command -v calamares
-]3008;start=1fd9cd61-65d9-4b4e-a5db-6ccaad5fe817;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Instalador
+]3008;end=c9523c8f-1aa8-4065-a8a2-66459ba6193c;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ </calamares/modules | head -40; command -v calamares
+]3008;start=7dda0df6-e407-4af8-872c-c4c1d5eb5059;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Instalador
 /etc/calamares:
 branding
 images
@@ -530,8 +522,8 @@ mount.conf
 netinstall.conf
 netinstall.yaml
 /usr/bin/calamares
-]3008;end=1fd9cd61-65d9-4b4e-a5db-6ccaad5fe817;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <orkspace steam gamemode chwd cachyos-calamares 2>&1
-]3008;start=67de150b-76ae-480c-af8b-c88ab1446262;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Paquetes clave
+]3008;end=7dda0df6-e407-4af8-872c-c4c1d5eb5059;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <orkspace steam gamemode chwd cachyos-calamares 2>&1
+]3008;start=3049d456-9581-48b6-9a6b-63cd6e471d89;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Paquetes clave
 [1;33madvertencia: [0mdatabase file for 'cachyos' does not exist (use '-Sy' to download)
 [?25l[1;33madvertencia: [0mdatabase file for 'core' does not exist (use '-Sy' to download)
 [1;33madvertencia: [0mdatabase file for 'extra' does not exist (use '-Sy' to download)
@@ -542,10 +534,11 @@ netinstall.yaml
 [0;1mgamemode [1;32m1.8.2-3[0m
 [0;1mchwd [1;32m1.25.0-1[0m
 [0;1mcachyos-calamares [1;32m3.4.2-10[0m
-[?25h]3008;end=67de150b-76ae-480c-af8b-c88ab1446262;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ <e'; sudo journalctl -b -p err --no-pager | tail -40
-]3008;start=3285457a-8e33-4454-8fdb-a4bb2886582d;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\--- Errores del arranque
-nov 27 20:10:42 moonos kernel: virt/tdx: TDX not supported by the host platform
-nov 27 20:10:42 moonos systemd[1]: Failed to preset all unit: Unit /etc/systemd/system/systemd-networkd-wait-online.service is masked
-]3008;end=3285457a-8e33-4454-8fdb-a4bb2886582d;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ echo ===MOONOS-TEST-$((1+1))-END===
-]3008;start=ca4f063f-20a9-4169-902d-61f0733411b5;type=command;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\===MOONOS-TEST-2-END===
-]3008;end=ca4f063f-20a9-4169-902d-61f0733411b5;exit=success\]3008;start=b6d376e5-5e34-424e-8df3-2afc588f3604;type=shell;machineid=4f791662cfa0443c85f8978bebb499aa;user=liveuser;hostname=moonos;bootid=ff0661b6-fb24-4979-950f-985877a3d3b0;pid=1038;cwd=/home/liveuser\[liveuser@moonos ~]$ 
+[?25h]3008;end=3049d456-9581-48b6-9a6b-63cd6e471d89;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <e'; sudo journalctl -b -p err --no-pager | tail -40
+]3008;start=568841ee-680a-4914-836c-10f52ec79c80;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\--- Errores del arranque
+nov 27 22:18:58 moonos kernel: virt/tdx: TDX not supported by the host platform
+nov 27 22:18:58 moonos systemd[1]: Failed to preset all unit: Unit /etc/systemd/system/systemd-networkd-wait-online.service is masked
+]3008;end=568841ee-680a-4914-836c-10f52ec79c80;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ echo ===MOONOS-TEST-$((1+1))-END===
+]3008;start=a6a22ce0-bce4-4306-a861-f5fe55b812a8;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\===MOONOS-TEST-2-END===
+]3008;end=a6a22ce0-bce4-4306-a861-f5fe55b812a8;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ <90-live-autologin.conf; sudo systemctl restart sddm
+]3008;start=cf2b42e4-a4ea-4756-8690-7b3a23486186;type=command;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\]3008;end=cf2b42e4-a4ea-4756-8690-7b3a23486186;exit=success\]3008;start=1dc55dd5-3da3-4276-91f0-ef29ac9dda30;type=shell;machineid=7b5f95092b0645908e50c7b1713200ae;user=liveuser;hostname=moonos;bootid=b43fd7af-d071-402e-b164-949c71715048;pid=1033;cwd=/home/liveuser\[liveuser@moonos ~]$ 
