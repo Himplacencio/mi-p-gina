@@ -1,3 +1,3 @@
 Tamaño de la ISO: 3.05 GB (✅ dentro del límite)
 ✅ el escritorio Plasma arrancó
-RAM usada: 1103 MiB (objetivo ≤ 1536 MiB)
+RAM usada: 1102 MiB (objetivo ≤ 1536 MiB)
