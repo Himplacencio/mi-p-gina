@@ -107,7 +107,9 @@ jobs:
           echo "$RES"
           RAM="$(echo "$RES" | awk '/^Mem:/{print $3; exit}')"
           echo "ram_used=${RAM:-?}" >> "$GITHUB_OUTPUT"
-          if echo "$RES" | grep -q '/usr/bin/plasmashell' && echo "$RES" | grep -qE 'org.kde.plasma.(icontasks|taskmanager)'; then echo "desktop=true" >> "$GITHUB_OUTPUT"; D="✅ el escritorio Plasma arrancó con su barra de apps"; else echo "desktop=false" >> "$GITHUB_OUTPUT"; D="❌ el escritorio no arrancó o falta la barra de apps"; fi
+          ANCHO="$(echo "$RES" | grep -oE 'DOCK-ANCHO=[0-9]+ ' | tail -1 | grep -oE '[0-9]+')"
+          echo "Ancho de la barra de apps: ${ANCHO:-?} px"
+          if echo "$RES" | grep -q '/usr/bin/plasmashell' && [ "${ANCHO:-0}" -ge 100 ]; then echo "desktop=true" >> "$GITHUB_OUTPUT"; D="✅ el escritorio Plasma arrancó con su barra de apps"; else echo "desktop=false" >> "$GITHUB_OUTPUT"; D="❌ el escritorio no arrancó o falta la barra de apps"; fi
           { echo "### Prueba en máquina virtual"; echo "- $D"; echo "- RAM usada con el escritorio abierto: ${RAM:-?} MiB (objetivo: ≤ 1536 MiB)"; } | tee -a "$GITHUB_STEP_SUMMARY"
           { echo "Tamaño de la ISO: $(cat /tmp/moonos-size.txt)"; echo "$D"; echo "RAM usada: ${RAM:-?} MiB (objetivo ≤ 1536 MiB)"; } > /tmp/vm/resumen.txt
 

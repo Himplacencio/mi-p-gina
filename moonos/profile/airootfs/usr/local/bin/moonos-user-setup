@@ -3,9 +3,8 @@
 # con el estilo de MoonOS (todo se puede cambiar luego en «Hazlo tuyo»):
 #   - tema oscuro con el esquema de colores «MoonOS» (índigo y lavanda)
 #   - fondo de la luna
-#   - barra de tareas de vidrio (flotante y translúcida, con desenfoque)
-#   - widget «Música en la barra» (aparece solo cuando suena algo)
-#   - estilo «MoonOS Dock»: barra arriba, dock centrado y widgets de vidrio
+#   - estilo «MoonOS Dock»: barra arriba (con música), dock de vidrio centrado
+#     y widgets de vidrio en el escritorio
 flag="${XDG_CONFIG_HOME:-$HOME/.config}/moonos-user-setup-done"
 [[ -e "$flag" ]] && exit 0
 
@@ -29,36 +28,6 @@ if grep -q 'moonos.demo=' /proc/cmdline 2>/dev/null; then
 else
     plasma-apply-wallpaperimage /usr/share/wallpapers/MoonOS/contents/images/1920x1080.png >/dev/null 2>&1 || true
 fi
-
-# Barra de vidrio + widget de música (antes de la bandeja del sistema y el reloj)
-plasma_js "
-panels().forEach(function (p) {
-    try { p.floating = true; } catch (e) {}
-    try { p.opacity = 'translucent'; } catch (e) {}
-    p.widgets().forEach(function (w) {
-        if (w.type !== 'org.kde.plasma.icontasks' && w.type !== 'org.kde.plasma.taskmanager') return;
-        try {
-            w.currentConfigGroup = ['General'];
-            var l = w.readConfig('launchers', '');
-            var lista = (typeof l === 'string') ? (l ? l.split(',') : []) : (l || []);
-            if (lista.length === 0) lista = ['preferred://filemanager', 'preferred://browser'];
-            if (lista.indexOf('applications:moonos-tienda.desktop') < 0) {
-                lista.push('applications:moonos-tienda.desktop');
-                w.writeConfig('launchers', lista);
-            }
-        } catch (e) {}
-    });
-    if (p.widgets('org.moonos.musica').length === 0) {
-        var finales = ['org.kde.plasma.marginsseparator', 'org.kde.plasma.systemtray',
-                       'org.kde.plasma.digitalclock', 'org.kde.plasma.showdesktop'];
-        var mover = [];
-        p.widgets().forEach(function (w) {
-            if (finales.indexOf(w.type) >= 0) { mover.push(w.type); w.remove(); }
-        });
-        p.addWidget('org.moonos.musica');
-        mover.forEach(function (t) { p.addWidget(t); });
-    }
-});"
 
 # Estilo de inicio por defecto: MoonOS Dock (en «Hazlo tuyo» se puede volver al clásico)
 if [[ -f /usr/share/moonos/estilos/dock.js ]]; then

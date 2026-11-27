@@ -403,14 +403,8 @@ class Bienvenida(QMainWindow):
 
     def musica_en_barra(self, on):
         if on:
-            plasma_script("""panels().forEach(p => {
-                if (p.widgets('org.moonos.musica').length) return;
-                const finales = ['org.kde.plasma.marginsseparator', 'org.kde.plasma.systemtray', 'org.kde.plasma.digitalclock', 'org.kde.plasma.showdesktop'];
-                const mover = [];
-                p.widgets().forEach(w => { if (finales.includes(w.type)) { mover.push(w.type); w.remove(); } });
-                p.addWidget('org.moonos.musica');
-                mover.forEach(t => p.addWidget(t));
-            })""")
+            # Solo se agrega (quitar y volver a poner widgets dejaba la barra invisible)
+            plasma_script("panels().forEach(p => { if (p.location === 'top' || p.widgets('org.kde.plasma.systemtray').length) { if (!p.widgets('org.moonos.musica').length) p.addWidget('org.moonos.musica'); } })")
             self.notify("Música en la barra activada")
         else:
             plasma_script("panels().forEach(p => p.widgets('org.moonos.musica').forEach(w => w.remove()))")
