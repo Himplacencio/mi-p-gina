@@ -1,0 +1,10 @@
+# Configuración de GitHub Pages (Jekyll).
+# Las carpetas de construcción de MoonOS no forman parte de la web
+# (además, sus enlaces simbólicos internos hacen fallar a Jekyll).
+exclude:
+  - moonos/profile
+  - moonos/build.sh
+  - moonos/out
+  - moonos/marketing
+  - moonos/test-results
+  - .github
