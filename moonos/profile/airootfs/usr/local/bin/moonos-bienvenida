@@ -464,6 +464,12 @@ class Bienvenida(QMainWindow):
 
 
 def main():
+    # En las grabaciones de demostración (moonos.demo=musica) no se abre sola
+    try:
+        if "moonos.demo=musica" in Path("/proc/cmdline").read_text() and "--siempre" not in sys.argv:
+            return 0
+    except OSError:
+        pass
     if not is_live() and (CONF / "no-bienvenida").exists() and "--siempre" not in sys.argv:
         return 0
     app = QApplication(sys.argv)

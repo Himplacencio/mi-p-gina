@@ -8,6 +8,7 @@ function lanzadores(tareas) {
     try {
         tareas.currentConfigGroup = ['General'];
         tareas.writeConfig('launchers', APPS.join(','));
+        tareas.reloadConfig();
     } catch (e) {}
 }
 

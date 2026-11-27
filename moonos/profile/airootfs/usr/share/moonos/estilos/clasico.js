@@ -16,7 +16,7 @@ p.height = Math.round(gridUnit * 2.6);
 var menu = p.addWidget('org.kde.plasma.kickoff');
 try { menu.currentConfigGroup = ['General']; menu.writeConfig('icon', '/usr/share/pixmaps/moonos.png'); } catch (e) {}
 var tareas = p.addWidget('org.kde.plasma.icontasks');
-try { tareas.currentConfigGroup = ['General']; tareas.writeConfig('launchers', APPS.join(',')); } catch (e) {}
+try { tareas.currentConfigGroup = ['General']; tareas.writeConfig('launchers', APPS.join(',')); tareas.reloadConfig(); } catch (e) {}
 p.addWidget('org.kde.plasma.marginsseparator');
 p.addWidget('org.moonos.musica');
 p.addWidget('org.kde.plasma.systemtray');
