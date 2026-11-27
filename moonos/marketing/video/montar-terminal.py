@@ -20,7 +20,7 @@ SHOTS = [
     (0.0, 4.5, 0, 0, 1920, 1080),        # pantalla completa: se abre la terminal
     (4.5, 10.6, 0, 70, 520, 230),        # zoom: se escribe «fastfetch»
     (10.6, 15.6, 578, 176, 520, 326),    # zoom: Kernel … Memory
-    (15.6, 23.5, 0, 652, 470, 82),       # zoom: free -h
+    (15.6, 23.9, 0, 652, 470, 82),       # zoom: free -h
 ]
 # Resaltado (x, y, w, h en coordenadas de la grabación) por plano
 HIGHLIGHT = {2: (582, 474, 330, 24), 3: (262, 676, 74, 44)}
@@ -28,8 +28,8 @@ CAPTIONS = [
     (0.0, 4.5, 'mi sistema operativo usa<br>poquísima ram, mira 👀'),
     (4.5, 10.6, 'abro la terminal y escribo fastfetch'),
     (10.6, 15.6, '1,15 gb con el escritorio abierto 🪶'),
-    (15.6, 19.5, 'y free -h lo confirma ✅'),
-    (19.5, 23.5, '¿cuánta usa tu pc<br>sin abrir nada? 👇'),
+    (15.6, 19.4, 'y free -h lo confirma ✅'),
+    (19.4, 23.9, '¿cuánta usa tu pc<br>sin abrir nada? 👇'),
 ]
 END = SHOTS[-1][1]
 VY = 600  # dónde empieza la grabación en el video vertical
