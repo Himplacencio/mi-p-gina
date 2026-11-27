@@ -1,0 +1,8 @@
+#!/bin/bash
+# MoonOS: crea un acceso a Steam que lo abre con GameMode, para que
+# todos los juegos de Steam usen el modo juego sin configurar nada.
+src=/usr/share/applications/steam.desktop
+dst=/usr/local/share/applications/steam.desktop
+[[ -f "$src" ]] || exit 0
+mkdir -p "$(dirname "$dst")"
+sed -E 's#^Exec=(/usr/bin/)?steam#Exec=/usr/bin/gamemoderun /usr/bin/steam#' "$src" > "$dst"

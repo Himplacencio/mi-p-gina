@@ -9,6 +9,21 @@
 - **Instalador gráfico (Calamares)** con sistema de archivos Btrfs y compresión zstd.
 - **AUR y Flatpak:** `paru` y `flatpak` preinstalados.
 
+## Modo juego automático
+
+Cuando abres un juego, MoonOS pone todo el equipo a su servicio, y lo devuelve a la normalidad al cerrarlo:
+
+- **CPU al máximo:** GameMode cambia el gobernador de la CPU y el perfil de energía a "rendimiento".
+- **Prioridad para el juego:** el juego recibe más prioridad de CPU y de disco que cualquier otro programa.
+- **GPU AMD al máximo:** en tarjetas AMD, la GPU se fija en su frecuencia más alta. MoonOS detecta la tarjeta al arrancar y lo configura solo.
+- **Tareas de fondo en pausa:** el indexador de archivos de KDE (Baloo) se detiene mientras juegas.
+- **Sin interrupciones:** no salta el protector de pantalla.
+- **Steam ya viene configurado:** su acceso directo lo abre con `gamemoderun`, así que todos tus juegos de Steam usan el modo juego sin tocar nada. En Lutris, GameMode viene activado de serie.
+
+Al activarse y desactivarse verás una notificación. Para comprobarlo en la terminal: `gamemoded -s`.
+
+A esto se suman el kernel de CachyOS (planificador BORE, optimizado para baja latencia) y los ajustes del sistema de `cachyos-settings`.
+
 ## Cómo conseguir la ISO
 
 La ISO se construye automáticamente en GitHub cada vez que cambia algo en esta carpeta:

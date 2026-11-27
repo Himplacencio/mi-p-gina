@@ -50,6 +50,10 @@ log "Máquina virtual: $virt"
 [[ "$virt" == oracle ]] || remove_pkgs virtualbox-guest-utils
 [[ "$virt" == kvm || "$virt" == qemu ]] || remove_pkgs qemu-guest-agent spice-vdagent
 
+log "Configurando el modo juego (GameMode)"
+/usr/local/bin/moonos-gamemode-config || true
+/usr/local/bin/moonos-steam-gamemode || true
+
 log "Intentando configurar drivers ahora (si hay internet)"
 /usr/local/bin/moonos-drivers --install || true
 

@@ -117,6 +117,8 @@ steam
 lutris
 gamemode
 lib32-gamemode
+power-profiles-daemon
+libnotify
 mangohud
 lib32-mangohud
 gamescope

@@ -1,0 +1,11 @@
+# Mantiene el acceso de Steam con GameMode cuando Steam se actualiza
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = steam
+
+[Action]
+Description = Configurando Steam para usar el modo juego de MoonOS...
+When = PostTransaction
+Exec = /usr/local/bin/moonos-steam-gamemode

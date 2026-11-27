@@ -1,0 +1,30 @@
+#!/bin/bash
+# MoonOS: modo juego. GameMode ejecuta este script (como tu usuario)
+# al abrir un juego ("start") y al cerrarlo ("end").
+state="${XDG_RUNTIME_DIR:-/tmp}/moonos-gamemode.prev"
+icon=/usr/share/pixmaps/moonos.png
+
+case "$1" in
+start)
+    # Perfil de energía al máximo (guarda el anterior para restaurarlo)
+    if command -v powerprofilesctl >/dev/null; then
+        powerprofilesctl get > "$state" 2>/dev/null
+        powerprofilesctl set performance 2>/dev/null
+    fi
+    # Pausa el indexador de archivos de KDE para que no use disco ni CPU
+    command -v balooctl6 >/dev/null && balooctl6 suspend >/dev/null 2>&1
+    notify-send -a MoonOS -i "$icon" "Modo juego activado" \
+        "CPU y GPU al máximo, tareas de fondo en pausa." 2>/dev/null
+    ;;
+end)
+    if command -v powerprofilesctl >/dev/null; then
+        prev="$(cat "$state" 2>/dev/null)"
+        powerprofilesctl set "${prev:-balanced}" 2>/dev/null
+        rm -f "$state"
+    fi
+    command -v balooctl6 >/dev/null && balooctl6 resume >/dev/null 2>&1
+    notify-send -a MoonOS -i "$icon" "Modo juego desactivado" \
+        "El sistema vuelve al modo normal." 2>/dev/null
+    ;;
+esac
+exit 0

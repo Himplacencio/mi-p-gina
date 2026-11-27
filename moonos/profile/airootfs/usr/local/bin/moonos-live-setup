@@ -4,7 +4,7 @@
 set -u
 
 if ! id liveuser &>/dev/null; then
-    useradd -m -G wheel,audio,video,storage,optical,input -s /bin/bash -c "MoonOS Live" liveuser
+    useradd -m -G wheel,audio,video,storage,optical,input,gamemode -s /bin/bash -c "MoonOS Live" liveuser
 fi
 passwd -d liveuser >/dev/null
 
@@ -19,6 +19,9 @@ User=liveuser
 Session=plasma
 Relogin=false
 CONF
+
+# Modo juego adaptado a la tarjeta gráfica de este equipo
+/usr/local/bin/moonos-gamemode-config || true
 
 # Configuración del instalador (solo existe en el modo Live)
 mkdir -p /etc/calamares

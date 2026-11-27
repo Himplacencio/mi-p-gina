@@ -1,0 +1,42 @@
+#!/bin/bash
+# MoonOS: escribe /etc/gamemode.ini adaptado a la tarjeta gráfica del equipo.
+# Lo llaman el modo Live al arrancar y el instalador.
+set -u
+gpu=""
+for card in /sys/class/drm/card*; do
+    [[ "$card" =~ card[0-9]+$ ]] || continue
+    drv="$(basename "$(readlink -f "$card/device/driver")" 2>/dev/null)"
+    if [[ "$drv" == amdgpu ]]; then
+        # AMD: GameMode puede subir la GPU a su frecuencia máxima
+        gpu="apply_gpu_optimisations=accept-responsibility
+gpu_device=${card##*card}
+amd_performance_level=high"
+        break
+    fi
+done
+
+cat > /etc/gamemode.ini <<CONF
+; Configuración de GameMode generada por MoonOS (moonos-gamemode-config)
+; Se aplica automáticamente mientras un juego está abierto.
+
+[general]
+; Prioridad de CPU y disco para el juego
+renice=10
+ioprio=0
+softrealtime=auto
+; La CPU a máxima frecuencia
+desiredgov=performance
+desiredprof=performance
+; Sin protector de pantalla mientras juegas
+inhibit_screensaver=1
+disable_splitlock=1
+
+[gpu]
+${gpu}
+
+[custom]
+start=/usr/local/bin/moonos-gamemode start
+end=/usr/local/bin/moonos-gamemode end
+timeout=10
+CONF
+echo "gamemode.ini escrito${gpu:+ (con optimización de GPU AMD)}"
