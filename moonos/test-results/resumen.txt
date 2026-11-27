@@ -1,0 +1,3 @@
+Tamaño de la ISO: 3.05 GB (✅ dentro del límite)
+❌ el escritorio no arrancó
+RAM usada: ? MiB (objetivo ≤ 1536 MiB)

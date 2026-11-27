@@ -1,0 +1,198 @@
+[    0.121198] virt/tdx: TDX not supported by the host platform
+:: running early hook [udev]
+Starting systemd-udevd version 262.2-1-arch
+:: running early hook [archiso_pxe_nbd]
+:: running hook [udev]
+:: Triggering uevents...
+:: running hook [memdisk]
+:: running hook [archiso]
+:: running hook [archiso_loop_mnt]
+:: running hook [archiso_pxe_common]
+:: running hook [archiso_pxe_nbd]
+:: running hook [archiso_pxe_http]
+:: running hook [archiso_pxe_nfs]
+:: Mounting '/dev/disk/by-label/MOONOS_202611' to '/run/archiso/bootmnt'
+:: Device '/dev/disk/by-label/MOONOS_202611' mounted successfully.
+:: Mounting /run/archiso/cowspace (tmpfs) filesystem, size=256M...
+:: Mounting '/dev/loop0' to '/run/archiso/airootfs'
+:: Device '/dev/loop0' mounted successfully.
+:: running late hook [archiso_pxe_common]
+:: running cleanup hook [udev]
+P+q6E616D65\[18t7[32766;32766H[6n8[!p]104\[0m[?7h[1G[0J
+[0;1;39mWelcome to [0m[38;2;170;150;255mMoonOS[0m[0;1;39m![0m
+
+]3008;start=8889a5f7718c4aee9d9364b571e407eb;user=root;hostname=moonos;machineid=fe5b8c0f14804183bfa55fba3f8650f1;bootid=eeb39f4adeb94aa4b668b854301eef94;pid=1;pidfdid=1;comm=systemd;type=boot\[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/dirmngr[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/getty[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/gpg-agent[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/gpg-agent-browser[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/gpg-agent-extra[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/gpg-agent-ssh[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/keyboxd[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/modprobe[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/serial-getty[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mSlice /system/systemd-zram-setup[0m.
+[[0;32m  OK  [0m] Created slice [0;1;39mUser and Session Slice[0m.
+[[0;32m  OK  [0m] Started [0;1;39mDispatch Password Requests to Console Directory Watch[0m.
+[[0;32m  OK  [0m] Started [0;1;39mForward Password Requests to Wall Directory Watch[0m.
+[[0;32m  OK  [0m] Set up automount [0;1;39mArbitrary Executa…ormats File System Automount Point[0m.
+         Expecting device [0;1;39m/dev/ttyS0[0m...
+         Expecting device [0;1;39m/dev/zram0[0m...
+[[0;32m  OK  [0m] Reached target [0;1;39mLocal dm-clone Devices[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mImage Downloads[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mLocal Integrity Protected Volumes[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mRemote Encrypted Volumes[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mRemote File Systems[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mRemote Integrity Protected Volumes[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mRemote Verity Protected Volumes[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSlice Units[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mLocal Verity Protected Volumes[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mDevice-mapper event daemon FIFOs[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mLVM2 poll daemon socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mQuery the User Interactively for a Password[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mProcess Core Dump Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mCredential Encryption/Decryption[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mDisk Encryption Enrollment Service Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mFactory Reset Management[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mHostname Service Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mJournal Audit Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mJournal Socket (/dev/log)[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mJournal Sockets[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mDDI File System Mounter Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mConsole Output Muting Service Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mNetwork Management Metrics Varlink Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mNetwork Management Varlink Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mNetwork Management Netlink Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mNamespace Resource Manager Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mUserspace Out-Of-Memory (OOM) Killer Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mDisk Repartitioning Service Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mReport System Basic Metrics Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mCGroup Report Varlink Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mReport Files Metrics Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mReport Signing Socket (Local Software Key)[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSystem Report Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mResolve Monitor Varlink Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mResolve Service Varlink Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSimple Block Device Backed Storage Provider[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSimple File System Backed Storage Provider[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSystem Install Tool[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSystem Updates[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mudev Kernel Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mudev Varlink Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mUser Database Manager Socket[0m.
+         Mounting [0;1;39mHuge Pages File System[0m...
+         Mounting [0;1;39mPOSIX Message Queue File System[0m...
+         Mounting [0;1;39mKernel Debug File System[0m...
+         Mounting [0;1;39mKernel Trace File System[0m...
+         Starting [0;1;39mCreate List of Static Device Nodes[0m...
+         Starting [0;1;39mMonitoring of LVM2 mirror…ing dmeventd or progress polling[0m...
+         Mounting [0;1;39mKernel Configuration File System[0m...
+         Mounting [0;1;39mFUSE Control File System[0m...
+         Starting [0;1;39mJournal Service[0m...
+         Starting [0;1;39mLoad Kernel Modules[0m...
+         Starting [0;1;39mGenerate Network Units from Kernel Command Line[0m...
+         Starting [0;1;39mRemount Root and Kernel File Systems[0m...
+[[0;32m  OK  [0m] Reached target [0;1;39mLocal Encrypted Volumes[0m.
+         Starting [0;1;39mLoad udev Rules from Credentials[0m...
+         Starting [0;1;39mColdplug All udev Devices[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mCreate List of Static Device Nodes[0m.
+         Starting [0;1;39mCreate Static Device Nodes in /dev gracefully[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mRemount Root and Kernel File Systems[0m.
+         Starting [0;1;39mLoad/Save OS Random Seed[0m...
+[[0;32m  OK  [0m] Mounted [0;1;39mHuge Pages File System[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39mPOSIX Message Queue File System[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39mKernel Debug File System[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39mKernel Trace File System[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39mKernel Configuration File System[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39mFUSE Control File System[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mGenerate Network Units from Kernel Command Line[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mLoad udev Rules from Credentials[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mPreparation for Network[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mNetwork Management Resolve Hook Socket[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mColdplug All udev Devices[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mLoad/Save OS Random Seed[0m.
+[[0;32m  OK  [0m] Started [0;1;39mJournal Service[0m.
+         Starting [0;1;39mFlush Journal to Persistent Storage[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mLoad Kernel Modules[0m.
+         Starting [0;1;39mApply Kernel Variables[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mFlush Journal to Persistent Storage[0m.
+         Starting [0;1;39mUser Database Manager[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mApply Kernel Variables[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mMonitoring of LVM2 mirror…using dmeventd or progress polling[0m.
+[[0;32m  OK  [0m] Started [0;1;39mUser Database Manager[0m.
+         Starting [0;1;39mLoad Kernel Module tun[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mLoad Kernel Module tun[0m.
+         Starting [0;1;39mNamespace Resource Manager[0m...
+[[0m[0;31m*     [0m] (1 of 4) A start job is running for /dev/ttyS0 (3s / 1min 30s)
+M[K[[0;32m  OK  [0m] Started [0;1;39mNamespace Resource Manager[0m.
+[K[[0;32m  OK  [0m] Finished [0;1;39mCreate Static Device Nodes in /dev gracefully[0m.
+         Starting [0;1;39mCreate System Users[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mCreate System Users[0m.
+         Starting [0;1;39mJournal Metrics Report Socket[0m...
+         Starting [0;1;39mJournal Log Access Socket[0m...
+         Starting [0;1;39mNetwork Name Resolution[0m...
+         Starting [0;1;39mCreate Static Device Nodes in /dev[0m...
+[[0;32m  OK  [0m] Listening on [0;1;39mJournal Log Access Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mJournal Metrics Report Socket[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mCreate Static Device Nodes in /dev[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mPreparation for Local File Systems[0m.
+         Starting [0;1;39mRule-based Manager for Device Events and Files[0m...
+[[0;32m  OK  [0m] Started [0;1;39mNetwork Name Resolution[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mHost and Network Name Lookups[0m.
+         Starting [0;1;39mNetwork Time Synchronization[0m...
+[[0;32m  OK  [0m] Started [0;1;39mNetwork Time Synchronization[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSystem Time Set[0m.
+[[0;32m  OK  [0m] Started [0;1;39mRule-based Manager for Device Events and Files[0m.
+         Starting [0;1;39mNetwork Management[0m...
+[[0;32m  OK  [0m] Found device [0;1;39m/dev/zram0[0m.
+         Starting [0;1;39mCreate swap on /dev/zram0[0m...
+[[0;32m  OK  [0m] Found device [0;1;39m/dev/ttyS0[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mLoad/Save RF Kill Switch Status /dev/rfkill Watch[0m.
+         Starting [0;1;39mVirtual Console Setup[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mCreate swap on /dev/zram0[0m.
+         Activating swap [0;1;39mCompressed Swap on /dev/zram0[0m...
+[[0;32m  OK  [0m] Reached target [0;1;39mVirtual Machines and Containers[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mDisk Image Download Service Socket[0m.
+[[0;32m  OK  [0m] Activated swap [0;1;39mCompressed Swap on /dev/zram0[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mSwaps[0m.
+         Mounting [0;1;39mDirectorio temporal /etc/pacman.d/gnupg (solo modo Live)[0m...
+         Mounting [0;1;39mTemporary Directory /tmp[0m...
+         Starting [0;1;39mUserspace Out-Of-Memory (OOM) Killer[0m...
+[[0;32m  OK  [0m] Mounted [0;1;39mDirectorio temporal /etc/pacman.d/gnupg (solo modo Live)[0m.
+[[0;32m  OK  [0m] Mounted [0;1;39mTemporary Directory /tmp[0m.
+[[0;32m  OK  [0m] Reached target [0;1;39mLocal File Systems[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mBoot Loader Control Service Socket[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSystem Extension Image Management[0m.
+[[0;32m  OK  [0m] Listening on [0;1;39mSystem Extension and …Refresh on Completed System Update[0m.
+         Starting [0;1;39mCreate System Files and Directories[0m...
+         Starting [0;1;39mLoad JSON user/group Records from Credentials[0m...
+         Starting [0;1;39mListen Kernel Core Dump Socket[0m...
+[[0;32m  OK  [0m] Started [0;1;39mNetwork Management[0m.
+         Starting [0;1;39mEnable Persistent Storage in systemd-networkd[0m...
+         Starting [0;1;39mWait for Network to be Online[0m...
+[[0;32m  OK  [0m] Started [0;1;39mUserspace Out-Of-Memory (OOM) Killer[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mLoad JSON user/group Records from Credentials[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mEnable Persistent Storage in systemd-networkd[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mVirtual Console Setup[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mCreate System Files and Directories[0m.
+         Starting [0;1;39mRebuild Dynamic Linker Cache[0m...
+         Starting [0;1;39mInitial Setup[0m...
+[!p]104\[0m[?7h[1G[0J7[32766;32766H[6n8         Starting [0;1;39mRebuild Journal Catalog[0m...
+         Starting [0;1;39mRecord System Boot/Shutdown in UTMP[0m...
+[[0;32m  OK  [0m] Started [0;1;39mListen Kernel Core Dump Socket[0m.
+         Starting [0;1;39mKernel Core Pattern Register[0m...
+[[0;32m  OK  [0m] Finished [0;1;39mRecord System Boot/Shutdown in UTMP[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mKernel Core Pattern Register[0m.
+[[0;32m  OK  [0m] Finished [0;1;39mRebuild Journal Catalog[0m.
+[!p]104\[0m[?7h[1G[0J7[32766;32766H[6n8]3008;start=c10c85e5c69f4cf48a3ddd2afb461245;user=root;hostname=moonos;machineid=fe5b8c0f14804183bfa55fba3f8650f1;bootid=eeb39f4adeb94aa4b668b854301eef94;pid=601;pidfdid=192;comm=(temd-firstboot);servicename=systemd-firstboot.service;invocationid=b0ce979570c84e0a9d1813ad7aedc0bb;type=service\[[0;32m  OK  [0m] Created slice [0;1;39mConsole Output Muting Service Slice[0m.
+[[0;32m  OK  [0m] Started [0;1;39mConsole Output Muting Service (PID 601/UID 0)[0m.
+[!p]104\[0m[?7h[1G[0J[H[2J[1;1H[0;44;1;37m[K
+[0;44;1;37m     Initial Setup[K
+[0;44;1;37m[K
+[0m[K[21;1H[0m[K
+[0;44;1;37m[K
+[0;44;1;37m    [0;38;2;170;150;255m MoonOS [0;44;1;37m - See ]8;;https://github.com/himplacencio/mi-p-gina/tree/main/moonos\documentation]8;;\ for more information.[K
+[0;44;1;37m[K[0m[5;20r[5;1H[0;1;39mWelcome to [0m[38;2;170;150;255mMoonOS[0;1;39m![0m
+
+✨ Please configure the system!
+
+[0;1;39m🕗 Please enter the new timezone name or number ("list" to list options, empty to skip): [0m
