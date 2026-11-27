@@ -1,0 +1,88 @@
+name: Grabar el arranque de MoonOS
+
+# Se ejecuta a mano. Descarga la última versión publicada, la arranca en una
+# máquina virtual y graba la pantalla en tiempo real, sin cortes, para los
+# videos de MoonOS. El resultado se guarda en moonos/marketing/arranque-real/.
+on:
+  workflow_dispatch:
+    inputs:
+      segundos:
+        description: 'Cuántos segundos grabar desde que se enciende'
+        default: '42'
+
+permissions:
+  contents: write
+
+jobs:
+  grabar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar la última ISO publicada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/iso && cd /tmp/iso
+          gh release download -R "$GITHUB_REPOSITORY" --pattern '*.iso*'
+          ls -lh
+          if ls *.iso.part* >/dev/null 2>&1; then
+            ISO="$(ls *.iso.part0 | sed 's/\.part0$//')"
+            cat "$ISO".part* > "$ISO" && rm -f "$ISO".part*
+          fi
+          sha256sum -c *.sha256
+
+      - name: Encender MoonOS en QEMU y grabar la pantalla
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 xorriso ffmpeg >/dev/null
+          ISO="$(ls /tmp/iso/*.iso)"
+          LABEL="$(xorriso -indev "$ISO" -pvd_info 2>/dev/null | sed -n 's/^Volume Id *: *//p')"
+          mkdir -p /tmp/rec
+          xorriso -osirrox on -indev "$ISO" \
+            -extract /arch/boot/x86_64/vmlinuz-linux-cachyos /tmp/rec/vmlinuz \
+            -extract /arch/boot/x86_64/initramfs-linux-cachyos.img /tmp/rec/initrd.img
+          sudo qemu-system-x86_64 -enable-kvm -cpu host -smp 4 -m 4096 \
+            -kernel /tmp/rec/vmlinuz -initrd /tmp/rec/initrd.img \
+            -append "archisobasedir=arch archisolabel=$LABEL" \
+            -drive file="$ISO",media=cdrom,readonly=on \
+            -device virtio-vga,xres=1920,yres=1080 -display none \
+            -nic user,model=virtio-net-pci \
+            -monitor unix:/tmp/rec/monitor.sock,server,nowait \
+            -daemonize -pidfile /tmp/rec/qemu.pid
+          sudo python3 .github/scripts/grabar-arranque.py /tmp/rec/monitor.sock /tmp/rec/frames "${{ inputs.segundos }}"
+          sudo kill "$(cat /tmp/rec/qemu.pid)" || true
+
+      - name: Montar el video en tiempo real
+        run: |
+          cd /tmp/rec/frames
+          sudo chown -R "$(id -u)" /tmp/rec
+          python3 - <<'EOF'
+          import json
+          j = json.load(open('frames.json')); fr = j['frames']
+          with open('lista.txt', 'w') as f:
+              for i, x in enumerate(fr):
+                  nxt = fr[i + 1]['t'] if i + 1 < len(fr) else j['duracion']
+                  f.write(f"file '{x['file']}'\nduration {max(0.01, nxt - x['t']):.3f}\n")
+              f.write(f"file '{fr[-1]['file']}'\n")
+          EOF
+          OUT="$GITHUB_WORKSPACE/moonos/marketing/arranque-real"
+          mkdir -p "$OUT"
+          ffmpeg -v error -y -f concat -safe 0 -i lista.txt \
+            -vf "fps=30,scale=1920:1080:flags=lanczos,format=yuv420p" -c:v libx264 -crf 18 -preset slow "$OUT/arranque-real.mp4"
+          cp frames.json "$OUT/tiempos.json"
+          ls -lh "$OUT"
+
+      - name: Guardar la grabación en el repositorio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add moonos/marketing/arranque-real
+          git commit -m "Grabación real del arranque de MoonOS [skip ci]" || exit 0
+          for i in 1 2 3; do git pull --rebase --no-edit origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arranque-real
+          path: moonos/marketing/arranque-real/
