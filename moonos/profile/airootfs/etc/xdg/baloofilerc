@@ -1,0 +1,4 @@
+# MoonOS: el indexador de archivos de KDE (Baloo) viene apagado para
+# ahorrar RAM, CPU y disco. Se puede activar en Preferencias > Buscar.
+[Basic Settings]
+Indexing-Enabled=false

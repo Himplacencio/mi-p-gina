@@ -48,7 +48,7 @@ Presentation {
     }
     MoonSlide {
         heading: "Listo para jugar"
-        body: "Steam, Lutris, Proton, GameMode, MangoHud y Gamescope vienen preinstalados."
+        body: "Steam, Lutris, GameMode, MangoHud y Gamescope vienen preinstalados."
     }
     MoonSlide {
         heading: "Drivers automáticos"

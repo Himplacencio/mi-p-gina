@@ -864,10 +864,10 @@ APPS.install = {
         ["moonos-postinstall: tarjeta gráfica " + g.short + " detectada", 6], ["moonos-drivers: pacman -Syu y chwd -a (perfil " + g.profile + ")", 14],
         ["Generando el initramfs (mkinitcpio)", 8], ["Instalando GRUB y buscando otros sistemas", 7], ["Desmontando", 3],
       ];
-      const slides = [["Listo para jugar", "Steam, Lutris, Proton-CachyOS, GameMode, MangoHud y Gamescope vienen incluidos."],
+      const slides = [["Listo para jugar", "Steam, Lutris, GameMode, MangoHud y Gamescope vienen incluidos."],
         ["Drivers automáticos", "MoonOS detecta tu tarjeta gráfica y deja solo los drivers que necesitas."],
         ["Kernel de CachyOS", "linux-cachyos está optimizado para más rendimiento y menos latencia."],
-        ["Escritorio completo", "KDE Plasma con Dolphin, Konsole, Kate, Firefox, VLC y mucho más."]];
+        ["Ligero", "KDE Plasma con lo esencial: usa menos de 1,5 GB de RAM y la ISO pesa menos de 4 GB."]];
       const total = jobs.reduce((a, j) => a + j[1], 0); let done = 0, si = 0;
       const sl = () => { const s = slides[si++ % slides.length]; const el = $("#i-slide", C); if (el) el.innerHTML = `<b>${s[0]}</b><span class="muted">${s[1]}</span>`; };
       sl(); const siv = setInterval(sl, 3500);
@@ -1077,7 +1077,7 @@ APPS.files = {
       "Descargas": [["file", "moonos-2026.11.27-x86_64.iso"], ["file", "moonos-2026.11.27-x86_64.iso.sha256"]],
       "Documentos": [["file", "ideas-para-moonos.txt"], ["file", "lista-de-juegos.md"]],
       "Imágenes": [["image", "fondo-moonos.png"], ["image", "captura-polvo-lunar.png"]],
-      "Juegos": [["folder", "Steam"], ["folder", "Lutris"], ["folder", "Proton-CachyOS"]],
+      "Juegos": [["folder", "Steam"], ["folder", "Lutris"], ["folder", "Proton"]],
     };
     let at = "Inicio";
     const draw = () => {
@@ -1103,7 +1103,7 @@ APPS.about = {
       <tr><td>Escritorio</td><td>KDE Plasma 6 (Wayland)</td></tr>
       <tr><td>Gráficos</td><td>${esc(g.name)} · ${S.driversDone ? "drivers configurados" : "pendiente de chwd"}</td></tr>
       <tr><td>Usuario</td><td>${esc(u.name)} (${esc(u.login)}@${esc(u.host)})</td></tr>
-      <tr><td>Juegos</td><td>Steam, Lutris, Proton-CachyOS, GameMode, MangoHud, Gamescope</td></tr>
+      <tr><td>Juegos</td><td>Steam, Lutris, GameMode, MangoHud, Gamescope</td></tr>
       </tbody></table>
       <p class="muted" style="margin:0;font-size:13px;max-width:44ch">Esta es una demo interactiva en el navegador. La ISO real se construye a partir de la carpeta <b>moonos/</b> del repositorio.</p></div>`;
   },

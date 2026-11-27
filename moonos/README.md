@@ -3,11 +3,11 @@
 **MoonOS** es una distribución Linux para jugar, basada en **Arch Linux** y **CachyOS**.
 
 - **Kernel `linux-cachyos`:** optimizado para rendimiento y baja latencia.
-- **Escritorio KDE Plasma completo:** Dolphin, Konsole, Kate, Firefox, VLC, etc.
+- **Escritorio KDE Plasma ligero:** Dolphin, Konsole, Firefox, Haruna (vídeo), KWrite y Ark. Sin programas de relleno: usa menos de 1,5 GB de RAM y la ISO pesa menos de 4 GB.
 - **Drivers automáticos:** detecta tu tarjeta gráfica (NVIDIA, AMD o Intel) y deja instalados solo los drivers que necesitas, usando `chwd` de CachyOS.
-- **Listo para jugar:** Steam, Lutris, Proton-CachyOS, GameMode, MangoHud y Gamescope.
+- **Listo para jugar:** Steam, Lutris, GameMode, MangoHud y Gamescope. Steam descarga Proton por su cuenta. Si quieres Proton-CachyOS: `sudo pacman -S proton-cachyos`.
 - **Instalador gráfico (Calamares)** con sistema de archivos Btrfs y compresión zstd.
-- **AUR y Flatpak:** `paru` y `flatpak` preinstalados.
+- **Flatpak** preinstalado para instalar más programas fácilmente.
 
 ## Modo juego automático
 
@@ -16,7 +16,7 @@ Cuando abres un juego, MoonOS pone todo el equipo a su servicio, y lo devuelve a
 - **CPU al máximo:** GameMode cambia el gobernador de la CPU y el perfil de energía a "rendimiento".
 - **Prioridad para el juego:** el juego recibe más prioridad de CPU y de disco que cualquier otro programa.
 - **GPU AMD al máximo:** en tarjetas AMD, la GPU se fija en su frecuencia más alta. MoonOS detecta la tarjeta al arrancar y lo configura solo.
-- **Tareas de fondo en pausa:** el indexador de archivos de KDE (Baloo) se detiene mientras juegas.
+- **Tareas de fondo en pausa:** el indexador de archivos de KDE (Baloo) viene apagado de serie, y si lo activas se pausa mientras juegas.
 - **Sin interrupciones:** no salta el protector de pantalla.
 - **Steam ya viene configurado:** su acceso directo lo abre con `gamemoderun`, así que todos tus juegos de Steam usan el modo juego sin tocar nada. En Lutris, GameMode viene activado de serie.
 

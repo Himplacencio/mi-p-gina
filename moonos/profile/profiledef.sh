@@ -15,7 +15,8 @@ bootmodes=('bios.syslinux' 'uefi.systemd-boot')
 arch="x86_64"
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
-airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '15' '-b' '1M')
+# xz comprime más que zstd: la ISO pesa menos (objetivo: menos de 4 GB)
+airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M')
 file_permissions=(
   ["/usr/local/bin/moonos-branding"]="0:0:755"
   ["/usr/local/bin/moonos-drivers"]="0:0:755"

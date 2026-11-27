@@ -43,6 +43,17 @@ jobs:
           sudo chmod -R a+r /mnt/moonos/out
           ls -lh /mnt/moonos/out
 
+      - name: Comprobar el tamaño de la ISO (máximo 4 GB)
+        id: size
+        run: |
+          ISO="$(ls /mnt/moonos/out/*.iso | head -1)"
+          BYTES=$(stat -c %s "$ISO")
+          GB=$(awk "BEGIN{printf \"%.2f\", $BYTES/1073741824}")
+          echo "bytes=$BYTES" >> "$GITHUB_OUTPUT"
+          if [ "$BYTES" -le 4294967296 ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; R="✅ dentro del límite"; else echo "ok=false" >> "$GITHUB_OUTPUT"; R="❌ supera los 4 GB"; fi
+          echo "### Tamaño de la ISO: $GB GB ($R)" | tee -a "$GITHUB_STEP_SUMMARY"
+          echo "$GB GB ($R)" > /mnt/moonos/size.txt
+
       - name: Subir la ISO
         uses: actions/upload-artifact@v4
         with:
@@ -52,6 +63,7 @@ jobs:
           retention-days: 14
 
       - name: Probar la ISO en una máquina virtual (QEMU + KVM)
+        id: vmtest
         continue-on-error: true
         timeout-minutes: 25
         run: |
@@ -86,7 +98,13 @@ jobs:
           sleep 30
           shot 3-escritorio-30s
           sudo kill "$(cat /tmp/vm/qemu.pid)" || true
-          sed -n '/===MOONOS-TEST-START===/,/===MOONOS-TEST-2-END===/p' /tmp/vm/consola-serie.log | tr -d '\r' || true
+          RES="$(sed -n '/===MOONOS-TEST-START===/,/===MOONOS-TEST-2-END===/p' /tmp/vm/consola-serie.log | tr -d '\r')"
+          echo "$RES"
+          RAM="$(echo "$RES" | awk '/^Mem:/{print $3; exit}')"
+          echo "ram_used=${RAM:-?}" >> "$GITHUB_OUTPUT"
+          if echo "$RES" | grep -q '/usr/bin/plasmashell'; then echo "desktop=true" >> "$GITHUB_OUTPUT"; D="✅ el escritorio Plasma arrancó"; else echo "desktop=false" >> "$GITHUB_OUTPUT"; D="❌ el escritorio no arrancó"; fi
+          { echo "### Prueba en máquina virtual"; echo "- $D"; echo "- RAM usada con el escritorio abierto: ${RAM:-?} MiB (objetivo: ≤ 1536 MiB)"; } | tee -a "$GITHUB_STEP_SUMMARY"
+          { echo "Tamaño de la ISO: $(cat /mnt/moonos/size.txt)"; echo "$D"; echo "RAM usada: ${RAM:-?} MiB (objetivo ≤ 1536 MiB)"; } > /tmp/vm/resumen.txt
 
       - name: Guardar los resultados de la prueba en el repositorio
         if: always()
@@ -94,7 +112,7 @@ jobs:
           [ -d /tmp/vm ] || exit 0
           mkdir -p moonos/test-results
           rm -f moonos/test-results/*
-          sudo cp /tmp/vm/*.png /tmp/vm/consola-serie.log moonos/test-results/ 2>/dev/null || true
+          sudo cp /tmp/vm/*.png /tmp/vm/consola-serie.log /tmp/vm/resumen.txt moonos/test-results/ 2>/dev/null || true
           sudo chown -R "$(id -u)" moonos/test-results
           echo "Ejecución: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (commit ${{ github.sha }})" > moonos/test-results/LEEME.txt
           git config user.name "github-actions[bot]"
@@ -102,3 +120,33 @@ jobs:
           git add moonos/test-results
           git commit -m "Resultados de la prueba de MoonOS en máquina virtual [skip ci]" || exit 0
           for i in 1 2 3; do git pull --rebase --no-edit origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
+
+      - name: Publicar la ISO en GitHub Releases
+        if: steps.vmtest.outputs.desktop == 'true' && steps.size.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sudo chown -R "$(id -u)" /mnt/moonos/out
+          cd /mnt/moonos/out
+          ISO="$(ls *.iso | head -1)"
+          VER="$(echo "$ISO" | sed -E 's/^moonos-(.*)-x86_64\.iso$/\1/')"
+          SHA="$(cut -d' ' -f1 "$ISO.sha256")"
+          BYTES=$(stat -c %s "$ISO")
+          if [ "$BYTES" -lt 2000000000 ]; then
+            FILES=("$ISO" "$ISO.sha256"); JOIN=""
+          else
+            # GitHub limita cada archivo a 2 GB: se divide la ISO en partes
+            split -b 1900M -d -a 1 "$ISO" "$ISO.part"
+            FILES=("$ISO".part* "$ISO.sha256")
+            JOIN=$'\n\n**La ISO viene en partes.** Descárgalas todas en la misma carpeta y únelas:\n- Linux/macOS: `cat '"$ISO"'.part* > '"$ISO"'`\n- Windows: `copy /b '"$(ls "$ISO".part* | paste -sd'+' | sed 's/+/ + /g')"' '"$ISO"'`'
+          fi
+          NOTES="MoonOS $VER para PC (x86_64).
+
+          - Kernel linux-cachyos, KDE Plasma (versión ligera), modo juego automático y drivers automáticos.
+          - Probada automáticamente en máquina virtual: el escritorio arrancó usando ${{ steps.vmtest.outputs.ram_used }} MiB de RAM.
+
+          SHA-256 de la ISO: $SHA$JOIN"
+          gh release create "moonos-$VER-${GITHUB_RUN_NUMBER}" "${FILES[@]}" \
+            -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "MoonOS $VER" --notes "$NOTES" --latest
+          echo "### Publicada: MoonOS $VER" >> "$GITHUB_STEP_SUMMARY"

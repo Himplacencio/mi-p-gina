@@ -4,7 +4,6 @@
 
 # --- Base del sistema -------------------------------------
 base
-base-devel
 linux-cachyos
 linux-cachyos-headers
 linux-cachyos-nvidia-open
@@ -17,9 +16,7 @@ mkinitcpio-archiso
 sudo
 bash-completion
 man-db
-man-pages
 nano
-vim
 git
 wget
 curl
@@ -32,7 +29,6 @@ pciutils
 usbutils
 hwinfo
 pacman-contrib
-paru
 flatpak
 
 # --- Arranque, discos e instalador -------------------------
@@ -75,24 +71,31 @@ pipewire-pulse
 pipewire-jack
 wireplumber
 
-# --- Escritorio KDE Plasma completo ------------------------
-plasma-meta
+# --- Escritorio KDE Plasma (versión ligera) ----------------
+# Solo los componentes necesarios, sin el metapaquete plasma-meta,
+# para que el sistema use menos de 1,5 GB de RAM.
+plasma-desktop
+plasma-nm
+plasma-pa
+powerdevil
+bluedevil
+kscreen
+breeze
+breeze-gtk
+kde-gtk-config
+xdg-desktop-portal-kde
+polkit-kde-agent
+kwallet-pam
 sddm
 konsole
 dolphin
-kate
+kwrite
 ark
 spectacle
-gwenview
-okular
-kcalc
-partitionmanager
-filelight
 xdg-user-dirs
 firefox
-vlc
+haruna
 noto-fonts
-noto-fonts-cjk
 noto-fonts-emoji
 ttf-dejavu
 ttf-liberation
@@ -122,7 +125,6 @@ libnotify
 mangohud
 lib32-mangohud
 gamescope
-proton-cachyos
 
 # --- Máquinas virtuales (se quitan si no hacen falta) ------
 qemu-guest-agent
