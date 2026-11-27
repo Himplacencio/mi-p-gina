@@ -5,6 +5,7 @@
 #   - fondo de la luna
 #   - barra de tareas de vidrio (flotante y translúcida, con desenfoque)
 #   - widget «Música en la barra» (aparece solo cuando suena algo)
+#   - estilo «MoonOS Dock»: barra arriba, dock centrado y widgets de vidrio
 flag="${XDG_CONFIG_HOME:-$HOME/.config}/moonos-user-setup-done"
 [[ -e "$flag" ]] && exit 0
 
@@ -58,6 +59,11 @@ panels().forEach(function (p) {
         mover.forEach(function (t) { p.addWidget(t); });
     }
 });"
+
+# Estilo de inicio por defecto: MoonOS Dock (en «Hazlo tuyo» se puede volver al clásico)
+if [[ -f /usr/share/moonos/estilos/dock.js ]]; then
+    plasma_js "$(cat /usr/share/moonos/estilos/dock.js)"
+fi
 
 mkdir -p "$(dirname "$flag")"
 touch "$flag"

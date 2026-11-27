@@ -319,7 +319,7 @@ class Bienvenida(QMainWindow):
         e_cla = QPushButton("▭  Clásico (barra abajo)"); e_dock = QPushButton("🌙  MoonOS Dock (barra arriba + dock + widgets)")
         for b in (e_cla, e_dock):
             b.setCheckable(True); g0.addButton(b)
-        e_cla.setChecked(True)
+        e_dock.setChecked(True)  # MoonOS Dock es el estilo de inicio
         e_cla.clicked.connect(lambda: self.estilo("clasico", "Estilo clásico"))
         e_dock.clicked.connect(lambda: self.estilo("dock", "Estilo MoonOS Dock 🌙"))
         c.lay.addWidget(row(e_cla, e_dock))
