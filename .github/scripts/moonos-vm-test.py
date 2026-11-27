@@ -12,6 +12,7 @@ import sys
 import time
 
 sock_path, log_path = sys.argv[1], sys.argv[2]
+mon_path = sys.argv[3] if len(sys.argv) > 3 else None
 log = open(log_path, "wb")
 buf = b""
 
@@ -103,6 +104,8 @@ echo '--- Bienvenida y fondo animado'; pgrep -af moonos-bienvenida || echo 'bien
 echo '--- Paneles de Plasma'; export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus; ls ~/.config/moonos-user-setup-done 2>&1; busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s 'print(JSON.stringify(panels().map(function(p){return {lugar:p.location,alto:p.height,flota:p.floating,widgets:p.widgets().map(function(w){return w.type})}})));print(JSON.stringify(desktops().map(function(d){return d.widgets().map(function(w){return w.type})})))' 2>&1 | head -c 1500; echo
 sudo journalctl -b --no-pager -o cat | grep -iE 'moonos-user-setup|evaluateScript|plasmashell.*(error|warn).*(panel|script|qml)' | tail -15
 pkill -f moonos-bienvenida; sleep 3
+echo '--- Detalle de paneles'; busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s 'panels().forEach(function(p){var o={lugar:p.location,alto:p.height,hiding:p.hiding,largo:p.lengthMode,alin:p.alignment,flota:p.floating,opac:p.opacity,min:p.minimumLength,max:p.maximumLength,len:p.length,off:p.offset,pantalla:p.screen};p.widgets().forEach(function(w){if(w.type.indexOf("tasks")>0){w.currentConfigGroup=["General"];o.launchers=String(w.readConfig("launchers","?"));o.geom=JSON.stringify(w.geometry)}});print(JSON.stringify(o))})' 2>&1 | head -c 2500; echo
+echo '--- plasmashell en el journal'; journalctl --user -b --no-pager -o cat 2>/dev/null | grep -iE 'plasmashell|panel|tasks|launcher' | grep -viE 'kf.svg|icon' | tail -30
 echo '--- Memoria (MiB)'; free -m
 echo '--- Kernel y tarjeta gráfica'; lspci -k | grep -A3 -Ei 'vga|3d' | head -8
 echo '--- Modo juego'; head -20 /etc/gamemode.ini; ls -l /usr/local/share/applications/steam.desktop && grep '^Exec' /usr/local/share/applications/steam.desktop
@@ -119,6 +122,37 @@ if wait_for([b"===MOONOS-TEST-2-END==="], 180):
     print("RESULTADO: comprobaciones completadas")
 else:
     print("RESULTADO: las comprobaciones no terminaron a tiempo")
+def shot(name):
+    if not mon_path:
+        return
+    m = socket.socket(socket.AF_UNIX)
+    m.connect(mon_path)
+    time.sleep(0.5)
+    m.sendall(f"screendump /tmp/vm/{name}.ppm\n".encode())
+    time.sleep(2)
+    m.close()
+
+
+def run(cmd, wait=6):
+    send(cmd + "\r")
+    end = time.time() + wait
+    while time.time() < end:
+        pump()
+
+
+# Experimentos con el dock: una captura después de cada cambio
+PJ = "busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s "
+shot("4-exp-tal-cual")
+run(PJ + "\"panels().forEach(function(p){if(p.location==='bottom'){p.floating=false}})\"")
+shot("5-exp-sin-flotar")
+run(PJ + "\"panels().forEach(function(p){if(p.location==='bottom'){p.lengthMode='fill'}})\"")
+shot("6-exp-largo-completo")
+run(PJ + "\"panels().forEach(function(p){if(p.location==='bottom'){p.opacity='opaque'}})\"")
+shot("7-exp-opaco")
+run("setsid dolphin >/dev/null 2>&1 &", 12)
+shot("8-exp-con-ventana")
+run(PJ + "\"panels().forEach(function(p){if(p.location==='bottom'){p.hiding='none'; p.height=48}})\"")
+shot("9-exp-alto-48")
 end = time.time() + 3
 while time.time() < end:
     pump()
