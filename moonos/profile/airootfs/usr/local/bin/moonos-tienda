@@ -67,6 +67,59 @@ CATALOGO = {
     ],
 }
 
+# Comandos útiles: (comando, explicación)
+COMANDOS = {
+    "📦  Instalar y buscar programas (pacman)": [
+        ("sudo pacman -S nombre", "Instala un programa. Ej.: sudo pacman -S vlc"),
+        ("pacman -Ss nombre", "Busca programas por nombre o descripción (no necesita sudo). Ej.: pacman -Ss discord"),
+        ("sudo pacman -Syu", "Actualiza TODO el sistema. Hazlo de vez en cuando."),
+        ("sudo pacman -R nombre", "Desinstala un programa."),
+        ("sudo pacman -Rns nombre", "Desinstala un programa junto con lo que instaló y ya no se usa."),
+        ("pacman -Qi nombre", "Muestra información de un programa instalado (versión, tamaño…)."),
+        ("pacman -Q | wc -l", "Cuenta cuántos paquetes tienes instalados."),
+        ("sudo pacman -Rns $(pacman -Qdtq)", "Limpia paquetes huérfanos que ya nadie usa."),
+        ("sudo pacman -Sc", "Borra instaladores viejos guardados para liberar espacio."),
+    ],
+    "🛍️  Apps de Flathub (flatpak)": [
+        ("flatpak search nombre", "Busca apps en Flathub. Ej.: flatpak search spotify"),
+        ("flatpak install flathub id.de.la.app", "Instala una app. Ej.: flatpak install flathub com.spotify.Client"),
+        ("flatpak list --app", "Lista las apps de Flathub que tienes."),
+        ("flatpak update", "Actualiza todas las apps de Flathub."),
+        ("flatpak uninstall id.de.la.app", "Desinstala una app de Flathub."),
+    ],
+    "🧩  AUR (programas de la comunidad)": [
+        ("sudo pacman -S paru", "Instala paru, el ayudante para el AUR (está en los repositorios de CachyOS)."),
+        ("paru -S nombre", "Instala un programa del AUR. Ej.: paru -S heroic-games-launcher-bin"),
+        ("paru -Syu", "Actualiza el sistema y también los programas del AUR."),
+    ],
+    "🎮  Juegos": [
+        ("gamemoded -s", "Dice si el modo juego está activo ahora mismo."),
+        ("mangohud %command%", "En Steam → Propiedades → Opciones de lanzamiento: muestra FPS y temperaturas."),
+        ("gamemoderun %command%", "En Steam: fuerza el modo juego para un juego concreto."),
+        ("sudo chwd -a", "Detecta tu tarjeta gráfica e instala los drivers correctos."),
+    ],
+    "🖥️  Información del sistema": [
+        ("fastfetch", "Resumen del sistema con el logo (perfecto para capturas 😎)."),
+        ("free -h", "Cuánta memoria RAM estás usando."),
+        ("df -h", "Cuánto espacio libre queda en tus discos."),
+        ("htop", "Monitor de procesos: qué está usando CPU y RAM (sal con F10)."),
+        ("lspci -k | grep -A3 -E 'VGA|3D'", "Muestra tu tarjeta gráfica y el driver que usa."),
+        ("uname -r", "Versión del kernel."),
+        ("journalctl -p err -b", "Errores del arranque actual (útil para reportar fallas)."),
+    ],
+    "⌨️  Lo básico de la terminal": [
+        ("ls", "Lista los archivos de la carpeta actual."),
+        ("cd Carpeta", "Entra en una carpeta (cd .. para volver atrás)."),
+        ("mkdir nombre", "Crea una carpeta."),
+        ("cp origen destino", "Copia un archivo."),
+        ("mv origen destino", "Mueve o renombra un archivo."),
+        ("rm archivo", "Borra un archivo (¡no pasa por la papelera!)."),
+        ("Ctrl+C", "Cancela el comando que se está ejecutando."),
+        ("Tab", "Autocompleta nombres de comandos y archivos."),
+        ("↑ (flecha arriba)", "Repite comandos anteriores."),
+    ],
+}
+
 STYLE = """
 * { font-family: 'Noto Sans', sans-serif; color: #eeeaff; }
 #root, QScrollArea, QWidget#page { background: #0f0d26; border: 0; }
@@ -89,6 +142,9 @@ QPushButton:hover { border-color: #a996ff; }
 QPushButton#install { background: #a996ff; color: #120e2e; border: 0; font-weight: 800; }
 QPushButton#install:hover { background: #bcadff; }
 QPushButton#install:disabled { background: #3a3570; color: #8f89bd; }
+QLabel#cmd { font-family: 'JetBrains Mono', 'Noto Sans Mono', monospace; font-size: 14px; color: #f4ecd0;
+              background: #0a091c; border: 1px solid #2f2a66; border-radius: 8px; padding: 8px 12px; }
+QLabel#section { font-size: 17px; font-weight: 800; color: #f4ecd0; margin-top: 10px; }
 QProgressBar { background: #2a2560; border: 0; border-radius: 3px; max-height: 6px; }
 QProgressBar::chunk { background: #a996ff; border-radius: 3px; }
 QScrollBar:vertical { background: transparent; width: 10px; margin: 4px; }
@@ -180,7 +236,7 @@ class Tienda(QMainWindow):
         sl = QVBoxLayout(side); sl.setContentsMargins(14, 18, 14, 14); sl.setSpacing(4)
         b = QLabel("🛍️  Tienda"); b.setObjectName("brand"); sl.addWidget(b); sl.addSpacing(14)
         self.navs = QButtonGroup(self)
-        cats = ["⭐  Todas"] + list(CATALOGO) + ["🔍  Buscar en Flathub"]
+        cats = ["⭐  Todas"] + list(CATALOGO) + ["🔍  Buscar en Flathub", "💻  Comandos"]
         for i, c in enumerate(cats):
             nb = QPushButton(c); nb.setObjectName("nav"); nb.setCheckable(True)
             nb.clicked.connect(lambda _=False, c=c: self.show_category(c))
@@ -201,8 +257,12 @@ class Tienda(QMainWindow):
         ml.addWidget(self.title); ml.addWidget(self.lead); ml.addWidget(self.search); ml.addWidget(self.status)
         self.grid_host = QWidget(); self.grid_host.setObjectName("page")
         self.grid = QGridLayout(self.grid_host); self.grid.setSpacing(12); self.grid.setContentsMargins(0, 0, 0, 0)
-        scroll = QScrollArea(); scroll.setWidgetResizable(True); scroll.setWidget(self.grid_host)
-        ml.addWidget(scroll, 1)
+        self.apps_scroll = QScrollArea(); self.apps_scroll.setWidgetResizable(True); self.apps_scroll.setWidget(self.grid_host)
+        ml.addWidget(self.apps_scroll, 1)
+        self.cmd_rows = []
+        self.cmd_scroll = QScrollArea(); self.cmd_scroll.setWidgetResizable(True); self.cmd_scroll.setWidget(self.build_commands())
+        self.cmd_scroll.hide()
+        ml.addWidget(self.cmd_scroll, 1)
         lay.addWidget(side); lay.addWidget(main, 1)
 
         for cat, apps in CATALOGO.items():
@@ -210,6 +270,43 @@ class Tienda(QMainWindow):
                 card = AppCard(self, *a); card.category = cat; self.cards.append(card)
         self.current = "⭐  Todas"
         self.layout_cards()
+
+    # ---------- comandos ----------
+    def build_commands(self):
+        host = QWidget(); host.setObjectName("page")
+        v = QVBoxLayout(host); v.setContentsMargins(0, 0, 8, 0); v.setSpacing(8)
+        abrir = QPushButton("💻  Abrir la terminal"); abrir.setObjectName("install")
+        abrir.clicked.connect(lambda: self.launch("konsole"))
+        top = QHBoxLayout(); top.addWidget(abrir); top.addStretch(1); v.addLayout(top)
+        tip = QLabel("Copia un comando, pégalo en la terminal con Ctrl+Shift+V y cambia «nombre» por lo que quieras. "
+                     "«sudo» pide tu contraseña porque el comando cambia el sistema; al escribirla no se ven las letras, es normal.")
+        tip.setObjectName("muted"); tip.setWordWrap(True); v.addWidget(tip)
+        for section, cmds in COMANDOS.items():
+            t = QLabel(section); t.setObjectName("section"); v.addWidget(t)
+            for cmd, desc in cmds:
+                row = QFrame(); row.setObjectName("card")
+                h = QHBoxLayout(row); h.setContentsMargins(12, 10, 12, 10); h.setSpacing(12)
+                col = QVBoxLayout(); col.setSpacing(6)
+                c = QLabel(cmd); c.setObjectName("cmd"); c.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+                d = QLabel(desc); d.setObjectName("muted"); d.setWordWrap(True)
+                col.addWidget(c); col.addWidget(d)
+                h.addLayout(col, 1)
+                b = QPushButton("Copiar"); b.clicked.connect(lambda _=False, cmd=cmd, b=b: self.copy(cmd, b))
+                h.addWidget(b, 0, Qt.AlignmentFlag.AlignTop)
+                v.addWidget(row)
+                self.cmd_rows.append((row, (cmd + " " + desc + " " + section).lower()))
+        v.addStretch(1)
+        return host
+
+    def copy(self, cmd, btn):
+        QApplication.clipboard().setText(cmd)
+        btn.setText("✓ Copiado")
+        QTimer.singleShot(1500, lambda: btn.setText("Copiar"))
+
+    def filter_commands(self):
+        q = self.search.text().strip().lower()
+        for row, text in self.cmd_rows:
+            row.setVisible(not q or q in text)
 
     # ---------- vista ----------
     def visible_cards(self):
@@ -239,7 +336,16 @@ class Tienda(QMainWindow):
 
     def show_category(self, cat):
         self.current = cat
+        comandos = cat == "💻  Comandos"
+        self.apps_scroll.setVisible(not comandos)
+        self.cmd_scroll.setVisible(comandos)
+        self.search.setPlaceholderText("Buscar comandos…  (ej.: instalar, buscar, ram, drivers)" if comandos
+                                       else "Buscar apps…  (ej.: discord, spotify, chrome)")
         self.title.setText("Todas las apps" if cat == "⭐  Todas" else cat.split("  ", 1)[1])
+        if comandos:
+            self.lead.setText("Los comandos más usados en MoonOS, explicados. Pulsa «Copiar» y pégalo en la terminal.")
+            self.filter_commands()
+            return
         if cat == "🔍  Buscar en Flathub":
             self.lead.setText("Escribe el nombre de cualquier app y pulsa Enter: hay miles en Flathub.")
             self.search.setFocus()
@@ -248,11 +354,16 @@ class Tienda(QMainWindow):
         self.layout_cards()
 
     def filter(self):
-        self.layout_cards()
+        if self.current == "💻  Comandos":
+            self.filter_commands()
+        else:
+            self.layout_cards()
 
     # ---------- búsqueda en Flathub ----------
     def search_flathub_if_needed(self):
         q = self.search.text().strip()
+        if self.current == "💻  Comandos":
+            return
         if not q or (self.visible_cards() and self.current != "🔍  Buscar en Flathub"):
             return
         self.status.setText(f"Buscando «{q}» en Flathub…")
@@ -339,6 +450,8 @@ def main():
             w.show_category("🎵  Música y video"); app.processEvents()
             w.cards[[c.name for c in w.cards].index("Spotify")].refresh(busy=False)
             w.grab().save(os.environ["MOONOS_SHOT"] + "-musica.png")
+            w.show_category("💻  Comandos"); app.processEvents()
+            w.grab().save(os.environ["MOONOS_SHOT"] + "-comandos.png")
             app.quit()
         QTimer.singleShot(500, shot)
     return app.exec()
