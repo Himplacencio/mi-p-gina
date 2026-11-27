@@ -117,7 +117,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .screen-stage { perspective: 1600px; }
 .screen { transform: rotateY(-9deg) rotateX(3deg); transform-origin: left center; transition: transform .6s ease; }
 .screen-stage:hover .screen { transform: none; }
-.screen { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 0 6px rgba(169, 150, 255, 0.08), 0 0 80px rgba(169, 150, 255, 0.25); aspect-ratio: 16 / 9; max-width: 100%; background: var(--sky-2); }
+.screen { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 0 6px rgba(169, 150, 255, 0.08), 0 0 80px rgba(169, 150, 255, 0.25); aspect-ratio: 16 / 10; max-width: 100%; background: var(--sky-2); }
 .screen img { width: 100%; height: 100%; object-fit: cover; }
 .screen .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 9%; background: rgba(18, 16, 40, 0.88); border-top: 1px solid rgba(169, 150, 255, 0.2); display: flex; align-items: center; gap: 2%; padding: 0 2%; }
 .screen .panel i { display: block; height: 58%; aspect-ratio: 1; border-radius: 22%; }
@@ -167,7 +167,7 @@ td.rec { color: var(--moonlight); }
 
 /* Download */
 .dl { border-radius: 20px; border: 1px solid var(--line); background: linear-gradient(160deg, var(--card-2), var(--card) 55%); padding: 36px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 36px; }
-.dl-main { display: grid; gap: 18px; align-content: start; min-width: 0; }
+.dl-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-content: start; min-width: 0; }
 .dl-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 18px; margin: 0; font-size: 0.95rem; }
 .dl-facts dt { color: var(--ink-faint); }
 .dl-facts dd { margin: 0; font-variant-numeric: tabular-nums; min-width: 0; }
@@ -175,7 +175,8 @@ td.rec { color: var(--moonlight); }
 .status.wait { background: rgba(244, 236, 208, 0.1); color: var(--moonlight); }
 .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .parts { display: grid; gap: 8px; }
-.verify { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.verify { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; min-width: 0; }
+#join-help { display: grid; gap: 8px; min-width: 0; }
 .hash { display: flex; gap: 8px; align-items: stretch; }
 .hash code { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 0.78rem; padding: 10px 12px; border-radius: 8px; background: var(--sky); border: 1px solid var(--line); overflow-wrap: anywhere; color: var(--ink-soft); user-select: all; }
 .hash button { border: 1px solid var(--line); background: var(--card-2); color: var(--ink); border-radius: 8px; padding: 0 14px; font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
@@ -313,18 +314,9 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
       </div>
       <div class="screen-stage">
         <div class="screen" id="screen">
-          <img src="web/wallpaper.jpg" alt="Escritorio de MoonOS con KDE Plasma: cielo nocturno con una luna creciente sobre montañas" width="1280" height="720">
-          <div class="win"><div class="bar"></div><pre><b>liveuser@moonos</b> ~ $ fastfetch
-<b>SO</b>: MoonOS x86_64
-<b>Kernel</b>: linux-cachyos
-<b>Escritorio</b>: KDE Plasma 6
-<b>Modo juego</b>: GameMode
-<b>Drivers</b>: chwd (automático)
-<b>liveuser@moonos</b> ~ $ gamemoded -s
-gamemode is active</pre></div>
-          <div class="panel"><i style="background:#a996ff"></i><i style="background:#ff7ab6"></i><i style="background:#2b2f45"></i><i style="background:#5fb3ff"></i><b>21:30</b></div>
+          <img src="web/escritorio-real.jpg" alt="Captura real del escritorio de MoonOS: KDE Plasma con el fondo de luna, el acceso «Instalar MoonOS» y la barra de tareas" width="1280" height="800">
         </div>
-        <p class="screen-caption" id="screen-caption">Ilustración del escritorio de MoonOS</p>
+        <p class="screen-caption" id="screen-caption">Captura real de MoonOS · escritorio usando 1,1 GB de RAM</p>
       </div>
     </div>
     <div class="hero-foot">
@@ -683,7 +675,7 @@ gamemode is active</pre></div>
       if (!iso && !parts.length) return notYet("Versión sin ISO adjunta");
       const total = iso ? iso.size : parts.reduce((n, a) => n + a.size, 0);
       const ver = (rel.name || rel.tag_name || "").replace(/^MoonOS\s*/i, "");
-      $("dl-status").className = "status"; $("dl-status").textContent = "Disponible";
+      $("dl-status").className = "status"; $("dl-status").textContent = "Beta disponible";
       $("f-version").textContent = ver || rel.tag_name;
       $("f-date").textContent = new Date(rel.published_at).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" });
       $("f-size").textContent = fmtSize(total);

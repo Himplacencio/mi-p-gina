@@ -144,7 +144,9 @@ jobs:
             FILES=("$ISO".part* "$ISO.sha256")
             JOIN=$'\n\n**La ISO viene en partes.** Descárgalas todas en la misma carpeta y únelas:\n- Linux/macOS: `cat '"$ISO"'.part* > '"$ISO"'`\n- Windows: `copy /b '"$(ls "$ISO".part* | paste -sd'+' | sed 's/+/ + /g')"' '"$ISO"'`'
           fi
-          NOTES="MoonOS $VER para PC (x86_64).
+          NOTES="⚠️ **Versión Beta**: MoonOS todavía está en pruebas. Pruébalo primero en una máquina virtual o en un PC sin datos importantes, y cuéntanos cualquier falla en la página de MoonOS.
+
+          MoonOS $VER para PC (x86_64).
 
           - Kernel linux-cachyos, KDE Plasma (versión ligera), modo juego automático y drivers automáticos.
           - Probada automáticamente en máquina virtual: el escritorio arrancó usando ${{ steps.vmtest.outputs.ram_used }} MiB de RAM.
@@ -152,5 +154,5 @@ jobs:
           SHA-256 de la ISO: $SHA$JOIN"
           gh release create "moonos-$VER-${GITHUB_RUN_NUMBER}" "${FILES[@]}" \
             -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-            --title "MoonOS $VER" --notes "$NOTES" --latest
+            --title "MoonOS $VER (Beta)" --notes "$NOTES" --latest
           echo "### Publicada: MoonOS $VER" >> "$GITHUB_STEP_SUMMARY"
