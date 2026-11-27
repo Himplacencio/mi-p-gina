@@ -40,7 +40,8 @@ def cmd(c):
         pass
 
 
-KEYS = {" ": "spc", "-": "minus", "\n": "ret", ".": "dot", "/": "slash"}
+# La VM usa teclado latinoamericano: el guion está donde en EE. UU. va «/»
+KEYS = {" ": "spc", "-": "slash", "\n": "ret", ".": "dot"}
 
 
 def type_text(text, start, gap=0.13):
@@ -60,8 +61,8 @@ except socket.timeout:
 if mode == "terminal":
     # Plasma tarda ~70 s en la VM; se empieza a grabar con el escritorio listo
     rec_from = 86.0
-    actions = [(87.0, "ctrl-alt-t"), (90.5, "meta-pgup")]          # abrir Konsole y maximizarla
-    actions += [(92.0 + i * 0.35, "ctrl-kp_add") for i in range(5)]  # letra más grande
+    actions = [(87.0, "ctrl-alt-t"), (90.5, "meta_l-pgup")]        # abrir Konsole y maximizarla
+    actions += [(92.0 + i * 0.35, "ctrl-kp_add") for i in range(3)]  # letra más grande
     a, t = type_text("fastfetch\n", 95.0); actions += a
     a, t = type_text("free -h\n", t + 4.5); actions += a
     total = max(total, t + 6.0)
