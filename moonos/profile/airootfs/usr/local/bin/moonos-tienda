@@ -1,0 +1,348 @@
+#!/usr/bin/env python3
+"""Tienda MoonOS: instala apps con un clic.
+
+Usa Flatpak + Flathub (apps aisladas del sistema, sin contraseña de
+administrador y sin riesgo de romper MoonOS). Lo que ya viene en MoonOS
+(Steam, Lutris, Firefox) aparece como «Instalado».
+
+Con MOONOS_DRY=1 no instala nada (solo para pruebas).
+"""
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+from PyQt6.QtCore import Qt, QProcess, QTimer
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import (QApplication, QButtonGroup, QFrame, QGridLayout, QHBoxLayout, QLabel, QLineEdit,
+                             QMainWindow, QProgressBar, QPushButton, QScrollArea, QVBoxLayout, QWidget)
+
+DRY = os.environ.get("MOONOS_DRY") == "1"
+LOGO = "/usr/share/pixmaps/moonos.png"
+FLATHUB = "https://dl.flathub.org/repo/flathub.flatpakrepo"
+
+# (nombre, id de Flathub, comando si viene instalada en MoonOS, emoji, color, descripción)
+CATALOGO = {
+    "🎮  Juegos": [
+        ("Steam", "com.valvesoftware.Steam", "steam", "🎮", "#1b2838", "La tienda de juegos más grande. Ya viene en MoonOS con el modo juego."),
+        ("Lutris", "net.lutris.Lutris", "lutris", "🦦", "#c25a17", "Instala juegos de Windows, emuladores y más. Ya viene en MoonOS."),
+        ("Heroic Games", "com.heroicgameslauncher.hgl", None, "🛡️", "#0d6efd", "Tus juegos de Epic Games, GOG y Amazon Prime."),
+        ("Bottles", "com.usebottles.bottles", None, "🍷", "#8a2be2", "Ejecuta programas y juegos de Windows fácilmente."),
+        ("ProtonUp-Qt", "net.davidotek.pupgui2", None, "⬆️", "#5a4fcf", "Instala versiones de Proton-GE para más compatibilidad."),
+        ("Prism Launcher", "org.prismlauncher.PrismLauncher", None, "⛏️", "#3f8f3f", "Minecraft con mods, versiones y cuentas."),
+        ("RetroArch", "org.libretro.RetroArch", None, "👾", "#333366", "Emuladores de consolas clásicas en una sola app."),
+    ],
+    "🎵  Música y video": [
+        ("Spotify", "com.spotify.Client", None, "🎵", "#1db954", "Música y podcasts. Se ve en la barra de MoonOS mientras suena."),
+        ("VLC", "org.videolan.VLC", None, "🎬", "#f08a24", "Reproduce cualquier video o audio."),
+        ("OBS Studio", "com.obsproject.Studio", None, "🔴", "#302e31", "Graba tu pantalla y haz streams en Twitch o YouTube."),
+        ("Kdenlive", "org.kde.kdenlive", None, "🎞️", "#2a7fd4", "Editor de video completo y gratuito."),
+    ],
+    "🌐  Navegadores": [
+        ("Firefox", "org.mozilla.firefox", "firefox", "🦊", "#ff7139", "Ya viene en MoonOS: rápido y respeta tu privacidad."),
+        ("Google Chrome", "com.google.Chrome", None, "🌐", "#4285f4", "El navegador de Google."),
+        ("Brave", "com.brave.Browser", None, "🦁", "#fb542b", "Navegador con bloqueador de anuncios incluido."),
+        ("Microsoft Edge", "com.microsoft.Edge", None, "🌊", "#0c59a4", "El navegador de Microsoft."),
+        ("Opera", "com.opera.Opera", None, "⭕", "#ff1b2d", "Navegador con VPN y mensajería integradas."),
+        ("Chromium", "org.chromium.Chromium", None, "🔵", "#2a6bd1", "La base libre de Chrome."),
+    ],
+    "💬  Comunicación": [
+        ("Discord", "com.discordapp.Discord", None, "💬", "#5865f2", "Chat de voz y texto con tus amigos y comunidades."),
+        ("Telegram", "org.telegram.desktop", None, "✈️", "#2aabee", "Mensajería rápida y segura."),
+        ("Signal", "org.signal.Signal", None, "🔒", "#3a76f0", "Mensajería privada y cifrada."),
+        ("Zoom", "us.zoom.Zoom", None, "📹", "#2d8cff", "Videollamadas y reuniones."),
+    ],
+    "🎨  Creatividad": [
+        ("GIMP", "org.gimp.GIMP", None, "🖌️", "#5c5543", "Editor de fotos e imágenes."),
+        ("Krita", "org.kde.krita", None, "🎨", "#3daee9", "Dibujo y pintura digital."),
+        ("Blender", "org.blender.Blender", None, "🧊", "#e87d0d", "Modelado y animación 3D."),
+        ("Inkscape", "org.inkscape.Inkscape", None, "✒️", "#333333", "Diseño de logos y gráficos vectoriales."),
+    ],
+    "📄  Oficina y desarrollo": [
+        ("LibreOffice", "org.libreoffice.LibreOffice", None, "📄", "#18a303", "Documentos, hojas de cálculo y presentaciones."),
+        ("OnlyOffice", "org.onlyoffice.desktopeditors", None, "📝", "#ff6f3d", "Oficina compatible con Word, Excel y PowerPoint."),
+        ("Obsidian", "md.obsidian.Obsidian", None, "💎", "#7c3aed", "Notas y apuntes enlazados."),
+        ("VS Code", "com.visualstudio.code", None, "🧑‍💻", "#007acc", "Editor de código de Microsoft."),
+    ],
+}
+
+STYLE = """
+* { font-family: 'Noto Sans', sans-serif; color: #eeeaff; }
+#root, QScrollArea, QWidget#page { background: #0f0d26; border: 0; }
+#side { background: #15123a; border-right: 1px solid #2c2766; }
+#brand { font-size: 20px; font-weight: 800; }
+QPushButton#nav { text-align: left; padding: 10px 14px; border: 0; border-radius: 10px; font-size: 14px; color: #b4aedb; background: transparent; }
+QPushButton#nav:checked { background: #2a2560; color: #ffffff; font-weight: 700; }
+QPushButton#nav:hover { background: #221d52; }
+QLabel#h1 { font-size: 28px; font-weight: 800; }
+QLabel#lead { font-size: 14px; color: #c8c2ec; }
+QLabel#muted { font-size: 12px; color: #8f89bd; }
+QLabel#appname { font-size: 15px; font-weight: 800; }
+QLabel#badge { font-size: 11.5px; font-weight: 700; color: #7be3b0; }
+QFrame#card { background: #1a1640; border: 1px solid #2f2a66; border-radius: 14px; }
+QFrame#card:hover { border-color: #5a4fb0; }
+QLineEdit { background: #15123a; border: 1px solid #39337a; border-radius: 10px; padding: 10px 14px; font-size: 14px; }
+QLineEdit:focus { border-color: #a996ff; }
+QPushButton { background: #221d52; border: 1px solid #39337a; border-radius: 9px; padding: 7px 14px; font-size: 13px; }
+QPushButton:hover { border-color: #a996ff; }
+QPushButton#install { background: #a996ff; color: #120e2e; border: 0; font-weight: 800; }
+QPushButton#install:hover { background: #bcadff; }
+QPushButton#install:disabled { background: #3a3570; color: #8f89bd; }
+QProgressBar { background: #2a2560; border: 0; border-radius: 3px; max-height: 6px; }
+QProgressBar::chunk { background: #a996ff; border-radius: 3px; }
+QScrollBar:vertical { background: transparent; width: 10px; margin: 4px; }
+QScrollBar::handle:vertical { background: #39337a; border-radius: 4px; min-height: 30px; }
+QScrollBar::add-line, QScrollBar::sub-line { height: 0; }
+"""
+
+
+def flatpak_installed():
+    if DRY:
+        return {"com.spotify.Client"}
+    try:
+        out = subprocess.run(["flatpak", "list", "--app", "--columns=application"], capture_output=True, text=True, timeout=20).stdout
+        return set(out.split())
+    except (OSError, subprocess.SubprocessError):
+        return set()
+
+
+class AppCard(QFrame):
+    def __init__(self, store, name, app_id, native, emoji, color, desc):
+        super().__init__()
+        self.store, self.name, self.app_id, self.native = store, name, app_id, native
+        self.setObjectName("card")
+        self.setMinimumWidth(300)
+        lay = QHBoxLayout(self); lay.setContentsMargins(14, 14, 14, 14); lay.setSpacing(14)
+        tile = QLabel(emoji); tile.setFixedSize(56, 56); tile.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        tile.setStyleSheet(f"background: {color}; border-radius: 14px; font-size: 26px;")
+        lay.addWidget(tile, 0, Qt.AlignmentFlag.AlignTop)
+        col = QVBoxLayout(); col.setSpacing(4)
+        top = QHBoxLayout(); n = QLabel(name); n.setObjectName("appname"); top.addWidget(n)
+        self.badge = QLabel(""); self.badge.setObjectName("badge"); top.addWidget(self.badge); top.addStretch(1)
+        col.addLayout(top)
+        d = QLabel(desc); d.setObjectName("muted"); d.setWordWrap(True); col.addWidget(d)
+        self.progress = QProgressBar(); self.progress.setRange(0, 0); self.progress.setTextVisible(False); self.progress.hide()
+        col.addWidget(self.progress)
+        btns = QHBoxLayout(); btns.setSpacing(6)
+        self.main = QPushButton(); self.main.setObjectName("install"); self.main.clicked.connect(self.on_main)
+        self.remove = QPushButton("Desinstalar"); self.remove.clicked.connect(self.on_remove)
+        btns.addWidget(self.main); btns.addWidget(self.remove); btns.addStretch(1)
+        col.addLayout(btns)
+        lay.addLayout(col, 1)
+        self.refresh()
+
+    def is_native(self):
+        return bool(self.native and (DRY and self.native in ("steam", "lutris", "firefox") or shutil.which(self.native)))
+
+    def is_installed(self):
+        return self.is_native() or self.app_id in self.store.installed
+
+    def refresh(self, busy=False):
+        self.progress.setVisible(busy)
+        self.main.setEnabled(not busy)
+        if busy:
+            return
+        if self.is_native():
+            self.badge.setText("✓ Incluida en MoonOS"); self.main.setText("Abrir"); self.remove.hide()
+        elif self.app_id in self.store.installed:
+            self.badge.setText("✓ Instalada"); self.main.setText("Abrir"); self.remove.show()
+        else:
+            self.badge.setText(""); self.main.setText("Instalar"); self.remove.hide()
+
+    def on_main(self):
+        if self.is_native():
+            self.store.launch(self.native)
+        elif self.app_id in self.store.installed:
+            self.store.launch("flatpak", "run", self.app_id)
+        else:
+            self.store.run_flatpak(self, ["install", "--user", "-y", "--noninteractive", "flathub", self.app_id],
+                                   f"Instalando {self.name}… (puede tardar unos minutos)")
+
+    def on_remove(self):
+        self.store.run_flatpak(self, ["uninstall", "--user", "-y", "--noninteractive", self.app_id], f"Desinstalando {self.name}…")
+
+
+class Tienda(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Tienda MoonOS")
+        if Path(LOGO).exists():
+            self.setWindowIcon(QIcon(LOGO))
+        self.resize(1060, 700)
+        self.installed = flatpak_installed()
+        self.cards = []
+        self.proc = None
+
+        root = QWidget(); root.setObjectName("root"); self.setCentralWidget(root)
+        lay = QHBoxLayout(root); lay.setContentsMargins(0, 0, 0, 0); lay.setSpacing(0)
+        side = QFrame(); side.setObjectName("side"); side.setFixedWidth(230)
+        sl = QVBoxLayout(side); sl.setContentsMargins(14, 18, 14, 14); sl.setSpacing(4)
+        b = QLabel("🛍️  Tienda"); b.setObjectName("brand"); sl.addWidget(b); sl.addSpacing(14)
+        self.navs = QButtonGroup(self)
+        cats = ["⭐  Todas"] + list(CATALOGO) + ["🔍  Buscar en Flathub"]
+        for i, c in enumerate(cats):
+            nb = QPushButton(c); nb.setObjectName("nav"); nb.setCheckable(True)
+            nb.clicked.connect(lambda _=False, c=c: self.show_category(c))
+            self.navs.addButton(nb, i); sl.addWidget(nb)
+        self.navs.button(0).setChecked(True)
+        sl.addStretch(1)
+        note = QLabel("Las apps vienen de Flathub y se instalan aisladas: no pueden dañar MoonOS.")
+        note.setObjectName("muted"); note.setWordWrap(True); sl.addWidget(note)
+
+        main = QWidget(); main.setObjectName("page"); ml = QVBoxLayout(main); ml.setContentsMargins(28, 24, 28, 16); ml.setSpacing(12)
+        self.title = QLabel("Todas las apps"); self.title.setObjectName("h1")
+        self.lead = QLabel("Instala lo que necesites con un clic. Sin contraseñas ni configuraciones raras.")
+        self.lead.setObjectName("lead"); self.lead.setWordWrap(True)
+        self.search = QLineEdit(); self.search.setPlaceholderText("Buscar apps…  (ej.: discord, spotify, chrome)")
+        self.search.textChanged.connect(self.filter)
+        self.search.returnPressed.connect(self.search_flathub_if_needed)
+        self.status = QLabel(""); self.status.setObjectName("muted")
+        ml.addWidget(self.title); ml.addWidget(self.lead); ml.addWidget(self.search); ml.addWidget(self.status)
+        self.grid_host = QWidget(); self.grid_host.setObjectName("page")
+        self.grid = QGridLayout(self.grid_host); self.grid.setSpacing(12); self.grid.setContentsMargins(0, 0, 0, 0)
+        scroll = QScrollArea(); scroll.setWidgetResizable(True); scroll.setWidget(self.grid_host)
+        ml.addWidget(scroll, 1)
+        lay.addWidget(side); lay.addWidget(main, 1)
+
+        for cat, apps in CATALOGO.items():
+            for a in apps:
+                card = AppCard(self, *a); card.category = cat; self.cards.append(card)
+        self.current = "⭐  Todas"
+        self.layout_cards()
+
+    # ---------- vista ----------
+    def visible_cards(self):
+        q = self.search.text().strip().lower()
+        out = []
+        for c in self.cards:
+            if self.current not in ("⭐  Todas", "🔍  Buscar en Flathub") and c.category != self.current:
+                continue
+            if q and q not in c.name.lower() and q not in c.app_id.lower():
+                continue
+            out.append(c)
+        return out
+
+    def layout_cards(self):
+        while self.grid.count():
+            it = self.grid.takeAt(0)
+            if it.widget():
+                it.widget().setParent(None)
+        cards = self.visible_cards()
+        for i, c in enumerate(cards):
+            self.grid.addWidget(c, i // 2, i % 2)
+        self.grid.setRowStretch(len(cards) // 2 + 1, 1)
+        if not cards and self.search.text().strip():
+            self.status.setText("No está en la lista de MoonOS. Pulsa Enter para buscarla en Flathub.")
+        elif self.status.text().startswith("No está"):
+            self.status.setText("")
+
+    def show_category(self, cat):
+        self.current = cat
+        self.title.setText("Todas las apps" if cat == "⭐  Todas" else cat.split("  ", 1)[1])
+        if cat == "🔍  Buscar en Flathub":
+            self.lead.setText("Escribe el nombre de cualquier app y pulsa Enter: hay miles en Flathub.")
+            self.search.setFocus()
+        else:
+            self.lead.setText("Instala lo que necesites con un clic. Sin contraseñas ni configuraciones raras.")
+        self.layout_cards()
+
+    def filter(self):
+        self.layout_cards()
+
+    # ---------- búsqueda en Flathub ----------
+    def search_flathub_if_needed(self):
+        q = self.search.text().strip()
+        if not q or (self.visible_cards() and self.current != "🔍  Buscar en Flathub"):
+            return
+        self.status.setText(f"Buscando «{q}» en Flathub…")
+        if DRY:
+            self.show_results([("Ejemplo encontrado", "org.ejemplo.App", "Resultado de prueba")])
+            return
+        p = QProcess(self)
+        p.finished.connect(lambda *_: self.parse_search(p))
+        # Asegura el catálogo de Flathub antes de buscar
+        p.start("bash", ["-c", f"flatpak remote-add --user --if-not-exists flathub {FLATHUB} >/dev/null 2>&1; "
+                               f"flatpak search --columns=name,application,description {self._quote(q)}"])
+
+    @staticmethod
+    def _quote(s):
+        return "'" + s.replace("'", "'\\''") + "'"
+
+    def parse_search(self, p):
+        rows = []
+        for line in bytes(p.readAllStandardOutput()).decode(errors="replace").splitlines():
+            parts = line.split("\t")
+            if len(parts) >= 2 and "." in parts[1]:
+                rows.append((parts[0], parts[1], parts[2] if len(parts) > 2 else ""))
+        self.show_results(rows[:20])
+
+    def show_results(self, rows):
+        if not rows:
+            self.status.setText("No se encontró nada. Prueba con otro nombre.")
+            return
+        self.status.setText(f"{len(rows)} resultados en Flathub")
+        known = {c.app_id for c in self.cards}
+        for name, app_id, desc in rows:
+            if app_id in known:
+                continue
+            card = AppCard(self, name, app_id, None, "📦", "#2a2560", desc or "App de Flathub")
+            card.category = "🔍  Buscar en Flathub"
+            self.cards.append(card)
+        self.current = "🔍  Buscar en Flathub"
+        self.navs.button(len(CATALOGO) + 1).setChecked(True)
+        self.search.blockSignals(True); self.search.clear(); self.search.blockSignals(False)
+        self.layout_cards()
+
+    # ---------- instalar / abrir ----------
+    def launch(self, *cmd):
+        print("[tienda]", " ".join(cmd), flush=True)
+        if not DRY:
+            QProcess.startDetached(cmd[0], list(cmd[1:]))
+
+    def run_flatpak(self, card, args, msg):
+        if self.proc is not None:
+            self.status.setText("Espera a que termine la instalación en curso.")
+            return
+        card.refresh(busy=True)
+        self.status.setText(msg)
+        print("[tienda] flatpak", " ".join(args), flush=True)
+        if DRY:
+            QTimer.singleShot(800, lambda: self.done(card, args, 0))
+            return
+        self.proc = QProcess(self)
+        self.proc.finished.connect(lambda code, _st: self.done(card, args, code))
+        self.proc.start("bash", ["-c", f"flatpak remote-add --user --if-not-exists flathub {FLATHUB} && flatpak "
+                                       + " ".join(self._quote(a) for a in args)])
+
+    def done(self, card, args, code):
+        self.proc = None
+        if code == 0:
+            if args[0] == "install":
+                self.installed.add(card.app_id); self.status.setText(f"✓ {card.name} instalada. Ya está en el menú de aplicaciones.")
+            else:
+                self.installed.discard(card.app_id); self.status.setText(f"{card.name} desinstalada.")
+        else:
+            self.status.setText(f"No se pudo completar. ¿Tienes conexión a internet? (código {code})")
+        card.refresh()
+
+
+def main():
+    app = QApplication(sys.argv)
+    app.setApplicationName("Tienda MoonOS")
+    app.setDesktopFileName("moonos-tienda")
+    app.setStyleSheet(STYLE)
+    w = Tienda(); w.show()
+    if os.environ.get("MOONOS_SHOT"):
+        def shot():
+            w.grab().save(os.environ["MOONOS_SHOT"] + "-todas.png")
+            w.show_category("🎵  Música y video"); app.processEvents()
+            w.cards[[c.name for c in w.cards].index("Spotify")].refresh(busy=False)
+            w.grab().save(os.environ["MOONOS_SHOT"] + "-musica.png")
+            app.quit()
+        QTimer.singleShot(500, shot)
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

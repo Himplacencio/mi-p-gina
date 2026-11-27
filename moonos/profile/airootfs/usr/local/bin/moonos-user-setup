@@ -34,6 +34,19 @@ plasma_js "
 panels().forEach(function (p) {
     try { p.floating = true; } catch (e) {}
     try { p.opacity = 'translucent'; } catch (e) {}
+    p.widgets().forEach(function (w) {
+        if (w.type !== 'org.kde.plasma.icontasks' && w.type !== 'org.kde.plasma.taskmanager') return;
+        try {
+            w.currentConfigGroup = ['General'];
+            var l = w.readConfig('launchers', '');
+            var lista = (typeof l === 'string') ? (l ? l.split(',') : []) : (l || []);
+            if (lista.length === 0) lista = ['preferred://filemanager', 'preferred://browser'];
+            if (lista.indexOf('applications:moonos-tienda.desktop') < 0) {
+                lista.push('applications:moonos-tienda.desktop');
+                w.writeConfig('launchers', lista);
+            }
+        } catch (e) {}
+    });
     if (p.widgets('org.moonos.musica').length === 0) {
         var finales = ['org.kde.plasma.marginsseparator', 'org.kde.plasma.systemtray',
                        'org.kde.plasma.digitalclock', 'org.kde.plasma.showdesktop'];

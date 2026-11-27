@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Tienda MoonOS
+Name[en]=MoonOS Store
+GenericName=Instalar aplicaciones
+Comment=Instala Spotify, Discord, navegadores, juegos y miles de apps más con un clic
+Exec=/usr/local/bin/moonos-tienda
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
+Keywords=tienda;store;instalar;apps;aplicaciones;spotify;discord;chrome;flatpak;flathub;

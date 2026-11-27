@@ -243,7 +243,9 @@ class Bienvenida(QMainWindow):
             p.clicked.connect(lambda: (self.stack.setCurrentIndex(1), self.navs.button(1).setChecked(True)))
             upd = QPushButton("⬆️  Actualizar el sistema")
             upd.clicked.connect(lambda: run("konsole", "--hold", "-e", "sudo", "pacman", "-Syu"))
-            v.addWidget(h); v.addWidget(l); v.addSpacing(6); v.addWidget(row(p, upd))
+            tienda = QPushButton("🛍️  Tienda de apps")
+            tienda.clicked.connect(lambda: run("/usr/local/bin/moonos-tienda"))
+            v.addWidget(h); v.addWidget(l); v.addSpacing(6); v.addWidget(row(p, tienda, upd))
 
         eq = Card("Tu equipo", "Esto es lo que MoonOS detectó. Los drivers de la tarjeta gráfica se configuran solos al instalar.")
         g = QGridLayout(); g.setHorizontalSpacing(18); g.setVerticalSpacing(6)
@@ -256,6 +258,7 @@ class Bienvenida(QMainWindow):
 
         tips = Card("Primeros pasos")
         for t in ["🎮  Abre Steam: el modo juego se activa solo cuando juegas.",
+                  "🛍️  En la Tienda MoonOS instalas Spotify, Discord, Chrome y miles de apps con un clic.",
                   "🎨  En «Hazlo tuyo» puedes poner la luna animada de fondo.",
                   "🐛  ¿Algo falla? Repórtalo en «Ayuda y comunidad»: todos los reportes son públicos."]:
             x = QLabel(t); x.setWordWrap(True); tips.lay.addWidget(x)
@@ -345,10 +348,8 @@ class Bienvenida(QMainWindow):
         mus = QCheckBox("Mostrar la música en la barra de tareas")
         mus.setChecked(True)
         mus.toggled.connect(self.musica_en_barra)
-        spot = QPushButton("🎵  Instalar Spotify")
-        spot.clicked.connect(lambda: run("konsole", "--hold", "-e", "bash", "-c",
-                                         "flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo "
-                                         "&& flatpak install --user -y flathub com.spotify.Client"))
+        spot = QPushButton("🎵  Instalar Spotify (Tienda MoonOS)")
+        spot.clicked.connect(lambda: run("/usr/local/bin/moonos-tienda"))
         c.lay.addWidget(mus); c.lay.addWidget(row(spot))
         v.addWidget(c)
 
@@ -418,9 +419,10 @@ class Bienvenida(QMainWindow):
                    "y las tareas de fondo se pausan. No tienes que configurar nada.")
         l.setObjectName("lead"); l.setWordWrap(True); v.addWidget(l)
         c = Card("Abrir")
-        steam = QPushButton("Steam"); lut = QPushButton("Lutris")
+        steam = QPushButton("Steam"); lut = QPushButton("Lutris"); tie = QPushButton("🛍️  Más juegos y apps en la Tienda")
+        tie.clicked.connect(lambda: run("/usr/local/bin/moonos-tienda"))
         steam.clicked.connect(lambda: run("gtk-launch", "steam")); lut.clicked.connect(lambda: run("lutris"))
-        c.lay.addWidget(row(steam, lut)); v.addWidget(c)
+        c.lay.addWidget(row(steam, lut, tie)); v.addWidget(c)
         c = Card("Extras opcionales", "Se instalan desde internet en una terminal.")
         pc = QPushButton("Instalar Proton-CachyOS (más compatibilidad en Steam)")
         pc.clicked.connect(lambda: run("konsole", "--hold", "-e", "sudo", "pacman", "-S", "--needed", "proton-cachyos"))
