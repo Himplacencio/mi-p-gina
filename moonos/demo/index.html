@@ -796,7 +796,7 @@ APPS.install = {
         <div class="legend">${D.fs === "btrfs" ? "<span>Subvolúmenes: @, @home, @cache, @log · compresión zstd</span>" : "<span>Partición única con " + D.fs + "</span>"}</div>`;
       },
       () => `<h2 class="app-h">¿Quién usará este equipo?</h2>
-        <div class="grid2"><div class="field"><label for="i-name">Tu nombre</label><input id="i-name" value="${esc(D.name)}" placeholder="Ej.: Felipe Placencio" autocomplete="off"></div>
+        <div class="grid2"><div class="field"><label for="i-name">Tu nombre</label><input id="i-name" value="${esc(D.name)}" placeholder="Ej.: Ana López" autocomplete="off"></div>
         <div class="field"><label for="i-login">Nombre de usuario</label><input id="i-login" value="${esc(D.login)}" autocapitalize="off" autocomplete="off"></div>
         <div class="field"><label for="i-host">Nombre del equipo</label><input id="i-host" value="${esc(D.host)}" autocapitalize="off" autocomplete="off"></div></div>
         <div class="grid2"><div class="field"><label for="i-p1">Contraseña</label><input id="i-p1" type="password" value="${esc(D.p1)}" autocomplete="new-password"></div>
