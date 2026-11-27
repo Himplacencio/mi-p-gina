@@ -48,7 +48,7 @@ cp -a "$HERE/profile/." "$PROFILE/"
 
 # Usar los mismos modos de arranque que el releng de esta versión de archiso
 # (la lista puede ocupar varias líneas, así que se lee cargando el archivo)
-releng_bootmodes="bootmodes=($(bash -c 'source "$1" >/dev/null; printf "%q " "${bootmodes[@]}"' _ "$RELENG/profiledef.sh"))"
+releng_bootmodes="bootmodes=($(bash -c 'declare -A file_permissions; source "$1" >/dev/null; printf "%q " "${bootmodes[@]}"' _ "$RELENG/profiledef.sh"))"
 [[ "$releng_bootmodes" != "bootmodes=()" ]] || die "No pude leer los modos de arranque de releng."
 sed -i "s|^bootmodes=.*|${releng_bootmodes}|" "$PROFILE/profiledef.sh"
 bash -n "$PROFILE/profiledef.sh" || die "profiledef.sh quedó con errores."
