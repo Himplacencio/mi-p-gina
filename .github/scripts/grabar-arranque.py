@@ -77,7 +77,7 @@ elif mode == "musica":
     actions = [(92.0, "audionext"), (98.0, "audioplay"), (101.0, "audioplay"), (105.0, "audioprev")]
     total = max(total, 110.0)
 elif mode == "recorrido":
-    rec_from = 70.0
+    rec_from = 45.0  # desde la pantalla de carga de MoonOS
     total = max(total, 140.0)
     actions = [(total - 12, "meta_l"), (total - 5, "esc")]
 else:
