@@ -99,9 +99,8 @@ jobs:
           (sleep 90; shot 1-arranque) &
           python3 .github/scripts/moonos-vm-test.py /tmp/vm/serial.sock /tmp/vm/consola-serie.log /tmp/vm/monitor.sock
           for f in /tmp/vm/*.ppm; do [ -e "$f" ] && sudo python3 -c "import sys; from PIL import Image; Image.open(sys.argv[1]).save(sys.argv[1][:-4]+'.png')" "$f" && sudo rm -f "$f"; done
-          shot 2-escritorio
-          sleep 30
-          shot 3-escritorio-30s
+          sleep 20
+          shot 3-pantalla-de-inicio-20s
           sudo kill "$(cat /tmp/vm/qemu.pid)" || true
           RES="$(sed -n '/===MOONOS-TEST-START===/,/===MOONOS-TEST-2-END===/p' /tmp/vm/consola-serie.log | tr -d '\r')"
           echo "$RES"

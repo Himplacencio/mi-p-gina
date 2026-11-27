@@ -145,3 +145,9 @@ def run(cmd, wait=6):
 end = time.time() + 3
 while time.time() < end:
     pump()
+
+# Pantalla de inicio de sesión: se quita el inicio automático del Live y se reinicia SDDM
+if mon_path:
+    shot("2-escritorio")
+    run("sudo rm -f /etc/sddm.conf.d/90-live-autologin.conf; sudo systemctl restart sddm", 25)
+    shot("4-pantalla-de-inicio")
