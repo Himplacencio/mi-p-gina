@@ -131,7 +131,7 @@ const DUR = name => ALIGN[name] + (name === '11-final' ? 1.2 : X);
     await p.evaluate(t => window.playAt(t), times);
     await at(DUR(name));
   });
-  await card('02-intro', 'intro', [0, 250, 900, 3000, 5100]);
+  await card('02-intro', 'intro', [0, 200, 300, 600, 1100, 3000, 5100]);
   await card('03-problema', 'problema', [0, 700, 3300, 6000, 8900]);
   await card('04-motivo', 'motivo', [0, 2100, 5300, 7300, 10300, 11800]);
 
