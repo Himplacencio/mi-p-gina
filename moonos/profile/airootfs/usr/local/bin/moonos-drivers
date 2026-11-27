@@ -1,0 +1,41 @@
+#!/bin/bash
+# Detecta la tarjeta gráfica e instala sus drivers con chwd (de CachyOS).
+#   moonos-drivers            -> modo servicio (primer arranque del sistema instalado)
+#   moonos-drivers --install  -> llamado por el instalador, dentro del sistema nuevo
+set -u
+FLAG=/var/lib/moonos/drivers-configured
+LOG=/var/log/moonos-drivers.log
+mode="${1:-service}"
+tries=60
+[[ "$mode" == "--install" ]] && tries=5
+
+exec > >(tee -a "$LOG") 2>&1
+echo "=== MoonOS drivers: $(date) (modo: $mode)"
+
+if [[ "$mode" != "--install" ]] && grep -q 'archisobasedir=' /proc/cmdline; then
+    echo "Sesión Live: no se hace nada."
+    exit 0
+fi
+
+online=0
+for ((i = 0; i < tries; i++)); do
+    if curl -fsS --max-time 5 -o /dev/null https://mirror.cachyos.org/; then online=1; break; fi
+    sleep 3
+done
+if [[ $online -ne 1 ]]; then
+    echo "Sin conexión a internet: se reintentará en el próximo arranque."
+    exit 0
+fi
+
+echo "-> Actualizando el sistema"
+pacman -Syu --noconfirm || { echo "Fallo al actualizar; se reintentará."; exit 0; }
+
+echo "-> Configurando drivers automáticamente (chwd -a)"
+if chwd -a; then
+    mkdir -p "$(dirname "$FLAG")"
+    touch "$FLAG"
+    echo "Drivers configurados correctamente."
+else
+    echo "chwd falló; se reintentará en el próximo arranque."
+fi
+exit 0

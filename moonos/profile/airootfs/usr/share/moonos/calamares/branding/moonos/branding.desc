@@ -1,0 +1,42 @@
+---
+componentName:  moonos
+
+welcomeStyleCalamares:  false
+welcomeExpandingLogo:   true
+windowExpanding:    normal
+windowSize: 1024px,640px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+
+strings:
+    productName:         "MoonOS"
+    shortProductName:    "MoonOS"
+    version:             "rolling"
+    shortVersion:        "rolling"
+    versionedName:       "MoonOS"
+    shortVersionedName:  "MoonOS"
+    bootloaderEntryName: "MoonOS"
+    productUrl:          "https://github.com/himplacencio/mi-p-gina"
+    supportUrl:          "https://github.com/himplacencio/mi-p-gina/issues"
+    knownIssuesUrl:      "https://github.com/himplacencio/mi-p-gina/issues"
+    releaseNotesUrl:     "https://github.com/himplacencio/mi-p-gina"
+    donateUrl:           ""
+
+images:
+    productLogo:         "logo.png"
+    productIcon:         "logo.png"
+    productWelcome:      "welcome.png"
+
+slideshow:               "show.qml"
+slideshowAPI: 2
+
+style:
+    SidebarBackground:        "#14122b"
+    SidebarText:              "#ffffff"
+    SidebarTextCurrent:       "#c8b6ff"
+    SidebarBackgroundCurrent: "#2a2550"
+    sidebarBackground:        "#14122b"
+    sidebarText:              "#ffffff"
+    sidebarTextSelect:        "#c8b6ff"
+    sidebarTextHighlight:     "#2a2550"

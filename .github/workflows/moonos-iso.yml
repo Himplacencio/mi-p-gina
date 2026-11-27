@@ -1,0 +1,46 @@
+name: Construir ISO de MoonOS
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'moonos/**'
+      - '.github/workflows/moonos-iso.yml'
+
+concurrency:
+  group: moonos-iso-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Liberar espacio en disco
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift
+          sudo docker image prune --all --force
+          df -h / /mnt
+
+      - name: Construir la ISO dentro de Arch Linux
+        run: |
+          sudo mkdir -p /mnt/moonos
+          sudo docker run --rm --privileged \
+            -v "$PWD":/src:ro \
+            -v /mnt/moonos:/work \
+            -e WORK=/work/tmp -e OUT=/work/out \
+            archlinux:latest bash /src/moonos/build.sh
+          sudo rm -rf /mnt/moonos/tmp
+          sudo chmod -R a+r /mnt/moonos/out
+          ls -lh /mnt/moonos/out
+
+      - name: Subir la ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: moonos-iso
+          path: /mnt/moonos/out/
+          compression-level: 0
+          retention-days: 14

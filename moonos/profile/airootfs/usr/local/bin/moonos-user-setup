@@ -1,0 +1,10 @@
+#!/bin/bash
+# Se ejecuta una sola vez por usuario al entrar a Plasma:
+# tema oscuro + fondo de pantalla de MoonOS.
+flag="${XDG_CONFIG_HOME:-$HOME/.config}/moonos-user-setup-done"
+[[ -e "$flag" ]] && exit 0
+sleep 4
+plasma-apply-lookandfeel -a org.kde.breezedark.desktop >/dev/null 2>&1 || true
+plasma-apply-wallpaperimage /usr/share/wallpapers/MoonOS/contents/images/1920x1080.png >/dev/null 2>&1 || true
+mkdir -p "$(dirname "$flag")"
+touch "$flag"

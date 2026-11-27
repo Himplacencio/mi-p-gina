@@ -1,0 +1,14 @@
+[Unit]
+Description=MoonOS: detección e instalación automática de drivers
+ConditionKernelCommandLine=!archisobasedir
+ConditionPathExists=!/var/lib/moonos/drivers-configured
+Wants=network-online.target
+After=network-online.target NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/moonos-drivers
+TimeoutStartSec=1h
+
+[Install]
+WantedBy=multi-user.target

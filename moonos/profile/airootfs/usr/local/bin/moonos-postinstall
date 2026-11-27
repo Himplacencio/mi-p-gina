@@ -1,0 +1,57 @@
+#!/bin/bash
+# Se ejecuta DENTRO del sistema recién instalado (lo llama Calamares).
+# Convierte la copia del sistema Live en un sistema normal.
+set -u
+log() { echo "[moonos-postinstall] $*"; }
+remove_pkgs() { local p; for p in "$@"; do pacman -Q "$p" &>/dev/null && pacman -Rns --noconfirm "$p"; done; return 0; }
+
+log "Quitando las piezas exclusivas del modo Live"
+rm -f /etc/systemd/system/multi-user.target.wants/pacman-init.service \
+      /etc/systemd/system/multi-user.target.wants/moonos-live-setup.service \
+      /etc/systemd/system/pacman-init.service \
+      /etc/systemd/system/etc-pacman.d-gnupg.mount \
+      /etc/systemd/system/moonos-live-setup.service \
+      /usr/local/bin/moonos-live-setup \
+      /usr/local/bin/moonos-install \
+      /usr/share/applications/moonos-installer.desktop \
+      /etc/mkinitcpio.conf.d/archiso.conf \
+      /etc/sddm.conf.d/90-live-autologin.conf \
+      /etc/sudoers.d/90-liveuser
+rm -rf /usr/share/moonos/calamares
+
+log "Configurando mkinitcpio para el kernel de CachyOS"
+cat > /etc/mkinitcpio.d/linux-cachyos.preset <<'PRESET'
+# Preset de mkinitcpio para linux-cachyos (MoonOS)
+ALL_kver="/boot/vmlinuz-linux-cachyos"
+PRESETS=('default' 'fallback')
+default_image="/boot/initramfs-linux-cachyos.img"
+fallback_image="/boot/initramfs-linux-cachyos-fallback.img"
+fallback_options="-S autodetect"
+PRESET
+
+log "Creando el llavero de pacman"
+rm -rf /etc/pacman.d/gnupg
+pacman-key --init
+pacman-key --populate
+
+log "Desinstalando el instalador y herramientas del Live"
+remove_pkgs cachyos-calamares mkinitcpio-archiso edk2-shell
+
+log "Revisando la tarjeta gráfica"
+if lspci -d 10de::0300 | grep -q . || lspci -d 10de::0302 | grep -q .; then
+    log "NVIDIA detectada: se conservan sus drivers"
+else
+    log "Sin NVIDIA: se quitan sus drivers"
+    remove_pkgs nvidia-settings lib32-nvidia-utils linux-cachyos-nvidia-open nvidia-utils
+fi
+
+virt="$(systemd-detect-virt --vm 2>/dev/null || echo none)"
+log "Máquina virtual: $virt"
+[[ "$virt" == oracle ]] || remove_pkgs virtualbox-guest-utils
+[[ "$virt" == kvm || "$virt" == qemu ]] || remove_pkgs qemu-guest-agent spice-vdagent
+
+log "Intentando configurar drivers ahora (si hay internet)"
+/usr/local/bin/moonos-drivers --install || true
+
+log "Listo"
+exit 0

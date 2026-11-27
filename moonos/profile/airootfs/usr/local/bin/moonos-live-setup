@@ -1,0 +1,30 @@
+#!/bin/bash
+# Prepara la sesión Live: usuario "liveuser" sin contraseña, inicio
+# de sesión automático en Plasma y acceso directo al instalador.
+set -u
+
+if ! id liveuser &>/dev/null; then
+    useradd -m -G wheel,audio,video,storage,optical,input -s /bin/bash -c "MoonOS Live" liveuser
+fi
+passwd -d liveuser >/dev/null
+
+install -dm750 /etc/sudoers.d
+echo 'liveuser ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-liveuser
+chmod 440 /etc/sudoers.d/90-liveuser
+
+mkdir -p /etc/sddm.conf.d
+cat > /etc/sddm.conf.d/90-live-autologin.conf <<'CONF'
+[Autologin]
+User=liveuser
+Session=plasma
+Relogin=false
+CONF
+
+# Configuración del instalador (solo existe en el modo Live)
+mkdir -p /etc/calamares
+cp -a /usr/share/moonos/calamares/. /etc/calamares/
+
+# Acceso directo "Instalar MoonOS" en el escritorio
+runuser -u liveuser -- env LANG="${LANG:-es_MX.UTF-8}" xdg-user-dirs-update || true
+desktop="$(runuser -u liveuser -- xdg-user-dir DESKTOP 2>/dev/null || echo /home/liveuser/Desktop)"
+install -Dm755 -o liveuser -g liveuser /usr/share/applications/moonos-installer.desktop "$desktop/moonos-installer.desktop"

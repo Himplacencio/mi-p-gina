@@ -1,0 +1,8 @@
+#!/bin/bash
+# Abre el instalador gráfico (Calamares) desde la sesión Live
+if [[ ! -f /etc/calamares/settings.conf ]]; then
+    sudo mkdir -p /etc/calamares
+    sudo cp -a /usr/share/moonos/calamares/. /etc/calamares/
+fi
+sudo timedatectl set-ntp true 2>/dev/null || true
+exec sudo -E calamares -D6 >/tmp/moonos-install.log 2>&1

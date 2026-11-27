@@ -1,0 +1,12 @@
+[Unit]
+Description=MoonOS: prepara la sesión Live
+ConditionKernelCommandLine=archisobasedir
+Before=display-manager.service systemd-user-sessions.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/moonos-live-setup
+
+[Install]
+WantedBy=multi-user.target

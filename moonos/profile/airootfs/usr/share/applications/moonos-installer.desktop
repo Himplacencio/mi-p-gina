@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Instalar MoonOS
+Name[en]=Install MoonOS
+GenericName=Instalador del sistema
+Comment=Instala MoonOS en tu computadora
+Exec=/usr/local/bin/moonos-install
+Icon=/usr/share/pixmaps/moonos.png
+Terminal=false
+Categories=System;
+Keywords=instalar;install;calamares;

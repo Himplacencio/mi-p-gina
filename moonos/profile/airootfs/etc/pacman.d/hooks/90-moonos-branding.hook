@@ -1,0 +1,11 @@
+# Mantiene la identidad de MoonOS cuando se actualiza el paquete "filesystem"
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+
+[Action]
+Description = Aplicando la identidad de MoonOS...
+When = PostTransaction
+Exec = /usr/local/bin/moonos-branding

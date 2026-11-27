@@ -1,0 +1,13 @@
+#!/bin/bash
+# Escribe la identidad de MoonOS (nombre que muestran fastfetch, KDE, GRUB...)
+cat > /usr/lib/os-release <<'OSR'
+NAME="MoonOS"
+PRETTY_NAME="MoonOS"
+ID=moonos
+ID_LIKE="cachyos arch"
+BUILD_ID=rolling
+ANSI_COLOR="38;2;170;150;255"
+HOME_URL="https://github.com/himplacencio/mi-p-gina"
+DOCUMENTATION_URL="https://github.com/himplacencio/mi-p-gina/tree/main/moonos"
+LOGO=moonos
+OSR

@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "MoonOS" } ],
+        "Id": "MoonOS",
+        "License": "CC-BY-SA-4.0",
+        "Name": "MoonOS"
+    }
+}

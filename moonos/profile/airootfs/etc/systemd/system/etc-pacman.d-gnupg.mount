@@ -1,0 +1,9 @@
+[Unit]
+Description=Directorio temporal /etc/pacman.d/gnupg (solo modo Live)
+ConditionKernelCommandLine=archisobasedir
+
+[Mount]
+What=tmpfs
+Where=/etc/pacman.d/gnupg
+Type=tmpfs
+Options=mode=0755,noswap
