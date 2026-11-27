@@ -490,9 +490,10 @@ def main():
     if recorrido:  # grabación de demostración: pasa sola por las páginas y abre la Tienda
         def ir(i):
             win.navs.button(i).setChecked(True); win.stack.setCurrentIndex(i)
-        for seg, i in ((9, 1), (17, 2)):
+        # Se espera a que el escritorio termine de aparecer detrás de la ventana
+        for seg, i in ((16, 1), (24, 2)):
             QTimer.singleShot(seg * 1000, lambda i=i: ir(i))
-        QTimer.singleShot(25000, lambda: (subprocess.Popen(["moonos-tienda"]), app.quit()))
+        QTimer.singleShot(31000, lambda: (subprocess.Popen(["moonos-tienda"]), app.quit()))
     if os.environ.get("MOONOS_SHOT"):  # pruebas: captura y salir
         def shot():
             for i in range(win.stack.count()):

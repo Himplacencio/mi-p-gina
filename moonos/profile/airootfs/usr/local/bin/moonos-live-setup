@@ -8,6 +8,10 @@ if ! id liveuser &>/dev/null; then
 fi
 passwd -d liveuser >/dev/null
 
+# Pantalla de carga de MoonOS también para el usuario Live (por si su carpeta ya existía)
+install -dm755 -o liveuser -g liveuser /home/liveuser/.config
+install -m644 -o liveuser -g liveuser /etc/xdg/ksplashrc /home/liveuser/.config/ksplashrc
+
 install -dm750 /etc/sudoers.d
 echo 'liveuser ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/90-liveuser
 chmod 440 /etc/sudoers.d/90-liveuser
