@@ -8,19 +8,25 @@ const W = 1920, H = 1080, FPS = 30;
 const c = document.getElementById('c'), x = c.getContext('2d');
 const P = new URLSearchParams(location.search);
 const BASE = P.get('frames');            // carpeta con s1..s9 (cuadros de las grabaciones)
-const INTRO = 5.0, SEC = 4.5, OUTRO = 5.0;
+// Tiempos (se pueden cambiar con ?tiempos={...} para cuadrar con una voz)
+const TI = Object.assign({ hist: [3.2, 3.6, 2.6], intro: 5.0, secs: null, outro: 5.0 }, JSON.parse(P.get('tiempos') || '{}'));
+const HIST = TI.hist.reduce((a, b) => a + b, 0), INTRO = TI.intro, OUTRO = TI.outro;
+const MAXF = +(P.get('maxf') || 138);                    // cuadros disponibles por sección
 const SECCIONES = [
   ['PANTALLA DE CARGA', 'la luna de MoonOS al encender', [960, 470], 1.00, 1.10],
   ['ESCRITORIO', 'widgets de vidrio, dock y luna animada', [700, 500], 1.00, 1.10],
   ['BIENVENIDA', 'en español, con un botón para instalar', [760, 300], 1.02, 1.14],
   ['HAZLO TUYO', 'colores, fondo y estilo a tu gusto', [940, 420], 1.00, 1.12],
   ['TIENDA', 'Spotify, Discord, Steam… a un clic', [960, 450], 1.00, 1.12],
-  ['COMANDOS', 'la terminal explicada, con ejemplos', [960, 450], 1.00, 1.12],
+  ['COMANDOS', 'te explica los comandos… y hasta los ejecuta', [960, 450], 1.00, 1.12],
   ['MÚSICA', 'la canción en la barra, con sus controles', [1580, 0], 1.00, 1.75],
   ['TERMINAL', 'poco más de 1 GB de RAM con todo abierto', [420, 330], 1.12, 1.30],
-  ['MENÚ', 'todas tus apps, ordenadas', [400, 500], 1.00, 1.12],
+  ['MENÚ', 'basado en CachyOS y Arch, pensado para cualquiera', [400, 500], 1.00, 1.12],
 ];
-const TOTAL = INTRO + SECCIONES.length * SEC + OUTRO;
+const DUR = TI.secs || SECCIONES.map(() => 4.5);
+const INI = DUR.reduce((a, d, k) => (a.push(k ? a[k - 1] + DUR[k - 1] : 0), a), []);
+const SECS_T = DUR.reduce((a, b) => a + b, 0);
+const TOTAL = HIST + INTRO + SECS_T + OUTRO;
 window.TOTAL_FRAMES = Math.round(TOTAL * FPS);
 
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
@@ -145,13 +151,13 @@ function cargar(src) {
 }
 function cuadro(k, u) {
   if (k === 2) return `${BASE}/s3/still.png`;
-  const n = clamp(Math.floor(u * FPS) + 1, 1, 138);
+  const n = clamp(Math.floor(u * FPS) + 1, 1, MAXF);
   return `${BASE}/s${k + 1}/f_${String(n).padStart(4, '0')}.jpg`;
 }
 function dibujaGrab(im, k, u, extraBlur = 0, dark = 0, alpha = 1) {
   if (!im) return;
   const [, , F, z0, z1] = SECCIONES[k];
-  const z = lerp(z0, z1, easeIO(clamp(u / SEC)));
+  const z = lerp(z0, z1, easeIO(clamp(u / DUR[k])));
   const base = Math.max(W / im.width, H / im.height);  // cubrir la pantalla
   x.save(); x.globalAlpha = alpha;
   if (extraBlur > .3) x.filter = `blur(${extraBlur.toFixed(1)}px)`;
@@ -187,8 +193,37 @@ async function seccion(k, u, alpha = 1) {
   marca(smooth(1.2, 1.8, u));
 }
 
+const HISTORIA = [
+  ['TENGO 13 AÑOS', ''],
+  ['Y SÉ LO QUE ES TENER UN PC LENTO', 'querer jugar tus juegos favoritos… y que todo se trabe'],
+  ['POR ESO EMPECÉ A CREAR…', ''],
+];
+function historia(t) {
+  fondo();
+  const [bp, bl] = BARR[7];                               // una línea de neón que cruza despacio de fondo
+  const q = t / HIST * 1.25;
+  const cab = neon(bp, bl, Math.max(0, q - .5), Math.min(1, q), .55); if (q < 1) punta(cab, .6);
+  let a = 0;
+  for (let k = 0; k < HISTORIA.length; k++) {
+    const d = TI.hist[k], u = t - a; a += d;
+    if (u < 0 || u > d) continue;
+    const al = smooth(0, .45, u) * (1 - smooth(d - .45, d, u));
+    texto(HISTORIA[k][0], W / 2, H / 2 - 20, [120, 58, 82][k], [lerp(30, 16, smooth(0, d, u)), lerp(16, 8, smooth(0, d, u)), lerp(26, 14, smooth(0, d, u))][k], al, 200);
+    if (HISTORIA[k][1]) texto(HISTORIA[k][1], W / 2, H / 2 + 70, 34, 3, al * .9, 300, '#d9d6ff');
+    if (k === 1) {                                        // barra de carga trabada en 12 %
+      const bw = 520, bx = W / 2 - bw / 2, by = H / 2 + 150, pr = .12 * smooth(.2, 1.0, u);
+      x.save(); x.globalAlpha = al; x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(bx, by, bw, 6);
+      x.fillStyle = '#a996ff'; x.shadowColor = '#7d78ff'; x.shadowBlur = 14; x.fillRect(bx, by, bw * pr, 6); x.restore();
+      texto('cargando juego…  ' + Math.round(pr * 100) + ' %', W / 2, by + 36, 22, 3, al * .7, 300, '#bdb6ee');
+    }
+  }
+  x.fillStyle = `rgba(0,0,0,${(1 - smooth(0, .5, t)) + smooth(HIST - .35, HIST, t)})`; x.fillRect(0, 0, W, H);
+}
+
 async function render(i) {
-  const t = i / FPS;
+  let t = i / FPS;
+  if (t < HIST) { x.save(); historia(t); x.restore(); return; }
+  t -= HIST;
   x.save(); x.clearRect(0, 0, W, H); x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
   if (t < INTRO) {
     // ---- intro ----
@@ -203,18 +238,18 @@ async function render(i) {
     texto('LINUX PARA JUGAR', C[0], C[1] + R + 150, 24, 10, smooth(3.3, 3.9, t) * .75, 300, '#d9d6ff');
     x.restore();
     x.fillStyle = `rgba(0,0,0,${(1 - smooth(0, .5, t)) + smooth(4.55, 5.0, t)})`; x.fillRect(0, 0, W, H);
-  } else if (t < INTRO + SECCIONES.length * SEC) {
+  } else if (t < INTRO + SECS_T) {
     // ---- secciones con transición ----
-    const ts = t - INTRO, k = Math.floor(ts / SEC), u = ts - k * SEC;
+    const ts = t - INTRO; let k = 0; while (k < DUR.length - 1 && ts >= INI[k + 1]) k++; const u = ts - INI[k];
     await seccion(k, u);
-    if (k > 0 && u < .3) { const prev = await cargar(cuadro(k - 1, SEC - .01)); dibujaGrab(prev, k - 1, SEC, 0, 0, 1 - smooth(0, .3, u)); }
+    if (k > 0 && u < .3) { const prev = await cargar(cuadro(k - 1, DUR[k - 1] - .01)); dibujaGrab(prev, k - 1, DUR[k - 1], 0, 0, 1 - smooth(0, .3, u)); }
     if (k === 0) { x.fillStyle = `rgba(0,0,0,${1 - smooth(0, .45, u)})`; x.fillRect(0, 0, W, H); }
     const [bp, bl] = BARR[k];                              // barrido de neón al empezar cada sección
     const q = (u + .1) / .75;
     if (k > 0 && q > 0 && q < 1.5) { const cab = neon(bp, bl, Math.max(0, q - .45), Math.min(1, q), 1); if (q < 1) punta(cab, .9); }
   } else {
     // ---- cierre ----
-    const v = t - INTRO - SECCIONES.length * SEC;
+    const v = t - INTRO - SECS_T;
     fondo(); nucleo(smooth(.3, 1.3, v));
     const p = easeIO(clamp(v / 1.8));
     const cab = trazo(p); if (p < .999) punta(cab);
