@@ -107,7 +107,7 @@ pkill -f moonos-bienvenida; sleep 3
 echo '--- Detalle de paneles'; busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s 'panels().forEach(function(p){var o={lugar:p.location,alto:p.height,hiding:p.hiding,largo:p.lengthMode,alin:p.alignment,flota:p.floating,opac:p.opacity,min:p.minimumLength,max:p.maximumLength,len:p.length,off:p.offset,pantalla:p.screen};p.widgets().forEach(function(w){if(w.type.indexOf("tasks")>0){w.currentConfigGroup=["General"];o.launchers=String(w.readConfig("launchers","?"));o.geom=JSON.stringify(w.geometry);print("DOCK-ANCHO="+Math.round(p.length)+" ")}});print(JSON.stringify(o))})' 2>&1 | head -c 2500; echo
 echo '--- plasmashell en el journal'; journalctl --user -b --no-pager -o cat 2>/dev/null | grep -iE 'plasmashell|panel|tasks|launcher' | grep -viE 'kf.svg|icon' | tail -30
 echo '--- Pantalla de carga'; cat ~/.config/ksplashrc /etc/xdg/ksplashrc 2>&1; ls /usr/share/plasma/look-and-feel/; journalctl --user -b --no-pager -o cat 2>/dev/null | grep -i ksplash | tail -8
-echo '--- fastfetch'; fastfetch --pipe true -s OS:Kernel:Memory 2>&1 | head -20
+echo '--- fastfetch'; fastfetch --pipe true 2>&1 | head -30
 echo '--- Memoria (MiB)'; free -m
 echo '--- Kernel y tarjeta gráfica'; lspci -k | grep -A3 -Ei 'vga|3d' | head -8
 echo '--- Modo juego'; head -20 /etc/gamemode.ini; ls -l /usr/local/share/applications/steam.desktop && grep '^Exec' /usr/local/share/applications/steam.desktop

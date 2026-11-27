@@ -7,5 +7,10 @@
     "color": { "1": "38;2;201;189;255", "2": "38;2;169;150;255" },
     "padding": { "right": 3 }
   },
-  "display": { "color": { "keys": "38;2;169;150;255", "title": "38;2;201;189;255" } }
+  "display": { "color": { "keys": "38;2;169;150;255", "title": "38;2;201;189;255" } },
+  "modules": [
+    "title", "separator", "os", "kernel", "uptime", "packages", "shell", "display", "de", "wm",
+    "theme", "icons", "font", "terminal", "cpu", "gpu", "memory", "swap", "disk", "locale",
+    "break", "colors"
+  ]
 }
