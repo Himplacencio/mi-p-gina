@@ -1,0 +1,23 @@
+name: Etiquetas de fallas de MoonOS
+
+# Crea las etiquetas que usa el tablero de fallas de la página web.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/moonos-labels.yml'
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Crear o actualizar etiquetas
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create "falla"       -R "$GITHUB_REPOSITORY" --color "d73a4a" --description "Falla reportada desde la página de MoonOS" --force
+          gh label create "en proceso"  -R "$GITHUB_REPOSITORY" --color "f5a742" --description "Estamos trabajando en esta falla (se muestra con ✕)" --force
+          gh label create "solucionado" -R "$GITHUB_REPOSITORY" --color "2ea44f" --description "Falla arreglada (se muestra con ✓)" --force
