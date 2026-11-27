@@ -1,0 +1,11 @@
+// Configuración de fastfetch de MoonOS: logo de la luna en los colores de MoonOS
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "file",
+    "source": "/usr/share/moonos/fastfetch-logo.txt",
+    "color": { "1": "38;2;201;189;255", "2": "38;2;169;150;255" },
+    "padding": { "right": 3 }
+  },
+  "display": { "color": { "keys": "38;2;169;150;255", "title": "38;2;201;189;255" } }
+}
