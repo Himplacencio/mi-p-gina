@@ -28,6 +28,9 @@ mkdir -p /etc/calamares
 cp -a /usr/share/moonos/calamares/. /etc/calamares/
 
 # Acceso directo "Instalar MoonOS" en el escritorio
-runuser -u liveuser -- env LANG="${LANG:-es_MX.UTF-8}" xdg-user-dirs-update || true
-desktop="$(runuser -u liveuser -- xdg-user-dir DESKTOP 2>/dev/null || echo /home/liveuser/Desktop)"
+# setpriv cambia de usuario sin abrir una sesión de inicio (con runuser, logind
+# hace esperar 2 minutos porque aún no se permiten sesiones en este punto del arranque)
+as_live() { setpriv --reuid=liveuser --regid=liveuser --init-groups env HOME=/home/liveuser USER=liveuser LANG="${LANG:-es_MX.UTF-8}" "$@"; }
+as_live xdg-user-dirs-update || true
+desktop="$(as_live xdg-user-dir DESKTOP 2>/dev/null || echo /home/liveuser/Desktop)"
 install -Dm755 -o liveuser -g liveuser /usr/share/applications/moonos-installer.desktop "$desktop/moonos-installer.desktop"
