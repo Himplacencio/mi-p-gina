@@ -126,7 +126,8 @@ jobs:
           for i in 1 2 3; do git pull --rebase --no-edit origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
 
       - name: Publicar la ISO en GitHub Releases
-        if: steps.vmtest.outputs.desktop == 'true' && steps.size.outputs.ok == 'true'
+        # Solo se publica desde main; en otras ramas la ISO se compila y se prueba, sin publicarse
+        if: github.ref == 'refs/heads/main' && steps.vmtest.outputs.desktop == 'true' && steps.size.outputs.ok == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
