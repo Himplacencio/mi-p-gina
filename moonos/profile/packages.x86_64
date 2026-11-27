@@ -93,6 +93,8 @@ kwrite
 ark
 spectacle
 xdg-user-dirs
+# App «Bienvenida a MoonOS» (Python + Qt)
+python-pyqt6
 firefox
 haruna
 noto-fonts

@@ -1,0 +1,428 @@
+#!/usr/bin/env python3
+"""Bienvenida a MoonOS.
+
+- Modo Live: botón para instalar, equipo detectado y ayuda.
+- Sistema instalado: «Hazlo tuyo» para personalizar casi todo (tema, color,
+  fondo animado, panel, efectos), juegos y comunidad.
+
+Se abre sola al iniciar sesión (/etc/xdg/autostart/moonos-bienvenida.desktop).
+Con MOONOS_DRY=1 solo imprime los comandos (para pruebas).
+"""
+import os
+import re
+import shlex
+import subprocess
+import sys
+from pathlib import Path
+
+from PyQt6.QtCore import Qt, QTimer, QProcess, QUrl
+from PyQt6.QtGui import QDesktopServices, QFont, QIcon, QPixmap, QColor
+from PyQt6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QFileDialog, QFrame, QGridLayout, QHBoxLayout,
+                             QLabel, QMainWindow, QPushButton, QScrollArea, QStackedWidget, QVBoxLayout, QWidget)
+
+VERSION = "Beta"
+WEB = "https://himplacencio.github.io/mi-p-gina/moonos/"
+FALLAS = "https://github.com/Himplacencio/mi-p-gina/issues?q=label%3Afalla"
+REPORTAR = "https://github.com/Himplacencio/mi-p-gina/issues/new?template=falla.yml"
+LOGO = "/usr/share/pixmaps/moonos.png"
+FONDO_ESTATICO = "/usr/share/wallpapers/MoonOS/contents/images/1920x1080.png"
+FONDO_ANIMADO = "org.moonos.lunaanimada"
+DRY = os.environ.get("MOONOS_DRY") == "1"
+CONF = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "moonos"
+
+
+def is_live():
+    if os.environ.get("MOONOS_LIVE") in ("0", "1"):  # solo para pruebas
+        return os.environ["MOONOS_LIVE"] == "1"
+    try:
+        return "archisobasedir=" in Path("/proc/cmdline").read_text()
+    except OSError:
+        return False
+
+
+def run(*cmd, detached=True):
+    """Ejecuta un comando (sin esperar). En modo prueba solo lo muestra."""
+    print("[moonos-bienvenida]", " ".join(shlex.quote(c) for c in cmd), flush=True)
+    if DRY:
+        return True
+    try:
+        if detached:
+            return QProcess.startDetached(cmd[0], list(cmd[1:]))[0]
+        return subprocess.run(cmd, check=False, timeout=30).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def plasma_script(js):
+    """Ejecuta un script de Plasma (panel, fondo) por D-Bus."""
+    print("[moonos-bienvenida] plasma:", js.replace("\n", " "), flush=True)
+    if DRY:
+        return
+    try:
+        from PyQt6.QtDBus import QDBusConnection, QDBusInterface
+        iface = QDBusInterface("org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell", QDBusConnection.sessionBus())
+        iface.call("evaluateScript", js)
+    except Exception as e:  # noqa: BLE001 - nunca romper la app por esto
+        print("plasma_script falló:", e)
+
+
+def kwin_reconfigure():
+    if DRY:
+        return
+    try:
+        from PyQt6.QtDBus import QDBusConnection, QDBusInterface
+        QDBusInterface("org.kde.KWin", "/KWin", "org.kde.KWin", QDBusConnection.sessionBus()).call("reconfigure")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def hardware():
+    gpu = "No detectada"
+    try:
+        out = subprocess.run(["lspci"], capture_output=True, text=True, timeout=5).stdout
+        gpus = [l.split(": ", 1)[1] for l in out.splitlines() if re.search(r"VGA|3D|Display", l)]
+        if gpus:
+            gpu = re.sub(r"\s*\(rev .*\)$", "", gpus[-1])
+    except (OSError, subprocess.SubprocessError, IndexError):
+        pass
+    ram = "?"
+    try:
+        kb = int(re.search(r"MemTotal:\s+(\d+)", Path("/proc/meminfo").read_text()).group(1))
+        ram = f"{kb / 1048576:.1f} GB".replace(".", ",")
+    except (OSError, AttributeError):
+        pass
+    cpu = "?"
+    try:
+        cpu = re.search(r"model name\s*:\s*(.+)", Path("/proc/cpuinfo").read_text()).group(1).strip()
+    except (OSError, AttributeError):
+        pass
+    return gpu, ram, cpu
+
+
+STYLE = """
+* { font-family: 'Noto Sans', sans-serif; color: #eeeaff; }
+QMainWindow, #root { background: #0f0d26; }
+#side { background: #15123a; border-right: 1px solid #2c2766; }
+#brand { font-size: 20px; font-weight: 800; }
+QPushButton#nav { text-align: left; padding: 10px 14px; border: 0; border-radius: 10px; font-size: 14px; color: #b4aedb; background: transparent; }
+QPushButton#nav:checked { background: #2a2560; color: #ffffff; font-weight: 700; }
+QPushButton#nav:hover { background: #221d52; }
+QLabel#h1 { font-size: 30px; font-weight: 800; }
+QLabel#h2 { font-size: 17px; font-weight: 800; color: #f4ecd0; margin-top: 6px; }
+QLabel#lead { font-size: 15px; color: #c8c2ec; }
+QLabel#muted { font-size: 12.5px; color: #8f89bd; }
+QLabel#toast { background: #1d3b33; color: #7be3b0; border-radius: 8px; padding: 6px 12px; font-weight: 700; }
+QFrame#card { background: #1a1640; border: 1px solid #2f2a66; border-radius: 14px; }
+QPushButton { background: #221d52; border: 1px solid #39337a; border-radius: 10px; padding: 9px 16px; font-size: 13.5px; }
+QPushButton:hover { border-color: #a996ff; }
+QPushButton:checked { background: #a996ff; color: #120e2e; border-color: #a996ff; font-weight: 700; }
+QPushButton#primary { background: #a996ff; color: #120e2e; border: 0; font-size: 17px; font-weight: 800; padding: 14px 26px; border-radius: 14px; }
+QPushButton#primary:hover { background: #bcadff; }
+QPushButton#swatch { border-radius: 16px; min-width: 32px; max-width: 32px; min-height: 32px; max-height: 32px; padding: 0; border: 3px solid transparent; }
+QPushButton#swatch:checked { border: 3px solid #ffffff; }
+QCheckBox { font-size: 13.5px; spacing: 10px; }
+QScrollBar:vertical { background: transparent; width: 10px; margin: 4px; }
+QScrollBar::handle:vertical { background: #39337a; border-radius: 4px; min-height: 30px; }
+QScrollBar::add-line, QScrollBar::sub-line { height: 0; }
+QScrollArea, QStackedWidget, QWidget#page { border: 0; background: #0f0d26; }
+"""
+
+ACCENTS = [("Lavanda", "#a996ff"), ("Luna", "#f4ecd0"), ("Menta", "#7be3b0"), ("Cielo", "#5fb3ff"),
+           ("Rosa", "#ff7ab6"), ("Fuego", "#ff8a4c"), ("Rojo", "#ff5c6c"), ("Dorado", "#ffcf6e")]
+
+
+class Card(QFrame):
+    def __init__(self, title=None, text=None):
+        super().__init__()
+        self.setObjectName("card")
+        self.lay = QVBoxLayout(self)
+        self.lay.setContentsMargins(18, 16, 18, 16)
+        self.lay.setSpacing(10)
+        if title:
+            t = QLabel(title); t.setObjectName("h2"); self.lay.addWidget(t)
+        if text:
+            d = QLabel(text); d.setObjectName("muted"); d.setWordWrap(True); self.lay.addWidget(d)
+
+
+def row(*widgets, stretch=True):
+    w = QWidget(); h = QHBoxLayout(w); h.setContentsMargins(0, 0, 0, 0); h.setSpacing(8)
+    for x in widgets:
+        h.addWidget(x)
+    if stretch:
+        h.addStretch(1)
+    return w
+
+
+class Bienvenida(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.live = is_live()
+        self.setWindowTitle("Bienvenida a MoonOS")
+        if Path(LOGO).exists():
+            self.setWindowIcon(QIcon(LOGO))
+        self.resize(1000, 660)
+        root = QWidget(); root.setObjectName("root"); self.setCentralWidget(root)
+        lay = QHBoxLayout(root); lay.setContentsMargins(0, 0, 0, 0); lay.setSpacing(0)
+
+        # Barra lateral
+        side = QFrame(); side.setObjectName("side"); side.setFixedWidth(220)
+        sl = QVBoxLayout(side); sl.setContentsMargins(14, 18, 14, 14); sl.setSpacing(4)
+        brand = QHBoxLayout()
+        logo = QLabel()
+        if Path(LOGO).exists():
+            logo.setPixmap(QPixmap(LOGO).scaled(38, 38, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        name = QLabel("MoonOS"); name.setObjectName("brand")
+        brand.addWidget(logo); brand.addWidget(name); brand.addStretch(1)
+        sl.addLayout(brand); sl.addSpacing(16)
+
+        self.stack = QStackedWidget()
+        self.navs = QButtonGroup(self)
+        pages = [("🏠  Inicio", self.page_inicio()), ("🎨  Hazlo tuyo", self.page_tuyo()),
+                 ("🎮  Juegos", self.page_juegos()), ("💬  Ayuda y comunidad", self.page_ayuda())]
+        for i, (label, page) in enumerate(pages):
+            b = QPushButton(label); b.setObjectName("nav"); b.setCheckable(True)
+            b.clicked.connect(lambda _=False, i=i: self.stack.setCurrentIndex(i))
+            self.navs.addButton(b, i); sl.addWidget(b)
+            scroll = QScrollArea(); scroll.setWidgetResizable(True); scroll.setWidget(page)
+            self.stack.addWidget(scroll)
+        self.navs.button(0).setChecked(True)
+        sl.addStretch(1)
+        if not self.live:
+            self.autostart = QCheckBox("Mostrar al iniciar")
+            self.autostart.setChecked(not (CONF / "no-bienvenida").exists())
+            self.autostart.toggled.connect(self.set_autostart)
+            sl.addWidget(self.autostart)
+        ver = QLabel(f"MoonOS {VERSION}{' · modo Live' if self.live else ''}"); ver.setObjectName("muted")
+        sl.addWidget(ver)
+
+        right = QVBoxLayout(); right.setContentsMargins(0, 0, 0, 0)
+        self.toast = QLabel(""); self.toast.setObjectName("toast"); self.toast.hide()
+        right.addWidget(self.stack, 1)
+        tw = QHBoxLayout(); tw.setContentsMargins(28, 0, 28, 14); tw.addWidget(self.toast); tw.addStretch(1)
+        right.addLayout(tw)
+        lay.addWidget(side); lay.addLayout(right, 1)
+
+    # ---------- utilidades ----------
+    def notify(self, text):
+        self.toast.setText("✓  " + text); self.toast.show()
+        QTimer.singleShot(2600, self.toast.hide)
+
+    def page(self):
+        w = QWidget(); w.setObjectName("page"); v = QVBoxLayout(w); v.setContentsMargins(32, 28, 32, 20); v.setSpacing(14)
+        return w, v
+
+    def set_autostart(self, on):
+        CONF.mkdir(parents=True, exist_ok=True)
+        flag = CONF / "no-bienvenida"
+        if on:
+            flag.unlink(missing_ok=True)
+        else:
+            flag.touch()
+
+    # ---------- páginas ----------
+    def page_inicio(self):
+        w, v = self.page()
+        gpu, ram, cpu = hardware()
+        if self.live:
+            h = QLabel("Bienvenido a MoonOS 🌙"); h.setObjectName("h1")
+            l = QLabel("Estás probando MoonOS en modo Live: nada se guarda en tu disco hasta que tú decidas instalarlo. "
+                       "Prueba todo lo que quieras y, si te gusta, instálalo en unos minutos.")
+            l.setObjectName("lead"); l.setWordWrap(True)
+            inst = QPushButton("💿  Instalar MoonOS"); inst.setObjectName("primary")
+            inst.clicked.connect(lambda: (run("/usr/local/bin/moonos-install"), self.notify("Abriendo el instalador…")))
+            seguir = QPushButton("Seguir probando"); seguir.clicked.connect(self.close)
+            v.addWidget(h); v.addWidget(l); v.addSpacing(6); v.addWidget(row(inst, seguir))
+            nota = QLabel("⚠️  MoonOS está en Beta. Haz una copia de seguridad de tus archivos antes de instalar.")
+            nota.setObjectName("muted"); nota.setWordWrap(True); v.addWidget(nota)
+        else:
+            h = QLabel("MoonOS ya es tuyo 🎉"); h.setObjectName("h1")
+            l = QLabel("Ahora haz que se vea y funcione como tú quieras: colores, fondo animado, panel, efectos… "
+                       "Todo se puede cambiar y deshacer cuando quieras.")
+            l.setObjectName("lead"); l.setWordWrap(True)
+            p = QPushButton("🎨  Personalizar MoonOS"); p.setObjectName("primary")
+            p.clicked.connect(lambda: (self.stack.setCurrentIndex(1), self.navs.button(1).setChecked(True)))
+            upd = QPushButton("⬆️  Actualizar el sistema")
+            upd.clicked.connect(lambda: run("konsole", "--hold", "-e", "sudo", "pacman", "-Syu"))
+            v.addWidget(h); v.addWidget(l); v.addSpacing(6); v.addWidget(row(p, upd))
+
+        eq = Card("Tu equipo", "Esto es lo que MoonOS detectó. Los drivers de la tarjeta gráfica se configuran solos al instalar.")
+        g = QGridLayout(); g.setHorizontalSpacing(18); g.setVerticalSpacing(6)
+        for r, (k, val) in enumerate([("Tarjeta gráfica", gpu), ("Memoria RAM", ram), ("Procesador", cpu)]):
+            kl = QLabel(k); kl.setObjectName("muted"); vl = QLabel(val); vl.setWordWrap(True)
+            g.addWidget(kl, r, 0); g.addWidget(vl, r, 1)
+        g.setColumnStretch(1, 1)
+        eq.lay.addLayout(g)
+        v.addWidget(eq)
+
+        tips = Card("Primeros pasos")
+        for t in ["🎮  Abre Steam: el modo juego se activa solo cuando juegas.",
+                  "🎨  En «Hazlo tuyo» puedes poner la luna animada de fondo.",
+                  "🐛  ¿Algo falla? Repórtalo en «Ayuda y comunidad»: todos los reportes son públicos."]:
+            x = QLabel(t); x.setWordWrap(True); tips.lay.addWidget(x)
+        v.addWidget(tips)
+        v.addStretch(1)
+        return w
+
+    def page_tuyo(self):
+        w, v = self.page()
+        h = QLabel("Hazlo tuyo 🎨"); h.setObjectName("h1")
+        l = QLabel("Los cambios se aplican al instante. Pruébalos sin miedo: siempre puedes volver atrás.")
+        l.setObjectName("lead"); l.setWordWrap(True)
+        v.addWidget(h); v.addWidget(l)
+
+        # Tema
+        c = Card("Tema")
+        g = QButtonGroup(self)
+        osc = QPushButton("🌙  Oscuro"); cla = QPushButton("☀️  Claro")
+        for b in (osc, cla):
+            b.setCheckable(True); g.addButton(b)
+        osc.setChecked(True)
+        osc.clicked.connect(lambda: (run("plasma-apply-lookandfeel", "-a", "org.kde.breezedark.desktop"), self.notify("Tema oscuro")))
+        cla.clicked.connect(lambda: (run("plasma-apply-lookandfeel", "-a", "org.kde.breeze.desktop"), self.notify("Tema claro")))
+        c.lay.addWidget(row(osc, cla))
+        v.addWidget(c)
+
+        # Color de acento
+        c = Card("Color de acento", "El color de botones, selecciones y detalles de todo el sistema.")
+        g = QButtonGroup(self); sw = []
+        for name, col in ACCENTS:
+            b = QPushButton(); b.setObjectName("swatch"); b.setCheckable(True); b.setToolTip(name)
+            b.setStyleSheet(f"QPushButton#swatch {{ background: {col}; }}")
+            b.clicked.connect(lambda _=False, col=col, name=name: (
+                run("plasma-apply-colorscheme", "--accent-color", col), self.notify(f"Color {name}")))
+            g.addButton(b); sw.append(b)
+        sw[0].setChecked(True)
+        c.lay.addWidget(row(*sw))
+        v.addWidget(c)
+
+        # Fondo
+        c = Card("Fondo de pantalla", "La luna animada tiene estrellas que titilan, estrellas fugaces y nubes. "
+                                      "Usa un poco más de recursos que el fondo fijo.")
+        g = QButtonGroup(self)
+        anim = QPushButton("✨  Luna animada"); fija = QPushButton("🌙  Luna clásica"); mia = QPushButton("🖼️  Elegir imagen…")
+        for b in (anim, fija):
+            b.setCheckable(True); g.addButton(b)
+        fija.setChecked(True)
+        anim.clicked.connect(self.fondo_animado)
+        fija.clicked.connect(lambda: (run("plasma-apply-wallpaperimage", FONDO_ESTATICO), self.notify("Fondo clásico")))
+        mia.clicked.connect(self.fondo_propio)
+        c.lay.addWidget(row(anim, fija, mia))
+        v.addWidget(c)
+
+        # Panel
+        c = Card("Barra de tareas (panel)")
+        g = QButtonGroup(self); pos = []
+        for label, where in [("⬇️  Abajo", "bottom"), ("⬆️  Arriba", "top"), ("⬅️  Izquierda", "left")]:
+            b = QPushButton(label); b.setCheckable(True); g.addButton(b); pos.append(b)
+            b.clicked.connect(lambda _=False, where=where, label=label: (
+                plasma_script(f"panels().forEach(p => p.location = '{where}')"), self.notify("Panel " + label.split()[-1].lower())))
+        pos[0].setChecked(True)
+        c.lay.addWidget(row(*pos))
+        g2 = QButtonGroup(self)
+        clas = QPushButton("Clásico (todo el ancho)"); dock = QPushButton("Dock centrado (tipo Mac)")
+        for b in (clas, dock):
+            b.setCheckable(True); g2.addButton(b)
+        clas.setChecked(True)
+        clas.clicked.connect(lambda: (plasma_script(
+            "panels().forEach(p => { try { p.lengthMode = 'fill'; p.floating = false; } catch (e) {} })"), self.notify("Panel clásico")))
+        dock.clicked.connect(lambda: (plasma_script(
+            "panels().forEach(p => { try { p.lengthMode = 'fit'; p.alignment = 'center'; p.floating = true; } catch (e) {} })"),
+            self.notify("Panel tipo dock")))
+        c.lay.addWidget(row(clas, dock))
+        flot = QCheckBox("Panel flotante (separado del borde)")
+        flot.toggled.connect(lambda on: (plasma_script(
+            f"panels().forEach(p => {{ try {{ p.floating = {'true' if on else 'false'}; }} catch (e) {{}} }})"), self.notify("Listo")))
+        c.lay.addWidget(flot)
+        v.addWidget(c)
+
+        # Efectos
+        c = Card("Efectos")
+        wob = QCheckBox("Ventanas gelatina (se mueven como gelatina al arrastrarlas)")
+        wob.toggled.connect(lambda on: self.kwin_plugin("wobblywindowsEnabled", on, "Ventanas gelatina"))
+        fast = QCheckBox("Animaciones más rápidas")
+        fast.toggled.connect(lambda on: (run("kwriteconfig6", "--file", "kdeglobals", "--group", "KDE", "--key",
+                                             "AnimationDurationFactor", "0.5" if on else "1", detached=False),
+                                         kwin_reconfigure(), self.notify("Animaciones " + ("rápidas" if on else "normales"))))
+        c.lay.addWidget(wob); c.lay.addWidget(fast)
+        v.addWidget(c)
+
+        mas = QPushButton("⚙️  Más opciones (configuración completa de KDE)")
+        mas.clicked.connect(lambda: run("systemsettings"))
+        v.addWidget(row(mas))
+        v.addStretch(1)
+        return w
+
+    def kwin_plugin(self, key, on, label):
+        run("kwriteconfig6", "--file", "kwinrc", "--group", "Plugins", "--key", key, "true" if on else "false", detached=False)
+        kwin_reconfigure()
+        self.notify(f"{label}: {'activadas' if on else 'desactivadas'}")
+
+    def fondo_animado(self):
+        plasma_script("desktops().forEach(d => { d.wallpaperPlugin = '%s'; d.currentConfigGroup = ['Wallpaper', '%s', 'General']; })"
+                      % (FONDO_ANIMADO, FONDO_ANIMADO))
+        self.notify("Luna animada activada ✨")
+
+    def fondo_propio(self):
+        f, _ = QFileDialog.getOpenFileName(self, "Elige tu fondo de pantalla", str(Path.home() / "Imágenes"),
+                                           "Imágenes (*.png *.jpg *.jpeg *.webp)")
+        if f:
+            run("plasma-apply-wallpaperimage", f)
+            self.notify("Fondo cambiado")
+
+    def page_juegos(self):
+        w, v = self.page()
+        h = QLabel("Juegos 🎮"); h.setObjectName("h1"); v.addWidget(h)
+        l = QLabel("MoonOS activa el modo juego automáticamente: al abrir un juego, la CPU y la GPU se ponen al máximo "
+                   "y las tareas de fondo se pausan. No tienes que configurar nada.")
+        l.setObjectName("lead"); l.setWordWrap(True); v.addWidget(l)
+        c = Card("Abrir")
+        steam = QPushButton("Steam"); lut = QPushButton("Lutris")
+        steam.clicked.connect(lambda: run("gtk-launch", "steam")); lut.clicked.connect(lambda: run("lutris"))
+        c.lay.addWidget(row(steam, lut)); v.addWidget(c)
+        c = Card("Extras opcionales", "Se instalan desde internet en una terminal.")
+        pc = QPushButton("Instalar Proton-CachyOS (más compatibilidad en Steam)")
+        pc.clicked.connect(lambda: run("konsole", "--hold", "-e", "sudo", "pacman", "-S", "--needed", "proton-cachyos"))
+        c.lay.addWidget(row(pc))
+        tip = QLabel("Para ver FPS y temperaturas dentro de un juego de Steam, ponle en «Opciones de lanzamiento»: "
+                     "mangohud %command%")
+        tip.setObjectName("muted"); tip.setWordWrap(True); c.lay.addWidget(tip)
+        v.addWidget(c); v.addStretch(1)
+        return w
+
+    def page_ayuda(self):
+        w, v = self.page()
+        h = QLabel("Ayuda y comunidad 💬"); h.setObjectName("h1"); v.addWidget(h)
+        l = QLabel("MoonOS lo hace una persona con ayuda de su comunidad. Si algo falla, cuéntalo: "
+                   "los reportes son públicos y se marcan como «en proceso» o «solucionado».")
+        l.setObjectName("lead"); l.setWordWrap(True); v.addWidget(l)
+        c = Card()
+        for label, url in [("🐛  Reportar una falla", REPORTAR), ("📋  Ver fallas y soluciones", FALLAS),
+                           ("🌐  Página de MoonOS", WEB)]:
+            b = QPushButton(label); b.clicked.connect(lambda _=False, url=url: QDesktopServices.openUrl(QUrl(url)))
+            c.lay.addWidget(row(b))
+        v.addWidget(c); v.addStretch(1)
+        return w
+
+
+def main():
+    if not is_live() and (CONF / "no-bienvenida").exists() and "--siempre" not in sys.argv:
+        return 0
+    app = QApplication(sys.argv)
+    app.setApplicationName("Bienvenida a MoonOS")
+    app.setDesktopFileName("moonos-bienvenida")
+    app.setStyleSheet(STYLE)
+    win = Bienvenida()
+    win.show()
+    if os.environ.get("MOONOS_SHOT"):  # pruebas: captura y salir
+        def shot():
+            for i in range(win.stack.count()):
+                win.stack.setCurrentIndex(i)
+                app.processEvents()
+                win.grab().save(f"{os.environ['MOONOS_SHOT']}-{i}.png")
+            app.quit()
+        QTimer.singleShot(400, shot)
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

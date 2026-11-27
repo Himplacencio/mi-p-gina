@@ -99,6 +99,7 @@ echo '--- Sesiones gráficas'; loginctl list-sessions --no-legend; for id in $(l
 echo '--- Procesos del escritorio'; pgrep -a sddm | head -3; pgrep -a kwin_wayland | head -2; pgrep -a plasmashell || echo 'plasmashell NO está corriendo'
 echo '--- Tiempo de arranque'; systemd-analyze; systemd-analyze blame --no-pager | head -8
 echo '--- Diagnóstico pantalla negra'; sudo journalctl -b --no-pager -o short-monotonic | grep -iE 'sddm|kwin|plasma|portal|timed out|timeout|failed|kwallet|polkit' | head -60; systemctl --user --no-pager --failed; systemd-analyze --user blame --no-pager | head -12
+echo '--- Bienvenida y fondo animado'; pgrep -af moonos-bienvenida || echo 'bienvenida NO está abierta'; ls /usr/share/plasma/wallpapers/ | grep -i moonos
 echo '--- Memoria (MiB)'; free -m
 echo '--- Kernel y tarjeta gráfica'; lspci -k | grep -A3 -Ei 'vga|3d' | head -8
 echo '--- Modo juego'; head -20 /etc/gamemode.ini; ls -l /usr/local/share/applications/steam.desktop && grep '^Exec' /usr/local/share/applications/steam.desktop

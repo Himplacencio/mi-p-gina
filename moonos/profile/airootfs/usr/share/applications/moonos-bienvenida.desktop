@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Bienvenida a MoonOS
+Name[en]=Welcome to MoonOS
+GenericName=Personalizar el sistema
+Comment=Instala MoonOS, personalízalo y encuentra ayuda
+Exec=/usr/local/bin/moonos-bienvenida --siempre
+Icon=/usr/share/pixmaps/moonos.png
+Terminal=false
+Categories=System;Settings;
+Keywords=bienvenida;welcome;personalizar;tema;fondo;animado;luna;

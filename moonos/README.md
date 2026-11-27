@@ -9,6 +9,12 @@
 - **Instalador gráfico (Calamares)** con sistema de archivos Btrfs y compresión zstd.
 - **Flatpak** preinstalado para instalar más programas fácilmente.
 
+## Bienvenida y personalización
+
+- **Bienvenida a MoonOS** se abre sola al iniciar. En el modo Live tiene el botón **Instalar MoonOS** y muestra el equipo detectado; ya instalado, da la bienvenida y lleva a personalizar. Se puede desactivar con «Mostrar al iniciar».
+- **Hazlo tuyo:** tema oscuro o claro, 8 colores de acento, fondo (luna animada, luna clásica o una imagen propia), panel abajo, arriba o a la izquierda, estilo clásico o dock tipo Mac, panel flotante, ventanas gelatina y animaciones rápidas.
+- **Luna animada:** fondo animado para Plasma (`org.moonos.lunaanimada`) con estrellas que titilan, luna que flota, nubes y estrellas fugaces. También aparece en *Configurar escritorio y fondo de pantalla → Tipo de fondo*.
+
 ## Modo juego automático
 
 Cuando abres un juego, MoonOS pone todo el equipo a su servicio, y lo devuelve a la normalidad al cerrarlo:

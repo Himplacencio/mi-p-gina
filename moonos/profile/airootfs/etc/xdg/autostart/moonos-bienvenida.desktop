@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Bienvenida a MoonOS
+Exec=/usr/local/bin/moonos-bienvenida
+Icon=/usr/share/pixmaps/moonos.png
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=2

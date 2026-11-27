@@ -1,0 +1,13 @@
+{
+    "KPackageStructure": "Plasma/Wallpaper",
+    "KPlugin": {
+        "Authors": [ { "Name": "MoonOS" } ],
+        "Description": "Cielo nocturno con estrellas que titilan, luna que flota, nubes y estrellas fugaces",
+        "Icon": "preferences-desktop-wallpaper",
+        "Id": "org.moonos.lunaanimada",
+        "License": "GPL-3.0-or-later",
+        "Name": "Luna animada (MoonOS)",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
