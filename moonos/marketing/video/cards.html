@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@500;700;800&display=swap">
+<style>
+html,body{margin:0;height:100%;background:#0c0a22;color:#eeeaff;font-family:Manrope,sans-serif;overflow:hidden}
+.sky{position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% 20%,rgba(124,99,255,.4),transparent 70%),linear-gradient(180deg,#0a0920,#2a1f66)}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+.scene{position:absolute;inset:0;display:none;padding:150px 26px 0}
+.scene.on{display:block}
+h1{font-family:Unbounded,sans-serif;font-weight:700;font-size:38px;line-height:1.1;margin:0 0 26px;letter-spacing:-.01em}
+h1 span{color:#f4ecd0}
+.pop{opacity:0;transform:translateY(26px) scale(.96)}
+.pop.in{opacity:1;transform:none;transition:opacity .45s, transform .55s cubic-bezier(.2,1.4,.4,1)}
+.item{display:flex;gap:14px;align-items:center;background:rgba(26,22,64,.82);border:1px solid #3a3570;border-radius:18px;padding:16px 18px;margin-bottom:14px;font-size:20px;font-weight:800;line-height:1.25}
+.item .e{font-size:34px;flex:none}
+.item.good{border-color:rgba(123,227,176,.5)}
+.item.good .e{width:40px;height:40px;border-radius:50%;background:rgba(123,227,176,.16);color:#7be3b0;display:grid;place-items:center;font-size:24px}
+.small{font-size:17px;color:#b4aedb;font-weight:700;margin-top:14px;line-height:1.4}
+/* intro */
+.avatar{width:150px;height:150px;border-radius:50%;margin:0 auto 26px;background:radial-gradient(circle at 50% 35%,#2c2470,#110e2c);display:grid;place-items:center;border:3px solid #a996ff;box-shadow:0 0 60px rgba(169,150,255,.5)}
+.avatar i{display:block;width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 36% 40%,#fffaf0,#f4ecd0 45%,#d9ccff);-webkit-mask:radial-gradient(circle at 78% 26%,transparent 47%,#000 47.6%)}
+.center{text-align:center}
+.hello{font-family:Unbounded,sans-serif;font-size:52px;font-weight:700;margin-bottom:10px}
+.wave{display:inline-block;transform-origin:70% 70%;animation:wave 1.2s ease-in-out 2}
+@keyframes wave{25%{transform:rotate(18deg)}50%{transform:rotate(-8deg)}75%{transform:rotate(14deg)}}
+.lead{font-size:23px;font-weight:800;line-height:1.35}
+.lead b{color:#a996ff}
+.chip{display:inline-block;margin-top:18px;font-size:16px;font-weight:700;color:#1b1406;background:#f4ecd0;padding:8px 14px;border-radius:999px}
+</style></head><body>
+<div class="sky"></div><canvas id="c"></canvas>
+
+<section class="scene" id="intro">
+  <div class="center">
+    <div class="avatar pop"><i></i></div>
+    <div class="hello pop">Hola <span class="wave">👋</span></div>
+    <div class="lead pop">Soy quien está creando<br><b>MoonOS 🌙</b></div>
+    <div class="lead pop" style="font-size:19px;color:#cfc8f2;margin-top:14px">un sistema operativo para gamers</div>
+    <div class="chip pop">hecho desde cero… bueno, casi 😅</div>
+  </div>
+</section>
+
+<section class="scene" id="problema">
+  <h1 class="pop">El <span>problema</span> 😤</h1>
+  <div class="item pop"><span class="e">🐢</span>Tu PC se pone lento justo cuando vas a jugar</div>
+  <div class="item pop"><span class="e">🙃</span>Las actualizaciones aparecen cuando QUIEREN</div>
+  <div class="item pop"><span class="e">🗑️</span>Programas de fondo que no pediste comiéndose tu RAM</div>
+  <div class="item pop"><span class="e">😵‍💫</span>Y Linux da miedo: drivers, terminal, comandos raros…</div>
+</section>
+
+<section class="scene" id="motivo">
+  <h1 class="pop">Por eso nació<br><span>MoonOS</span> 💡</h1>
+  <div class="item good pop"><span class="e">✓</span>Tu PC 100% enfocado en el juego</div>
+  <div class="item good pop"><span class="e">✓</span>Los drivers se instalan solos</div>
+  <div class="item good pop"><span class="e">✓</span>Ligero: hasta en PCs modestos</div>
+  <div class="item good pop"><span class="e">✓</span>Gratis, en español y para siempre</div>
+  <div class="small pop">Basado en Arch Linux y CachyOS, de los sistemas más rápidos para jugar.</div>
+</section>
+
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');c.width=innerWidth*2;c.height=innerHeight*2;x.scale(2,2);
+const st=Array.from({length:110},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,r:Math.random()**3*1.5+.4,p:Math.random()*6}));
+(function f(){const t=performance.now();x.clearRect(0,0,innerWidth,innerHeight);st.forEach(s=>{x.globalAlpha=.3+.6*Math.abs(Math.sin(t/800+s.p));x.fillStyle='#fff';x.beginPath();x.arc(s.x,s.y,s.r,0,7);x.fill()});requestAnimationFrame(f)})();
+const id=new URLSearchParams(location.search).get('s')||'intro';
+document.getElementById(id).classList.add('on');
+// play(intervalo): muestra los elementos uno a uno (lo llama record.js)
+// playAt([ms...]): muestra cada elemento en el instante indicado (sincronizado con la voz)
+window.playAt=times=>{document.querySelectorAll('#'+id+' .pop').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),times[Math.min(i,times.length-1)]));};
+window.play=(gap=700)=>{document.querySelectorAll('#'+id+' .pop').forEach((el,i)=>setTimeout(()=>el.classList.add('in'),i*gap));};
+</script>
+</body></html>

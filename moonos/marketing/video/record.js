@@ -9,6 +9,9 @@ const OUT = __dirname + '/frames';
 const WEB = 'file:///home/user/mi-p-gina/moonos/index.html';
 const DEMO = 'file:///home/user/mi-p-gina/moonos/demo/index.html';
 const FINAL = 'file://' + __dirname + '/final.html';
+const CARDS = 'file://' + __dirname + '/cards.html?s=';
+// Página web con reportes de EJEMPLO en el tablero de fallas (solo para el video)
+const WEB_DEMO_ISSUES = 'file://' + __dirname + '/../moonos-web/test.html';
 // Cámara lenta: todo corre 4 veces más lento y luego el video se acelera 4x,
 // así hay muchos más cuadros por segundo aunque renderizar en 1080p sea lento.
 const SLOW = 4;
@@ -43,7 +46,8 @@ async function caption(page, lines, top = 92) {
     document.getElementById('cap')?.remove();
     const c = document.createElement('div'); c.id = 'cap'; c.style.top = top + 'px';
     c.innerHTML = lines.map(x => typeof x === 'string' ? `<div class="l">${x}</div>` : `<div class="l ${x.c}">${x.t}</div>`).join('');
-    document.body.append(c);
+    // Si hay un panel modal abierto, el texto va dentro (los modales tapan todo lo demás)
+    (document.querySelector('dialog[open]') || document.body).append(c);
   }, { lines, top, css: CAP_CSS });
 }
 
@@ -79,7 +83,9 @@ async function scene(browser, name, url, setup, act) {
   });
   await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 72, maxWidth: 1080, maxHeight: 1920, everyNthFrame: 1 });
   const t0 = Date.now() / 1000;
-  await act(p);
+  // at(seg): espera hasta el segundo «seg» de la escena (tiempo del video final)
+  const at = async sec => { const w = t0 * 1000 + sec * 1000 * SLOW - Date.now(); if (w > 0) await new Promise(r => setTimeout(r, w)); };
+  await act(p, at);
   const t1 = Date.now() / 1000;
   await cdp.send('Page.stopScreencast');
   await ctx.close();
@@ -87,105 +93,134 @@ async function scene(browser, name, url, setup, act) {
   console.log(`${name}: ${frames.length} cuadros, ${(t1 - t0).toFixed(1)} s`);
 }
 
+// Duración de cada escena = lo que dura su frase en la voz (+0,25 s que se come la transición)
+const ALIGN = JSON.parse(fs.readFileSync(__dirname + '/voice-align.json', 'utf8')).durs;
+const X = 0.25;
+const DUR = name => ALIGN[name] + (name === '11-final' ? 1.2 : X);
+
 (async () => {
   if (!ONLY) fs.rmSync(OUT, { recursive: true, force: true }); else fs.rmSync(path.join(OUT, ONLY), { recursive: true, force: true });
   const browser = await chromium.launch();
+  const clearToasts = p => p.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.remove()));
+  const scrollTo = (p, sel, ms) => p.evaluate(({ sel, ms }) => new Promise(res => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    const target = document.querySelector(sel).getBoundingClientRect().top + scrollY - 40;
+    const from = scrollY, t0 = performance.now();
+    const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    (function step() { const k = Math.min(1, (performance.now() - t0) / ms); window.scrollTo(0, from + (target - from) * ease(k)); k < 1 ? requestAnimationFrame(step) : res(); })();
+  }), { sel, ms });
 
-  // 1) GANCHO: el chiste de las actualizaciones de Windows + la luna saliendo
-  await scene(browser, '1-gancho', WEB, async p => {
+  // 01 GANCHO  "Windows: solo voy a actualizar una cosita… tres horas después. Así que hice mi propio sistema operativo."
+  await scene(browser, '01-gancho', WEB, async p => {
     await p.waitForTimeout(1500);
-    // En el gancho solo se ve la luna y el chiste; el titular aparece después
     await p.evaluate(() => { const h = document.querySelector('.hero-copy'); h.style.transition = 'none'; h.style.opacity = '0'; h.style.transform = 'translateY(24px)'; });
     await p.waitForTimeout(200);
-  }, async p => {
+  }, async (p, at) => {
     await caption(p, ['Windows: “solo voy a actualizar una cosita” 🙂'], 250);
     await p.evaluate(() => { const m = document.querySelector('.big-moon'); m.style.animation = 'none'; m.offsetWidth; m.style.animation = ''; });
-    await sleep(1300);
+    await at(3.9);
     await caption(p, ['Windows: “solo voy a actualizar una cosita” 🙂', { t: '*3 horas después* 💀', c: 'y' }], 250);
-    await sleep(1400);
+    await at(5.55);
     await p.evaluate(() => { const h = document.querySelector('.hero-copy'); h.style.transition = 'opacity .5s, transform .5s'; h.style.opacity = '1'; h.style.transform = 'none'; });
     await caption(p, ['Así que hice MI PROPIO', { t: 'sistema operativo 🌙', c: 'y' }], 470);
-    await sleep(1500);
+    await at(DUR('01-gancho'));
   });
 
-  // 2) La página: se llama MoonOS
-  await scene(browser, '2-pagina', WEB, async p => {
+  // 02-04 Tarjetas sincronizadas con las pausas de la voz
+  const card = (name, id, times) => scene(browser, name, CARDS + id, async p => { await p.waitForTimeout(600); }, async (p, at) => {
+    await p.evaluate(t => window.playAt(t), times);
+    await at(DUR(name));
+  });
+  await card('02-intro', 'intro', [0, 250, 900, 3000, 5100]);
+  await card('03-problema', 'problema', [0, 700, 3300, 6000, 8900]);
+  await card('04-motivo', 'motivo', [0, 2100, 5300, 7300, 10300, 11800]);
+
+  // 05 La página  "Esta es su página. Cuando abres un juego, el sistema se dedica solo a él."
+  await scene(browser, '05-pagina', WEB, async p => {
     await p.waitForTimeout(1500);
-    await caption(p, ['Se llama MoonOS 🌙', { t: 'Linux para jugar, ligero y en español', c: 'small' }], 150);
-  }, async p => {
-    await sleep(700);
-    await p.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; });
-    await p.evaluate(() => new Promise(res => {
-      const target = document.querySelector('#caracteristicas').getBoundingClientRect().top + scrollY - 40;
-      const from = scrollY, dur = 3000, t0 = performance.now();
-      const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-      (function step(now) { const k = Math.min(1, (now - t0) / dur); scrollTo(0, from + (target - from) * ease(k)); k < 1 ? requestAnimationFrame(step) : res(); })(t0);
-    }));
-    await caption(p, ['Los drivers se instalan solos 🪄', { t: 'Sí, también los de NVIDIA', c: 'small' }], 330);
-    await sleep(1400);
+    await caption(p, ['Esta es su página 👀', { t: 'Linux para jugar, ligero y en español', c: 'small' }], 150);
+  }, async (p, at) => {
+    await at(0.4);
+    const sc = scrollTo(p, '#caracteristicas', 2600);
+    await at(1.5);
+    await caption(p, ['Modo juego automático ⚡', { t: 'Abres un juego y el PC se dedica solo a él', c: 'small' }], 330);
+    await sc;
+    await at(DUR('05-pagina'));
   });
 
-  // 3) Terminal: fastfetch
-  await scene(browser, '3-terminal', DEMO, async p => {
-    await p.waitForTimeout(2400);
-    await p.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.remove()));
-    await p.click('.dicon[data-app=terminal]');
-    await p.waitForTimeout(300);
-    await caption(p, ['Lo primero que hace todo usuario de Linux:'], 430);
-  }, async p => {
-    await sleep(500);
+  // 06 Terminal  "Y sí, lo primero que hice fue presumir con fast fetch."
+  await scene(browser, '06-terminal', DEMO, async p => {
+    await p.waitForTimeout(2400); await clearToasts(p);
+    await p.click('.dicon[data-app=terminal]'); await p.waitForTimeout(300);
     await p.click('.term');
-    await p.keyboard.type('fastfetch', { delay: 85 * SLOW });
-    await sleep(250);
+    await caption(p, ['Lo primero que hace todo usuario de Linux:'], 430);
+  }, async (p, at) => {
+    await p.keyboard.type('fastfetch', { delay: 45 * SLOW });
     await p.keyboard.press('Enter');
-    await sleep(500);
+    await at(1.7);
     await caption(p, ['Lo primero que hace todo usuario de Linux:', { t: 'presumir con fastfetch 🤓', c: 'y' }], 430);
-    await sleep(2000);
+    await at(DUR('06-terminal'));
   });
 
-  // 4) Juegos + modo juego
-  await scene(browser, '4-juegos', DEMO, async p => {
-    await p.waitForTimeout(2400);
-    await p.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.remove()));
-    await p.click('.dicon[data-app=games]');
-    await p.waitForTimeout(300);
+  // 07 Drivers  "¿Nvidia, AMD o Intel? MoonOS lo detecta solo."
+  await scene(browser, '07-drivers', DEMO, async p => {
+    await p.waitForTimeout(2400); await clearToasts(p);
+    await p.click('.dicon[data-app=drivers]'); await p.waitForTimeout(300);
+    await caption(p, ['¿NVIDIA, AMD o Intel?'], 500);
+  }, async (p, at) => {
+    await at(0.9); await p.click('[data-g=amd]');
+    await at(2.1);
+    await caption(p, ['¿NVIDIA, AMD o Intel?', { t: 'MoonOS lo detecta solo 🪄', c: 'y' }], 500);
+    await p.click('#d-run');
+    await at(DUR('07-drivers'));
+  });
+
+  // 08 Juegos  "Abres un juego… y el PC se pone en modo bestia."
+  await scene(browser, '08-juegos', DEMO, async p => {
+    await p.waitForTimeout(2400); await clearToasts(p);
+    await p.click('.dicon[data-app=games]'); await p.waitForTimeout(300);
     await caption(p, ['Abres un juego…'], 470);
-  }, async p => {
-    await sleep(900);
-    await p.click('[data-game="0"]');
-    await sleep(250);
+  }, async (p, at) => {
+    await at(0.9); await p.click('[data-game="0"]');
+    await at(1.15);
     await caption(p, ['…y el PC se pone', { t: 'en modo bestia 🏎️💨', c: 'y' }], 150);
-    await sleep(400);
     await p.keyboard.press('Space');
-    for (const k of ['ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight']) {
-      await p.keyboard.down(k); await sleep(650); await p.keyboard.up(k);
-    }
-    await sleep(300);
+    for (const [k, t] of [['ArrowLeft', 1.9], ['ArrowRight', 2.6], ['ArrowLeft', 3.3]]) { await p.keyboard.down(k); await at(t); await p.keyboard.up(k); }
+    await at(DUR('08-juegos'));
   });
 
-  // 5) Instalador
-  await scene(browser, '5-instalador', DEMO, async p => {
-    await p.waitForTimeout(2400);
-    await p.evaluate(() => document.querySelectorAll('.toast').forEach(t => t.remove()));
-    await p.click('.dicon[data-app=install]');
-    await p.waitForTimeout(300);
+  // 09 Instalador  "Instalarlo es más fácil que explicarle a tu mamá qué es un kernel."
+  await scene(browser, '09-instalador', DEMO, async p => {
+    await p.waitForTimeout(2400); await clearToasts(p);
+    await p.click('.dicon[data-app=install]'); await p.waitForTimeout(300);
     await caption(p, ['Instalarlo es más fácil que…'], 470);
-  }, async p => {
-    await sleep(800);
-    for (let i = 0; i < 4; i++) { await p.click('[data-n=next]'); await sleep(330); }
-    await p.click('#i-name');
-    await p.keyboard.type('Gamer Lunar', { delay: 45 * SLOW });
+  }, async (p, at) => {
+    for (let i = 0; i < 4; i++) { await at(0.2 + i * 0.25); await p.click('[data-n=next]'); }
+    await p.fill('#i-name', 'Gamer Lunar'); await p.fill('#i-p1', 'luna'); await p.fill('#i-p2', 'luna');
+    await at(1.5);
     await caption(p, ['Instalarlo es más fácil que…', { t: 'explicarle a tu mamá qué es un kernel 😅', c: 'y' }], 470);
-    await p.fill('#i-p1', 'luna'); await p.fill('#i-p2', 'luna');
-    await sleep(900);
-    await p.click('[data-n=next]'); await sleep(300); await p.click('[data-n=next]');
-    await sleep(1400);
+    await at(2.4); await p.click('[data-n=next]');
+    await at(2.8); await p.click('[data-n=next]');
+    await at(DUR('09-instalador'));
   });
 
-  // 6) Final: disponible en 2027
-  await scene(browser, '6-final', FINAL, async p => { await p.waitForTimeout(900); await p.reload(); await p.waitForTimeout(50); }, async p => {
+  // 10 Comunidad  "Y si encuentras una falla, la reportas, todos la ven… y la ves pasar a solucionada."
+  await scene(browser, '10-comunidad', WEB_DEMO_ISSUES, async p => {
+    await p.waitForTimeout(1500);
+    await caption(p, ['¿Encuentras una falla? 🐛'], 300);
+  }, async (p, at) => {
+    await at(0.9); await p.click('#fab');
+    await at(1.6);
+    await caption(p, ['La reportas y todos la ven 👀'], 520);
+    await at(3.4);
+    await caption(p, ['La reportas y todos la ven 👀', { t: '…y la ves pasar a ✓ solucionada', c: 'y' }], 520);
+    await at(DUR('10-comunidad'));
+  });
+
+  // 11 Final  "Llega en dos mil veintisiete. Síguenos para verlo nacer."
+  await scene(browser, '11-final', FINAL, async p => { await p.waitForTimeout(900); await p.reload(); await p.waitForTimeout(50); }, async (p, at) => {
     await p.evaluate(() => document.querySelectorAll('*').forEach(e => { if (getComputedStyle(e).animationName !== 'none') { e.style.animation = 'none'; e.offsetWidth; e.style.animation = ''; } }));
-    await sleep(4300);
+    await at(DUR('11-final'));
   });
 
   await browser.close();
