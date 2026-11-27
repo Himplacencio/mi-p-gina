@@ -5,16 +5,22 @@ on:
   push:
     paths:
       - 'moonos/**'
+      - '!moonos/demo/**'
+      - '!moonos/test-results/**'
       - '.github/workflows/moonos-iso.yml'
+      - '.github/scripts/moonos-vm-test.py'
 
 concurrency:
   group: moonos-iso-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
 
@@ -44,3 +50,55 @@ jobs:
           path: /mnt/moonos/out/
           compression-level: 0
           retention-days: 14
+
+      - name: Probar la ISO en una máquina virtual (QEMU + KVM)
+        continue-on-error: true
+        timeout-minutes: 25
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 xorriso python3-pil socat >/dev/null
+          ls -l /dev/kvm || echo "Sin KVM: la prueba será lenta"
+          mkdir -p /tmp/vm
+          ISO="$(ls /mnt/moonos/out/*.iso | head -1)"
+          LABEL="$(xorriso -indev "$ISO" -pvd_info 2>/dev/null | sed -n 's/^Volume Id *: *//p')"
+          echo "ISO: $ISO  etiqueta: $LABEL"
+          xorriso -osirrox on -indev "$ISO" \
+            -extract /arch/boot/x86_64/vmlinuz-linux-cachyos /tmp/vm/vmlinuz \
+            -extract /arch/boot/x86_64/initramfs-linux-cachyos.img /tmp/vm/initrd.img
+          sudo qemu-system-x86_64 -enable-kvm -cpu host -smp 4 -m 4096 \
+            -kernel /tmp/vm/vmlinuz -initrd /tmp/vm/initrd.img \
+            -append "archisobasedir=arch archisolabel=$LABEL console=tty0 console=ttyS0,115200" \
+            -drive file="$ISO",media=cdrom,readonly=on \
+            -device virtio-vga -display none \
+            -nic user,model=virtio-net-pci \
+            -serial unix:/tmp/vm/serial.sock,server,nowait \
+            -monitor unix:/tmp/vm/monitor.sock,server,nowait \
+            -daemonize -pidfile /tmp/vm/qemu.pid
+          sudo chmod 666 /tmp/vm/*.sock
+          shot() {
+            echo "screendump /tmp/vm/$1.ppm" | socat - UNIX-CONNECT:/tmp/vm/monitor.sock >/dev/null
+            sleep 2
+            sudo python3 -c "from PIL import Image; Image.open('/tmp/vm/$1.ppm').save('/tmp/vm/$1.png')" && sudo rm -f /tmp/vm/$1.ppm
+          }
+          (sleep 90; shot 1-arranque) &
+          python3 .github/scripts/moonos-vm-test.py /tmp/vm/serial.sock /tmp/vm/consola-serie.log
+          shot 2-escritorio
+          sleep 30
+          shot 3-escritorio-30s
+          sudo kill "$(cat /tmp/vm/qemu.pid)" || true
+          sed -n '/===MOONOS-TEST-START===/,/===MOONOS-TEST-2-END===/p' /tmp/vm/consola-serie.log | tr -d '\r' || true
+
+      - name: Guardar los resultados de la prueba en el repositorio
+        if: always()
+        run: |
+          [ -d /tmp/vm ] || exit 0
+          mkdir -p moonos/test-results
+          rm -f moonos/test-results/*
+          sudo cp /tmp/vm/*.png /tmp/vm/consola-serie.log moonos/test-results/ 2>/dev/null || true
+          sudo chown -R "$(id -u)" moonos/test-results
+          echo "Ejecución: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} (commit ${{ github.sha }})" > moonos/test-results/LEEME.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add moonos/test-results
+          git commit -m "Resultados de la prueba de MoonOS en máquina virtual [skip ci]" || exit 0
+          for i in 1 2 3; do git pull --rebase --no-edit origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 5; done
