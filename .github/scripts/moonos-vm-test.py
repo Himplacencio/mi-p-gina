@@ -100,6 +100,9 @@ echo '--- Procesos del escritorio'; pgrep -a sddm | head -3; pgrep -a kwin_wayla
 echo '--- Tiempo de arranque'; systemd-analyze; systemd-analyze blame --no-pager | head -8
 echo '--- Diagnóstico pantalla negra'; sudo journalctl -b --no-pager -o short-monotonic | grep -iE 'sddm|kwin|plasma|portal|timed out|timeout|failed|kwallet|polkit' | head -60; systemctl --user --no-pager --failed; systemd-analyze --user blame --no-pager | head -12
 echo '--- Bienvenida y fondo animado'; pgrep -af moonos-bienvenida || echo 'bienvenida NO está abierta'; ls /usr/share/plasma/wallpapers/ | grep -i moonos
+echo '--- Paneles de Plasma'; export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus; ls ~/.config/moonos-user-setup-done 2>&1; busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s 'print(JSON.stringify(panels().map(function(p){return {lugar:p.location,alto:p.height,flota:p.floating,widgets:p.widgets().map(function(w){return w.type})}})));print(JSON.stringify(desktops().map(function(d){return d.widgets().map(function(w){return w.type})})))' 2>&1 | head -c 1500; echo
+sudo journalctl -b --no-pager -o cat | grep -iE 'moonos-user-setup|evaluateScript|plasmashell.*(error|warn).*(panel|script|qml)' | tail -15
+pkill -f moonos-bienvenida; sleep 3
 echo '--- Memoria (MiB)'; free -m
 echo '--- Kernel y tarjeta gráfica'; lspci -k | grep -A3 -Ei 'vga|3d' | head -8
 echo '--- Modo juego'; head -20 /etc/gamemode.ini; ls -l /usr/local/share/applications/steam.desktop && grep '^Exec' /usr/local/share/applications/steam.desktop
