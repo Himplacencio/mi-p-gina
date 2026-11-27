@@ -29,6 +29,7 @@
   --moonlight: #f4ecd0;
   --on-lavender: #120e2e;
   --good: #7be3b0;
+  --progress: #ffb36b;
   --font-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
   --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -203,6 +204,45 @@ summary::-webkit-details-marker { display: none; }
 summary::after { content: "+"; color: var(--lavender); font-family: var(--font-mono); font-size: 1.2rem; line-height: 1; }
 details[open] summary::after { content: "–"; }
 details p { padding-bottom: 18px; color: var(--ink-soft); }
+
+/* Fallas: botón flotante + panel */
+.fab { position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 999px; border: 1px solid var(--line); background: rgba(34, 29, 82, 0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: var(--ink); font: inherit; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); }
+.fab:hover { border-color: var(--lavender); }
+.fab svg { width: 20px; height: 20px; color: var(--lavender); }
+.fab .count { font-size: 0.75rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: rgba(255, 179, 107, 0.16); color: var(--progress); }
+.reports { width: min(600px, calc(100% - 24px)); max-height: min(760px, calc(100% - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 18px; background: var(--sky-2); color: var(--ink); box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6); }
+.reports::backdrop { background: rgba(5, 4, 18, 0.65); backdrop-filter: blur(3px); }
+.reports[open] { display: flex; flex-direction: column; }
+.rp-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 22px 14px; border-bottom: 1px solid var(--line); }
+.rp-head h2 { font-size: 1.25rem; }
+.rp-head p { color: var(--ink-soft); font-size: 0.9rem; margin-top: 4px; }
+.rp-close { margin-left: auto; flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--ink); font-size: 1.1rem; cursor: pointer; }
+.rp-close:hover { border-color: var(--lavender); }
+.rp-sum { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 22px 0; }
+.tabs { display: flex; gap: 6px; padding: 14px 22px 0; }
+.tab { border: 1px solid var(--line); background: none; color: var(--ink-soft); font: inherit; font-weight: 600; font-size: 0.9rem; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--lavender); color: var(--on-lavender); border-color: var(--lavender); }
+.rp-body { overflow: auto; padding: 16px 22px 22px; display: grid; gap: 10px; align-content: start; min-height: 0; flex: 1; }
+.st { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.st i { font-style: normal; font-size: 0.95em; }
+.st-done { color: var(--good); background: rgba(123, 227, 176, 0.13); }
+.st-progress { color: var(--progress); background: rgba(255, 179, 107, 0.14); }
+.st-new { color: var(--ink-soft); background: rgba(180, 174, 219, 0.12); }
+.issue { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); text-decoration: none; color: inherit; }
+.issue:hover { border-color: var(--lavender); }
+.issue b { font-weight: 700; overflow-wrap: anywhere; }
+.issue small { grid-column: 1 / -1; color: var(--ink-faint); font-size: 0.82rem; }
+.rp-empty { color: var(--ink-soft); text-align: center; padding: 26px 8px; }
+.rp-form { display: grid; gap: 14px; }
+.rp-form label { display: grid; gap: 6px; font-size: 0.9rem; font-weight: 600; color: var(--ink-soft); }
+.rp-form input, .rp-form select, .rp-form textarea { font: inherit; font-weight: 400; color: var(--ink); background: var(--sky); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.rp-form textarea { min-height: 110px; resize: vertical; }
+.rp-form .btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+.rp-note { font-size: 0.84rem; color: var(--ink-faint); }
+@media (max-width: 620px) {
+  .fab .fab-long { display: none; }
+  .reports { width: 100%; max-width: 100%; max-height: 92%; margin: auto 0 0; border-radius: 18px 18px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
 
 /* Footer */
 footer { border-top: 1px solid var(--line); padding-block: 36px 48px; }
@@ -461,6 +501,46 @@ gamemode is active</pre></div>
   </div>
 </footer>
 
+<button class="fab" type="button" id="fab" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9a4 4 0 0 1 8 0v6a4 4 0 0 1-8 0z"/><path d="M12 9v10M4 13h4M16 13h4M5 7l3 2M19 7l-3 2M5 19l3-2M19 19l-3-2M9.5 5.5 8 4M14.5 5.5 16 4"/></svg><span>Fallas<span class="fab-long"> y reportes</span></span><span class="count" id="fab-count" hidden></span></button>
+
+<dialog class="reports" id="reports" aria-labelledby="rp-title">
+  <div class="rp-head">
+    <div><h2 id="rp-title">Fallas y soluciones</h2><p>Todo lo que nos reporta la comunidad, a la vista de todos. Vamos marcando lo que arreglamos.</p></div>
+    <button class="rp-close" type="button" id="rp-close" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="rp-sum" id="rp-sum">
+    <span class="st st-done"><i>✓</i><span id="n-done">0</span> solucionadas</span>
+    <span class="st st-progress"><i>✕</i><span id="n-progress">0</span> en proceso</span>
+    <span class="st st-new"><i>•</i><span id="n-new">0</span> recibidas</span>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" id="tab-list" type="button">Ver fallas</button>
+    <button class="tab" role="tab" aria-selected="false" id="tab-new" type="button">Reportar una falla</button>
+  </div>
+  <div class="rp-body" id="rp-list" role="tabpanel" aria-labelledby="tab-list"><p class="rp-empty">Cargando reportes…</p></div>
+  <div class="rp-body" id="rp-new" role="tabpanel" aria-labelledby="tab-new" hidden>
+    <form class="rp-form" id="rp-form">
+      <label>¿Dónde está la falla?
+        <select id="rp-cat">
+          <option>Instalación</option><option>Arranque o pantalla negra</option><option>Drivers gráficos</option><option>Juegos o Steam</option>
+          <option>Escritorio</option><option>Wi-Fi, Bluetooth o sonido</option><option>Página web</option><option>Otra</option>
+        </select>
+      </label>
+      <label>Resume la falla en una frase
+        <input id="rp-title-in" maxlength="120" placeholder="Ej.: El juego se cierra al abrir el menú" autocomplete="off">
+      </label>
+      <label>¿Qué pasó?
+        <textarea id="rp-desc" placeholder="Cuéntanos qué hiciste y qué esperabas que pasara."></textarea>
+      </label>
+      <label>Tu equipo (opcional)
+        <input id="rp-pc" placeholder="Ej.: NVIDIA RTX 3060, Ryzen 5 5600, 16 GB" autocomplete="off">
+      </label>
+      <a class="btn btn-primary" id="rp-go" href="#" target="_blank" rel="noopener" aria-disabled="true">Enviar el reporte en GitHub</a>
+      <p class="rp-note">Se abrirá GitHub con tu reporte ya escrito: solo pulsa «Create». Necesitas una cuenta gratuita de GitHub. Los reportes son públicos, así que no pongas datos personales.</p>
+    </form>
+  </div>
+</dialog>
+
 <script>
 (() => {
   "use strict";
@@ -515,6 +595,68 @@ gamemode is active</pre></div>
     }
   });
   if (!DONATE_URL) $("donate-note").textContent = "El enlace para donar se activará muy pronto.";
+
+  /* ===== Fallas (GitHub Issues con la etiqueta "falla") =====
+     Estados: cerrada = ✓ Solucionado · etiqueta "en proceso" = ✕ En proceso · el resto = • Recibido.
+     Las cerradas como «no planificado» (spam, duplicadas) no se muestran. */
+  const dlg = $("reports");
+  const openReports = () => { if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", ""); };
+  $("fab").addEventListener("click", openReports);
+  $("rp-close").addEventListener("click", () => dlg.close ? dlg.close() : dlg.removeAttribute("open"));
+  dlg.addEventListener("click", e => { if (e.target === dlg && dlg.close) dlg.close(); });
+  const showTab = which => {
+    $("tab-list").setAttribute("aria-selected", which === "list");
+    $("tab-new").setAttribute("aria-selected", which === "new");
+    $("rp-list").hidden = which !== "list"; $("rp-new").hidden = which !== "new";
+  };
+  $("tab-list").addEventListener("click", () => showTab("list"));
+  $("tab-new").addEventListener("click", () => showTab("new"));
+
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ago = d => {
+    const days = Math.floor((Date.now() - new Date(d)) / 86400000);
+    return days <= 0 ? "hoy" : days === 1 ? "ayer" : days < 30 ? `hace ${days} días` : new Date(d).toLocaleDateString("es", { day: "numeric", month: "short", year: "numeric" });
+  };
+  const statusOf = it => {
+    const labels = (it.labels || []).map(l => (l.name || l).toLowerCase());
+    if (it.state === "closed" || labels.includes("solucionado")) return "done";
+    if (labels.includes("en proceso")) return "progress";
+    return "new";
+  };
+  const BADGE = { done: '<span class="st st-done"><i>✓</i>Solucionado</span>', progress: '<span class="st st-progress"><i>✕</i>En proceso</span>', new: '<span class="st st-new"><i>•</i>Recibido</span>' };
+  function renderIssues(list) {
+    list = list.filter(it => !it.pull_request && it.state_reason !== "not_planned");
+    const order = { progress: 0, new: 1, done: 2 };
+    list.sort((a, b) => order[statusOf(a)] - order[statusOf(b)] || new Date(b.updated_at) - new Date(a.updated_at));
+    const n = { done: 0, progress: 0, new: 0 }; list.forEach(it => n[statusOf(it)]++);
+    $("n-done").textContent = n.done; $("n-progress").textContent = n.progress; $("n-new").textContent = n.new;
+    const open = n.progress + n.new;
+    $("fab-count").hidden = !open; $("fab-count").textContent = open;
+    if (!list.length) { $("rp-list").innerHTML = '<p class="rp-empty">Todavía no hay fallas reportadas. Si encuentras una, cuéntanos en «Reportar una falla».</p>'; return; }
+    $("rp-list").innerHTML = list.map(it => {
+      const st = statusOf(it);
+      const cat = ((it.body || "").match(/###\s*¿Dónde está la falla\?\s*\n+([^\n]+)/) || [])[1];
+      const title = it.title.replace(/^\[Falla\]\s*/i, "") || "Sin título";
+      const when = st === "done" && it.closed_at ? `solucionada ${ago(it.closed_at)}` : `reportada ${ago(it.created_at)}`;
+      return `<a class="issue" href="${esc(it.html_url)}" target="_blank" rel="noopener"><b>${esc(title)}</b>${BADGE[st]}<small>${cat ? esc(cat.trim()) + " · " : ""}${when}${it.comments ? ` · ${it.comments} comentario${it.comments > 1 ? "s" : ""}` : ""}</small></a>`;
+    }).join("");
+  }
+  if (window.MOONOS_DEMO_ISSUES) renderIssues(window.MOONOS_DEMO_ISSUES);
+  else fetch(`https://api.github.com/repos/${REPO}/issues?labels=falla&state=all&per_page=100`, { headers: { Accept: "application/vnd.github+json" } })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(renderIssues)
+    .catch(() => { $("rp-list").innerHTML = `<p class="rp-empty">No se pudieron cargar los reportes ahora mismo. Puedes verlos en <a href="https://github.com/${REPO}/issues?q=label%3Afalla" target="_blank" rel="noopener">GitHub</a>.</p>`; });
+
+  const updateReportLink = () => {
+    const t = $("rp-title-in").value.trim(), d = $("rp-desc").value.trim();
+    const go = $("rp-go");
+    if (!t || !d) { go.setAttribute("aria-disabled", "true"); go.href = "#"; return; }
+    const q = new URLSearchParams({ template: "falla.yml", title: "[Falla] " + t, categoria: $("rp-cat").value, descripcion: d, equipo: $("rp-pc").value.trim() });
+    go.href = `https://github.com/${REPO}/issues/new?${q}`;
+    go.removeAttribute("aria-disabled");
+  };
+  ["rp-cat", "rp-title-in", "rp-desc", "rp-pc"].forEach(id => $(id).addEventListener("input", updateReportLink));
+  $("rp-form").addEventListener("submit", e => e.preventDefault());
 
   /* Copiar huella */
   $("copy-sha").addEventListener("click", async () => {

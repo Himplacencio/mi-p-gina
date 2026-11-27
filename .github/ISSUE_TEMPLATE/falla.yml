@@ -1,0 +1,47 @@
+name: Reportar una falla de MoonOS
+description: Cuéntanos qué falló para que podamos arreglarlo. Todos los reportes son públicos.
+title: "[Falla] "
+labels: ["falla"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ¡Gracias por ayudar a mejorar MoonOS! 🌙
+        Este reporte es **público**: no escribas contraseñas, correos ni datos personales.
+  - type: dropdown
+    id: categoria
+    attributes:
+      label: ¿Dónde está la falla?
+      options:
+        - Instalación
+        - Arranque o pantalla negra
+        - Drivers gráficos
+        - Juegos o Steam
+        - Escritorio
+        - Wi-Fi, Bluetooth o sonido
+        - Página web
+        - Otra
+    validations:
+      required: true
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: ¿Qué pasó?
+      description: Describe la falla con tus palabras. Si puedes, adjunta una foto o captura.
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: ¿Cómo se repite la falla?
+      description: Los pasos que hiciste antes de que fallara (opcional).
+  - type: input
+    id: equipo
+    attributes:
+      label: Tu equipo
+      description: "Tarjeta gráfica, procesador y RAM (opcional). Ejemplo: NVIDIA RTX 3060, Ryzen 5 5600, 16 GB."
+  - type: input
+    id: version
+    attributes:
+      label: Versión de MoonOS
+      description: Aparece en la página de descarga o en «Acerca de MoonOS» (opcional).
