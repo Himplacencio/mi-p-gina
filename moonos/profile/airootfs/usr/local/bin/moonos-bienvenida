@@ -329,10 +329,27 @@ class Bienvenida(QMainWindow):
             "panels().forEach(p => { try { p.lengthMode = 'fit'; p.alignment = 'center'; p.floating = true; } catch (e) {} })"),
             self.notify("Panel tipo dock")))
         c.lay.addWidget(row(clas, dock))
+        vidrio = QCheckBox("Estilo vidrio de MoonOS (flotante, translúcido y con colores de la luna)")
+        vidrio.setChecked(True)
+        vidrio.toggled.connect(self.barra_vidrio)
+        c.lay.addWidget(vidrio)
         flot = QCheckBox("Panel flotante (separado del borde)")
         flot.toggled.connect(lambda on: (plasma_script(
             f"panels().forEach(p => {{ try {{ p.floating = {'true' if on else 'false'}; }} catch (e) {{}} }})"), self.notify("Listo")))
         c.lay.addWidget(flot)
+        v.addWidget(c)
+
+        # Música
+        c = Card("Música en la barra", "Muestra la canción que suena en Spotify (u otro reproductor): carátula, "
+                                       "cuánto falta y botones para anterior, pausa y siguiente. Se oculta sola si no suena nada.")
+        mus = QCheckBox("Mostrar la música en la barra de tareas")
+        mus.setChecked(True)
+        mus.toggled.connect(self.musica_en_barra)
+        spot = QPushButton("🎵  Instalar Spotify")
+        spot.clicked.connect(lambda: run("konsole", "--hold", "-e", "bash", "-c",
+                                         "flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo "
+                                         "&& flatpak install --user -y flathub com.spotify.Client"))
+        c.lay.addWidget(mus); c.lay.addWidget(row(spot))
         v.addWidget(c)
 
         # Efectos
@@ -351,6 +368,31 @@ class Bienvenida(QMainWindow):
         v.addWidget(row(mas))
         v.addStretch(1)
         return w
+
+    def barra_vidrio(self, on):
+        if on:
+            run("plasma-apply-colorscheme", "MoonOS")
+            plasma_script("panels().forEach(p => { try { p.floating = true; p.opacity = 'translucent'; } catch (e) {} })")
+            self.notify("Barra de vidrio activada")
+        else:
+            run("plasma-apply-colorscheme", "BreezeDark")
+            plasma_script("panels().forEach(p => { try { p.floating = false; p.opacity = 'opaque'; } catch (e) {} })")
+            self.notify("Barra clásica")
+
+    def musica_en_barra(self, on):
+        if on:
+            plasma_script("""panels().forEach(p => {
+                if (p.widgets('org.moonos.musica').length) return;
+                const finales = ['org.kde.plasma.marginsseparator', 'org.kde.plasma.systemtray', 'org.kde.plasma.digitalclock', 'org.kde.plasma.showdesktop'];
+                const mover = [];
+                p.widgets().forEach(w => { if (finales.includes(w.type)) { mover.push(w.type); w.remove(); } });
+                p.addWidget('org.moonos.musica');
+                mover.forEach(t => p.addWidget(t));
+            })""")
+            self.notify("Música en la barra activada")
+        else:
+            plasma_script("panels().forEach(p => p.widgets('org.moonos.musica').forEach(w => w.remove()))")
+            self.notify("Música quitada de la barra")
 
     def kwin_plugin(self, key, on, label):
         run("kwriteconfig6", "--file", "kwinrc", "--group", "Plugins", "--key", key, "true" if on else "false", detached=False)

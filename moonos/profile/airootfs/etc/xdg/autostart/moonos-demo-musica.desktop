@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=MoonOS: reproductor de demostración
+Comment=Solo se activa al arrancar con moonos.demo=musica (para grabar videos)
+Exec=/usr/local/bin/moonos-demo-musica
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=2

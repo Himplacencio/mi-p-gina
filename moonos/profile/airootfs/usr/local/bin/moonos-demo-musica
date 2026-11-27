@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""Reproductor de DEMOSTRACIÓN para grabar videos de MoonOS.
+
+Se anuncia por D-Bus como un reproductor MPRIS (igual que Spotify), con una
+lista de canciones ficticias, para que el widget «Música en la barra» tenga
+algo que mostrar en una máquina virtual sin sonido ni cuenta de Spotify.
+
+Solo se activa si el kernel arrancó con «moonos.demo=musica»; en cualquier
+otro caso termina enseguida sin hacer nada.
+"""
+import sys
+import time
+from pathlib import Path
+
+if "moonos.demo=musica" not in Path("/proc/cmdline").read_text() and "--forzar" not in sys.argv:
+    sys.exit(0)
+
+from PyQt6.QtCore import QCoreApplication, QObject, QTimer, pyqtClassInfo, pyqtProperty, pyqtSlot
+from PyQt6.QtDBus import QDBusAbstractAdaptor, QDBusArgument, QDBusConnection, QDBusMessage, QDBusObjectPath
+from PyQt6.QtCore import QMetaType
+
+SERVICE = "org.mpris.MediaPlayer2.moonosdemo"
+PATH = "/org/mpris/MediaPlayer2"
+PLAYER_IFACE = "org.mpris.MediaPlayer2.Player"
+SONGS = [
+    ("Lofi para programar de noche", "MoonOS Radio", 200),
+    ("Órbita lunar", "Los Satélites", 184),
+    ("Polvo de estrellas", "Nébula", 221),
+]
+
+
+class State(QObject):
+    def __init__(self):
+        super().__init__()
+        self.i = 0
+        self.playing = True
+        self.offset = 71.0            # empieza a mitad de canción, para que se vea el progreso
+        self.started = time.monotonic()
+
+    def position_s(self):
+        if self.playing:
+            return self.offset + time.monotonic() - self.started
+        return self.offset
+
+    def metadata(self):
+        title, artist, secs = SONGS[self.i]
+        return {"mpris:trackid": QDBusObjectPath(f"/org/moonos/demo/{self.i}"), "mpris:length": secs * 1_000_000,
+                "xesam:title": title, "xesam:artist": [artist], "xesam:album": "MoonOS Demo"}
+
+    def changed(self, props):
+        msg = QDBusMessage.createSignal(PATH, "org.freedesktop.DBus.Properties", "PropertiesChanged")
+        invalidated = QDBusArgument()
+        invalidated.beginArray(QMetaType(QMetaType.Type.QString.value))
+        invalidated.endArray()
+        msg.setArguments([PLAYER_IFACE, props, invalidated])
+        QDBusConnection.sessionBus().send(msg)
+
+
+@pyqtClassInfo("D-Bus Interface", "org.mpris.MediaPlayer2")
+class Root(QDBusAbstractAdaptor):
+    @pyqtProperty(str)
+    def Identity(self): return "MoonOS Demo"
+    @pyqtProperty(str)
+    def DesktopEntry(self): return "moonos-demo-musica"
+    @pyqtProperty(bool)
+    def CanQuit(self): return False
+    @pyqtProperty(bool)
+    def CanRaise(self): return False
+    @pyqtProperty(bool)
+    def HasTrackList(self): return False
+    @pyqtSlot()
+    def Raise(self): pass
+    @pyqtSlot()
+    def Quit(self): pass
+
+
+@pyqtClassInfo("D-Bus Interface", PLAYER_IFACE)
+class Player(QDBusAbstractAdaptor):
+    def __init__(self, parent, st):
+        super().__init__(parent)
+        self.st = st
+        self.setAutoRelaySignals(True)
+
+    @pyqtProperty(str)
+    def PlaybackStatus(self): return "Playing" if self.st.playing else "Paused"
+    @pyqtProperty("QVariantMap")
+    def Metadata(self): return self.st.metadata()
+    @pyqtProperty("qlonglong")
+    def Position(self): return int(self.st.position_s() * 1_000_000)
+    @pyqtProperty(float)
+    def Rate(self): return 1.0
+    @pyqtProperty(float)
+    def Volume(self): return 0.8
+    @pyqtProperty(bool)
+    def CanGoNext(self): return True
+    @pyqtProperty(bool)
+    def CanGoPrevious(self): return True
+    @pyqtProperty(bool)
+    def CanPlay(self): return True
+    @pyqtProperty(bool)
+    def CanPause(self): return True
+    @pyqtProperty(bool)
+    def CanSeek(self): return False
+    @pyqtProperty(bool)
+    def CanControl(self): return True
+
+    def _jump(self, delta):
+        self.st.i = (self.st.i + delta) % len(SONGS)
+        self.st.offset = 0.0
+        self.st.started = time.monotonic()
+        self.st.changed({"Metadata": self.st.metadata(), "PlaybackStatus": self.PlaybackStatus})
+
+    @pyqtSlot()
+    def Next(self): self._jump(1)
+    @pyqtSlot()
+    def Previous(self): self._jump(-1)
+
+    @pyqtSlot()
+    def PlayPause(self):
+        self.Pause() if self.st.playing else self.Play()
+
+    @pyqtSlot()
+    def Play(self):
+        if not self.st.playing:
+            self.st.playing = True
+            self.st.started = time.monotonic()
+            self.st.changed({"PlaybackStatus": "Playing"})
+
+    @pyqtSlot()
+    def Pause(self):
+        if self.st.playing:
+            self.st.offset = self.st.position_s()
+            self.st.playing = False
+            self.st.changed({"PlaybackStatus": "Paused"})
+
+    @pyqtSlot()
+    def Stop(self): self.Pause()
+
+
+def main():
+    app = QCoreApplication(sys.argv)
+    st = State()
+    obj = QObject()
+    Root(obj)
+    Player(obj, st)
+    bus = QDBusConnection.sessionBus()
+    bus.registerObject(PATH, obj, QDBusConnection.RegisterOption.ExportAllContents | QDBusConnection.RegisterOption.ExportAdaptors)
+    if not bus.registerService(SERVICE):
+        print("No se pudo registrar el servicio MPRIS de demostración", file=sys.stderr)
+        return 1
+    # Al terminar una canción, pasa a la siguiente
+    def tick():
+        if st.playing and st.position_s() >= SONGS[st.i][2]:
+            Player.Next(obj.findChild(Player))
+    timer = QTimer(); timer.timeout.connect(tick); timer.start(1000)
+    print("Reproductor de demostración listo:", SERVICE, flush=True)
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

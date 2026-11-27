@@ -9,6 +9,8 @@ Modos:
   arranque  graba desde que se enciende hasta el final (y abre el menú al final)
   terminal  espera al escritorio, abre Konsole y escribe «fastfetch» y
             «free -h» tecla por tecla; solo graba esa parte
+  musica    con el reproductor de demostración: graba la barra de vidrio y
+            el widget de música, y usa las teclas multimedia
 
 Uso: grabar-arranque.py <socket-monitor> <carpeta-salida> <segundos> [modo]
 """
@@ -66,6 +68,12 @@ if mode == "terminal":
     a, t = type_text("fastfetch\n", 95.0); actions += a
     a, t = type_text("free -h\n", t + 4.5); actions += a
     total = max(total, t + 6.0)
+elif mode == "musica":
+    # Arranca con «moonos.demo=musica»: fondo animado + reproductor de demostración.
+    # Se usan las teclas multimedia reales del teclado para mostrar los controles.
+    rec_from = 84.0
+    actions = [(92.0, "audionext"), (98.0, "audioplay"), (101.0, "audioplay"), (105.0, "audioprev")]
+    total = max(total, 110.0)
 else:
     rec_from = 0.0
     actions = [(total - 9, "meta_l"), (total - 4, "esc")]  # abrir y cerrar el menú al final

@@ -20,6 +20,7 @@ airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' 
 file_permissions=(
   ["/usr/local/bin/moonos-bienvenida"]="0:0:755"
   ["/usr/local/bin/moonos-branding"]="0:0:755"
+  ["/usr/local/bin/moonos-demo-musica"]="0:0:755"
   ["/usr/local/bin/moonos-drivers"]="0:0:755"
   ["/usr/local/bin/moonos-gamemode"]="0:0:755"
   ["/usr/local/bin/moonos-gamemode-config"]="0:0:755"

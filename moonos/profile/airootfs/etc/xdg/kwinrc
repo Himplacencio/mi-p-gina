@@ -1,0 +1,8 @@
+# MoonOS: efecto «vidrio» más marcado detrás de la barra y los menús translúcidos
+[Plugins]
+blurEnabled=true
+contrastEnabled=true
+
+[Effect-blur]
+BlurStrength=12
+NoiseStrength=4

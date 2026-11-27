@@ -10,7 +10,7 @@ on:
         description: 'Cuántos segundos grabar desde que se enciende'
         default: '42'
       modo:
-        description: 'arranque (encendido completo) o terminal (fastfetch y free -h)'
+        description: 'arranque (encendido completo), terminal (fastfetch y free -h) o musica (barra y widget de música)'
         default: 'arranque'
 
 permissions:
@@ -41,6 +41,8 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq qemu-system-x86 xorriso ffmpeg >/dev/null
           ISO="$(ls /tmp/iso/*.iso)"
+          EXTRA=""
+          if [ "${{ inputs.modo }}" = "musica" ]; then EXTRA="moonos.demo=musica"; fi
           LABEL="$(xorriso -indev "$ISO" -pvd_info 2>/dev/null | sed -n 's/^Volume Id *: *//p')"
           mkdir -p /tmp/rec
           xorriso -osirrox on -indev "$ISO" \
@@ -48,7 +50,7 @@ jobs:
             -extract /arch/boot/x86_64/initramfs-linux-cachyos.img /tmp/rec/initrd.img
           sudo qemu-system-x86_64 -enable-kvm -cpu host -smp 4 -m 4096 \
             -kernel /tmp/rec/vmlinuz -initrd /tmp/rec/initrd.img \
-            -append "archisobasedir=arch archisolabel=$LABEL" \
+            -append "archisobasedir=arch archisolabel=$LABEL $EXTRA" \
             -drive file="$ISO",media=cdrom,readonly=on \
             -device virtio-vga,xres=1920,yres=1080 -display none \
             -nic user,model=virtio-net-pci \

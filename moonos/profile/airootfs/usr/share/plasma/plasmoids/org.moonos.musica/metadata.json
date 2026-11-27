@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [ { "Name": "MoonOS" } ],
+        "Category": "Multimedia",
+        "Description": "Muestra la canción que suena (Spotify u otro reproductor) con cuánto falta y botones para controlarla",
+        "Icon": "media-default-album",
+        "Id": "org.moonos.musica",
+        "License": "GPL-3.0-or-later",
+        "Name": "Música en la barra (MoonOS)",
+        "Version": "1.0"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

@@ -1,10 +1,50 @@
 #!/bin/bash
-# Se ejecuta una sola vez por usuario al entrar a Plasma:
-# tema oscuro + fondo de pantalla de MoonOS.
+# Se ejecuta una sola vez por usuario al entrar a Plasma: deja el escritorio
+# con el estilo de MoonOS (todo se puede cambiar luego en «Hazlo tuyo»):
+#   - tema oscuro con el esquema de colores «MoonOS» (índigo y lavanda)
+#   - fondo de la luna
+#   - barra de tareas de vidrio (flotante y translúcida, con desenfoque)
+#   - widget «Música en la barra» (aparece solo cuando suena algo)
 flag="${XDG_CONFIG_HOME:-$HOME/.config}/moonos-user-setup-done"
 [[ -e "$flag" ]] && exit 0
-sleep 4
+
+# Esperar a que el escritorio (plasmashell) esté listo, máximo ~60 s
+for _ in $(seq 1 60); do
+    busctl --user list 2>/dev/null | grep -q '^org.kde.plasmashell ' && break
+    sleep 1
+done
+sleep 2
+
 plasma-apply-lookandfeel -a org.kde.breezedark.desktop >/dev/null 2>&1 || true
-plasma-apply-wallpaperimage /usr/share/wallpapers/MoonOS/contents/images/1920x1080.png >/dev/null 2>&1 || true
+plasma-apply-colorscheme MoonOS >/dev/null 2>&1 || true
+
+plasma_js() {
+    busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s "$1" >/dev/null 2>&1 || true
+}
+
+# Fondo: la luna animada si se pidió en el arranque (videos de demostración); si no, la fija
+if grep -q 'moonos.demo=' /proc/cmdline 2>/dev/null; then
+    plasma_js "desktops().forEach(function (d) { d.wallpaperPlugin = 'org.moonos.lunaanimada'; d.currentConfigGroup = ['Wallpaper', 'org.moonos.lunaanimada', 'General']; });"
+else
+    plasma-apply-wallpaperimage /usr/share/wallpapers/MoonOS/contents/images/1920x1080.png >/dev/null 2>&1 || true
+fi
+
+# Barra de vidrio + widget de música (antes de la bandeja del sistema y el reloj)
+plasma_js "
+panels().forEach(function (p) {
+    try { p.floating = true; } catch (e) {}
+    try { p.opacity = 'translucent'; } catch (e) {}
+    if (p.widgets('org.moonos.musica').length === 0) {
+        var finales = ['org.kde.plasma.marginsseparator', 'org.kde.plasma.systemtray',
+                       'org.kde.plasma.digitalclock', 'org.kde.plasma.showdesktop'];
+        var mover = [];
+        p.widgets().forEach(function (w) {
+            if (finales.indexOf(w.type) >= 0) { mover.push(w.type); w.remove(); }
+        });
+        p.addWidget('org.moonos.musica');
+        mover.forEach(function (t) { p.addWidget(t); });
+    }
+});"
+
 mkdir -p "$(dirname "$flag")"
 touch "$flag"

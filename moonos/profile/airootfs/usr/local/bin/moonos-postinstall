@@ -13,6 +13,8 @@ rm -f /etc/systemd/system/multi-user.target.wants/pacman-init.service \
       /etc/systemd/system/moonos-live-setup.service \
       /usr/local/bin/moonos-live-setup \
       /usr/local/bin/moonos-install \
+      /usr/local/bin/moonos-demo-musica \
+      /etc/xdg/autostart/moonos-demo-musica.desktop \
       /usr/share/applications/moonos-installer.desktop \
       /etc/mkinitcpio.conf.d/archiso.conf \
       /etc/sddm.conf.d/90-live-autologin.conf \
