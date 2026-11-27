@@ -1,0 +1,1111 @@
+<title>MoonOS Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a full-screen Plasma-style desktop — wallpaper canvas, floating windows, bottom panel. Single dark look by design (night sky). */
+:root {
+  --night: #0e0c24;
+  --panel: rgba(18, 16, 40, 0.88);
+  --surface: #1b1838;
+  --surface-2: #252150;
+  --surface-3: #2f2a62;
+  --line: #3a3570;
+  --text: #ece8ff;
+  --muted: #a7a2cf;
+  --accent: #a996ff;
+  --accent-strong: #8a72ff;
+  --on-accent: #120f2e;
+  --good: #6ee7a8;
+  --warn: #ffcf6e;
+  --bad: #ff8094;
+  --term-bg: #0a091c;
+  --font-ui: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --panel-h: 48px;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--night);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+#screen { position: relative; height: 100%; overflow: hidden; }
+#wallpaper { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ---------- Desktop icons ---------- */
+#desktop-icons {
+  position: absolute; top: 12px; left: max(12px, env(safe-area-inset-left, 0px));
+  display: grid; grid-auto-flow: row; gap: 6px; z-index: 1;
+}
+.dicon {
+  width: 92px; padding: 8px 4px; border: 1px solid transparent; border-radius: 8px;
+  background: none; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  text-align: center; font-size: 12.5px; line-height: 1.25; color: var(--text);
+  text-shadow: 0 1px 3px rgba(0,0,0,.9);
+}
+.dicon:hover { background: rgba(169,150,255,.16); border-color: rgba(169,150,255,.35); }
+.dicon svg { width: 48px; height: 48px; filter: drop-shadow(0 3px 6px rgba(0,0,0,.45)); }
+
+/* ---------- Windows ---------- */
+#windows { position: absolute; left: 0; right: 0; top: 0; bottom: calc(var(--panel-h) + env(safe-area-inset-bottom, 0px)); z-index: 2; pointer-events: none; }
+.win {
+  position: absolute; pointer-events: auto;
+  display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 18px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.3);
+  overflow: hidden; min-width: 300px; min-height: 200px;
+  animation: win-in .16s ease-out;
+}
+.win.inactive .titlebar { color: var(--muted); }
+.win.max { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; border-radius: 0; }
+.win.min { display: none; }
+@keyframes win-in { from { transform: scale(.97); opacity: .4; } }
+.titlebar {
+  height: 38px; flex: none; display: flex; align-items: center; gap: 8px;
+  padding: 0 6px 0 10px; background: var(--surface-2); border-bottom: 1px solid var(--line);
+  cursor: default; touch-action: none;
+}
+.titlebar svg.ticon { width: 18px; height: 18px; flex: none; }
+.titlebar .ttl { flex: 1; min-width: 0; font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wbtn {
+  width: 28px; height: 28px; border: 0; border-radius: 50%; background: none; color: var(--muted);
+  display: grid; place-items: center;
+}
+.wbtn:hover { background: var(--surface-3); color: var(--text); }
+.wbtn.close:hover { background: var(--bad); color: #2a0610; }
+.wbtn svg { width: 14px; height: 14px; }
+.wbody { flex: 1; min-height: 0; overflow: auto; position: relative; user-select: text; -webkit-user-select: text; }
+
+/* ---------- Panel ---------- */
+#panel {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
+  height: calc(var(--panel-h) + env(safe-area-inset-bottom, 0px));
+  padding: 0 max(6px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(6px, env(safe-area-inset-left, 0px));
+  background: var(--panel); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(169,150,255,.18);
+  display: flex; align-items: center; gap: 4px;
+}
+.pbtn {
+  height: 40px; min-width: 40px; border: 0; border-radius: 8px; background: none;
+  display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 8px; color: var(--text);
+}
+.pbtn:hover { background: rgba(169,150,255,.14); }
+.pbtn.on { background: rgba(169,150,255,.2); box-shadow: inset 0 -2px 0 var(--accent); }
+.pbtn svg { width: 26px; height: 26px; flex: none; }
+#launcher-btn svg { width: 30px; height: 30px; }
+#tasks { flex: 1; min-width: 0; display: flex; gap: 4px; overflow: hidden; }
+#tasks .pbtn { max-width: 190px; justify-content: flex-start; }
+#tasks .pbtn span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+#tray { display: flex; align-items: center; gap: 2px; color: var(--muted); }
+#tray svg { width: 18px; height: 18px; }
+#tray .pbtn { min-width: 34px; padding: 0 6px; color: var(--muted); }
+#clock { display: flex; flex-direction: column; align-items: center; line-height: 1.15; padding: 0 8px; font-variant-numeric: tabular-nums; }
+#clock b { font-size: 14px; font-weight: 600; color: var(--text); }
+#clock small { font-size: 11px; color: var(--muted); }
+
+/* ---------- Launcher ---------- */
+#launcher {
+  position: absolute; left: max(6px, env(safe-area-inset-left, 0px)); bottom: calc(var(--panel-h) + env(safe-area-inset-bottom, 0px) + 6px);
+  width: min(380px, calc(100% - 12px)); max-height: min(560px, calc(100% - var(--panel-h) - 24px));
+  z-index: 6; display: flex; flex-direction: column;
+  background: rgba(24, 21, 52, .97); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6); overflow: hidden;
+}
+.lhead { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--surface-3); display: grid; place-items: center; font-weight: 700; color: var(--accent); flex: none; }
+.lhead b { display: block; }
+.lhead small { color: var(--muted); }
+#lsearch { margin: 12px 16px 4px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); }
+#lapps { overflow: auto; padding: 6px 8px; display: grid; gap: 2px; }
+.lapp { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border: 0; border-radius: 8px; background: none; text-align: left; }
+.lapp:hover, .lapp:focus-visible { background: var(--surface-3); }
+.lapp svg { width: 32px; height: 32px; flex: none; }
+.lapp b { display: block; font-weight: 500; }
+.lapp small { color: var(--muted); font-size: 12px; }
+.lfoot { display: flex; justify-content: flex-end; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.lfoot button { display: flex; align-items: center; gap: 6px; border: 0; background: var(--surface-2); border-radius: 8px; padding: 7px 12px; font-size: 13px; }
+.lfoot button:hover { background: var(--surface-3); }
+.lfoot svg { width: 16px; height: 16px; }
+
+/* ---------- Toasts ---------- */
+#toasts { position: absolute; right: max(10px, env(safe-area-inset-right, 0px)); bottom: calc(var(--panel-h) + env(safe-area-inset-bottom, 0px) + 10px); z-index: 7; display: grid; gap: 8px; width: min(340px, calc(100% - 20px)); }
+.toast { display: flex; gap: 12px; padding: 12px 14px; background: rgba(27,24,56,.97); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.5); animation: toast-in .25s ease-out; }
+.toast svg { width: 32px; height: 32px; flex: none; }
+.toast b { display: block; margin-bottom: 2px; }
+.toast p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+@keyframes toast-in { from { transform: translateY(10px); opacity: 0; } }
+
+/* ---------- Boot / login / off overlays ---------- */
+.overlay { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+#grub { background: #000; color: #d9d6f2; font-family: var(--font-mono); flex-direction: column; gap: 18px; }
+#grub h1 { font-size: 15px; font-weight: 400; margin: 0; color: var(--muted); }
+#grub ul { list-style: none; margin: 0; padding: 6px; border: 1px solid #555; width: min(560px, 100%); }
+#grub li { padding: 5px 10px; cursor: pointer; font-size: 14px; }
+#grub li.sel { background: #d9d6f2; color: #000; }
+#grub p { font-size: 13px; margin: 0; color: #8f8ab5; text-align: center; max-width: 560px; }
+#splash { background: radial-gradient(circle at 50% 42%, #231d55 0%, var(--night) 60%); flex-direction: column; gap: 22px; }
+#splash svg { width: 120px; height: 120px; animation: glow 2s ease-in-out infinite; }
+#splash .word { font-size: 28px; font-weight: 600; letter-spacing: .04em; }
+#splash .word span { color: var(--accent); }
+.spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(169,150,255,.25); border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes glow { 50% { filter: drop-shadow(0 0 18px rgba(169,150,255,.6)); } }
+#login { flex-direction: column; gap: 14px; background: rgba(8,7,22,.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+#login .big-avatar { width: 96px; height: 96px; border-radius: 50%; background: var(--surface-3); display: grid; place-items: center; font-size: 38px; font-weight: 700; color: var(--accent); border: 2px solid var(--accent); }
+#login h2 { margin: 0; font-size: 22px; font-weight: 600; }
+#login form { display: flex; gap: 8px; width: min(320px, 100%); }
+#login input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: rgba(27,24,56,.9); }
+#login button { border: 0; border-radius: 8px; padding: 0 14px; background: var(--accent); color: var(--on-accent); font-weight: 600; }
+#login .hint { color: var(--muted); font-size: 13px; margin: 0; text-align: center; }
+#login .err { color: var(--bad); font-size: 13px; margin: 0; min-height: 1.3em; }
+#off { background: #000; flex-direction: column; gap: 14px; color: #77739a; }
+#off button { border: 1px solid #333; background: #111; border-radius: 50%; width: 64px; height: 64px; display: grid; place-items: center; color: var(--accent); }
+#off svg { width: 28px; height: 28px; }
+
+/* ---------- Shared app UI ---------- */
+.pad { padding: 18px 20px; }
+.btn { border: 1px solid var(--line); background: var(--surface-2); border-radius: 8px; padding: 8px 14px; font-weight: 500; }
+.btn:hover:not(:disabled) { background: var(--surface-3); }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover:not(:disabled) { background: #bbabff; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.field { display: grid; gap: 6px; }
+.field label { font-size: 13px; color: var(--muted); }
+.field input, .field select { padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); min-width: 0; }
+.muted { color: var(--muted); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; font-size: 12px; background: var(--surface-3); color: var(--muted); }
+.chip.good { background: rgba(110,231,168,.14); color: var(--good); }
+.chip.bad { background: rgba(255,128,148,.12); color: var(--bad); }
+.chip.warn { background: rgba(255,207,110,.14); color: var(--warn); }
+h2.app-h { margin: 0 0 4px; font-size: 20px; font-weight: 600; text-wrap: balance; }
+
+/* Terminal */
+.term { background: var(--term-bg); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; padding: 10px 12px; min-height: 100%; cursor: text; }
+.term pre { margin: 0; white-space: pre-wrap; word-break: break-word; font: inherit; }
+.term .line { display: flex; gap: 0; }
+.term input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; color: var(--text); padding: 0; caret-color: var(--accent); }
+.c-acc { color: var(--accent); } .c-good { color: var(--good); } .c-warn { color: var(--warn); } .c-bad { color: var(--bad); } .c-mut { color: var(--muted); } .c-b { font-weight: 600; }
+
+/* Installer */
+.inst { display: grid; grid-template-columns: 190px 1fr; height: 100%; }
+.inst-side { background: #14122b; padding: 18px 12px; display: flex; flex-direction: column; gap: 4px; }
+.inst-side .logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 14px; font-weight: 700; font-size: 16px; }
+.inst-side .logo svg { width: 34px; height: 34px; }
+.step { padding: 8px 12px; border-radius: 8px; color: var(--muted); font-size: 13.5px; }
+.step.cur { background: var(--surface-3); color: var(--accent); font-weight: 600; }
+.step.done { color: var(--text); }
+.inst-main { display: flex; flex-direction: column; min-width: 0; }
+.inst-content { flex: 1; overflow: auto; padding: 22px 24px; display: grid; align-content: start; gap: 16px; }
+.inst-nav { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.checks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.checks li { display: flex; gap: 10px; align-items: center; }
+.opt { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; background: var(--surface); }
+.opt:has(input:checked) { border-color: var(--accent); background: rgba(169,150,255,.08); }
+.opt input { margin-top: 3px; accent-color: var(--accent); }
+.opt b { display: block; font-weight: 600; }
+.opt small { color: var(--muted); }
+.diskbar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); font-size: 12px; font-weight: 600; }
+.diskbar div { display: grid; place-items: center; white-space: nowrap; overflow: hidden; color: var(--on-accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.summary { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; }
+.summary dt { color: var(--muted); }
+.summary dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.progress { height: 10px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+.progress div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent-strong), var(--accent)); transition: width .3s; }
+.slide { padding: 22px; border-radius: 12px; background: #14122b; border: 1px solid var(--line); min-height: 120px; display: grid; align-content: center; gap: 6px; }
+.slide b { font-size: 18px; }
+.joblog { font-family: var(--font-mono); font-size: 12px; color: var(--muted); max-height: 140px; overflow: auto; margin: 0; white-space: pre-wrap; }
+
+/* Drivers */
+.gpus { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.gpu { text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); display: grid; gap: 4px; }
+.gpu.sel { border-color: var(--accent); background: rgba(169,150,255,.1); }
+.gpu b { font-weight: 600; }
+.gpu small { color: var(--muted); }
+.pkgs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.pkgs ul { margin: 6px 0 0; padding: 0; list-style: none; font-family: var(--font-mono); font-size: 12.5px; display: grid; gap: 3px; }
+.pkgs .rm li { color: var(--muted); text-decoration: line-through; }
+.pkgs .kp li { color: var(--good); }
+
+/* Games */
+.games-top { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
+.toggle input { appearance: none; width: 34px; height: 20px; border-radius: 99px; background: var(--surface-3); position: relative; transition: background .2s; cursor: pointer; }
+.toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--muted); transition: transform .2s, background .2s; }
+.toggle input:checked { background: var(--accent-strong); }
+.toggle input:checked::after { transform: translateX(14px); background: #fff; }
+.glib { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; padding: 18px; }
+.gcard { border: 0; padding: 0; background: var(--surface-2); border-radius: 10px; overflow: hidden; text-align: left; display: flex; flex-direction: column; }
+.gcard img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; display: block; }
+.gcard .gi { padding: 10px 12px; display: grid; gap: 4px; }
+.gcard b { font-weight: 600; }
+.gcard:hover { outline: 2px solid var(--accent); }
+.gamewrap { position: absolute; inset: 0; background: #000; touch-action: none; }
+.gamewrap canvas { width: 100%; height: 100%; display: block; }
+
+/* Files */
+.files { display: grid; grid-template-columns: 170px 1fr; height: 100%; }
+.places { background: #17153a; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--line); }
+.places button { border: 0; background: none; text-align: left; padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--muted); }
+.places button.sel, .places button:hover { background: var(--surface-3); color: var(--text); }
+.fgrid { padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; align-content: start; }
+.fitem { display: grid; justify-items: center; gap: 6px; text-align: center; font-size: 12.5px; padding: 8px 4px; border-radius: 8px; overflow-wrap: anywhere; }
+.fitem:hover { background: var(--surface-2); }
+.fitem svg { width: 44px; height: 44px; }
+
+/* About */
+.about { display: grid; justify-items: center; gap: 14px; padding: 26px 22px; text-align: center; }
+.about svg { width: 96px; height: 96px; }
+.about table { border-collapse: collapse; text-align: left; width: min(420px, 100%); font-size: 13.5px; }
+.about td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.about td:first-child { color: var(--muted); white-space: nowrap; }
+
+/* ---------- Phone width ---------- */
+@media (max-width: 700px) {
+  .win { left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; border-radius: 0; min-width: 0; border: 0; }
+  #desktop-icons { grid-template-columns: repeat(3, 1fr); left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); }
+  .dicon { width: auto; }
+  #tasks .pbtn span { display: none; }
+  #tasks .pbtn { min-width: 40px; }
+  #clock small { display: none; }
+  .inst { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .inst-side { flex-direction: row; overflow-x: auto; padding: 8px; gap: 4px; }
+  .inst-side .logo { display: none; }
+  .step { white-space: nowrap; padding: 6px 10px; font-size: 12.5px; }
+  .inst-content { padding: 18px 16px; }
+  .files { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .places { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+  .places button { white-space: nowrap; }
+  .tray-hide { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div id="screen">
+  <canvas id="wallpaper" aria-hidden="true"></canvas>
+  <div id="desktop-icons"></div>
+  <div id="windows"></div>
+  <div id="launcher" hidden>
+    <div class="lhead"><div class="avatar" id="l-avatar">M</div><div><b id="l-name">MoonOS Live</b><small id="l-host">liveuser@moonos</small></div></div>
+    <input id="lsearch" type="search" placeholder="Buscar aplicaciones…" aria-label="Buscar aplicaciones" autocomplete="off">
+    <div id="lapps"></div>
+    <div class="lfoot">
+      <button id="btn-reboot" type="button"></button>
+      <button id="btn-off" type="button"></button>
+    </div>
+  </div>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="panel">
+    <button class="pbtn" id="launcher-btn" type="button" aria-label="Menú de aplicaciones"></button>
+    <div id="tasks"></div>
+    <div id="tray">
+      <span class="pbtn tray-hide" title="Red: conectado" id="tray-net"></span>
+      <span class="pbtn tray-hide" title="Volumen 70%" id="tray-vol"></span>
+      <div id="clock"><b id="clock-t">--:--</b><small id="clock-d"></small></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="grub" hidden>
+    <h1 id="grub-title">GNU GRUB</h1>
+    <ul id="grub-list"></ul>
+    <p id="grub-hint"></p>
+  </div>
+  <div class="overlay" id="splash" hidden>
+    <svg viewBox="0 0 100 100" aria-hidden="true" id="splash-logo"></svg>
+    <div class="word">Moon<span>OS</span></div>
+    <div class="spinner" role="status" aria-label="Cargando"></div>
+  </div>
+  <div class="overlay" id="login" hidden>
+    <div class="big-avatar" id="login-avatar">M</div>
+    <h2 id="login-name"></h2>
+    <form id="login-form" autocomplete="off">
+      <input id="login-pass" type="password" placeholder="Contraseña" aria-label="Contraseña">
+      <button type="submit" aria-label="Iniciar sesión">→</button>
+    </form>
+    <p class="err" id="login-err"></p>
+    <p class="hint">Usa la contraseña que elegiste en el instalador.</p>
+  </div>
+  <div class="overlay" id="off" hidden>
+    <button type="button" id="btn-on" aria-label="Encender"></button>
+    <span>Equipo apagado. Pulsa para encender.</span>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isPhone = () => matchMedia("(max-width: 700px)").matches;
+
+/* ================= Icons ================= */
+const MOON = (id = "m" + Math.random().toString(36).slice(2, 7)) => `
+  <defs><radialGradient id="${id}g" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#2c2470"/><stop offset="1" stop-color="#110e2c"/></radialGradient>
+  <mask id="${id}k"><rect width="100" height="100" fill="#fff"/><circle cx="62" cy="40" r="30" fill="#000"/></mask></defs>
+  <circle cx="50" cy="50" r="48" fill="url(#${id}g)"/>
+  <circle cx="22" cy="24" r="1.4" fill="#fff" opacity=".8"/><circle cx="76" cy="20" r="1.8" fill="#fff"/><circle cx="82" cy="58" r="1.1" fill="#fff" opacity=".7"/><circle cx="64" cy="78" r="1.3" fill="#fff" opacity=".6"/>
+  <circle cx="46" cy="54" r="31" fill="#ece6ff" mask="url(#${id}k)"/>`;
+const moonSvg = (cls = "") => `<svg viewBox="0 0 100 100" class="${cls}" aria-hidden="true">${MOON()}</svg>`;
+
+const GLYPH = {
+  terminal: '<path d="M6 8l4 4-4 4M12 16h6"/>',
+  install: '<path d="M12 4v10M8 10l4 4 4-4M5 19h14"/>',
+  games: '<path d="M7 8h10a4 4 0 0 1 4 4v1.5a2.5 2.5 0 0 1-4.3 1.7L15.5 14h-7l-1.2 1.2A2.5 2.5 0 0 1 3 13.5V12a4 4 0 0 1 4-4z"/><path d="M8 10v3M6.5 11.5h3M15.5 11h.01M17 12.5h.01"/>',
+  files: '<path d="M3 7.5A2 2 0 0 1 5 5.5h4l2 2h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  drivers: '<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>',
+  about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+  game: '<path d="M12 3l2.5 6 6.5.5-5 4.2 1.6 6.3L12 16.6 6.4 20l1.6-6.3-5-4.2 6.5-.5z"/>',
+  folder: '<path d="M3 7.5A2 2 0 0 1 5 5.5h4l2 2h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  file: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/>',
+  image: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/>',
+};
+const TILE = {
+  terminal: ["#2b2f45", "#151827"], install: ["#9c86ff", "#5b3fe0"], games: ["#ff7ab6", "#b0337a"],
+  files: ["#5fb3ff", "#2c6fd6"], drivers: ["#6ee7a8", "#1f9a68"], about: ["#a996ff", "#4b3aa8"],
+  game: ["#ffcf6e", "#d98a1e"], folder: ["#5fb3ff", "#2c6fd6"], file: ["#8f8ab5", "#545080"], image: ["#ff9f7a", "#c9563a"],
+};
+let gid = 0;
+function icon(name) {
+  const [a, b] = TILE[name] || TILE.about; const id = "t" + (gid++);
+  return `<svg viewBox="0 0 48 48" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>
+    <rect x="2" y="2" width="44" height="44" rx="11" fill="url(#${id})"/>
+    <g transform="translate(10 10)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${GLYPH[name] || ""}</g></svg>`;
+}
+const line = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const UI = {
+  close: line('<path d="M6 6l12 12M18 6L6 18"/>'),
+  max: line('<rect x="5" y="5" width="14" height="14" rx="1.5"/>'),
+  min: line('<path d="M6 18h12"/>'),
+  power: line('<path d="M12 3v9"/><path d="M6.3 7.3a8 8 0 1 0 11.4 0"/>'),
+  reboot: line('<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>'),
+  wifi: line('<path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/>'),
+  vol: line('<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'),
+};
+
+/* ================= State ================= */
+const S = {
+  installed: false,
+  user: { name: "MoonOS Live", login: "liveuser", host: "moonos", pass: "" },
+  gpu: "nvidia",
+  driversDone: false,
+  fx: { gamemode: true, mangohud: true, gamescope: false },
+  z: 10,
+  wins: {},
+  cascade: 0,
+};
+const GPUS = {
+  nvidia: { name: "NVIDIA GeForce RTX 4070", short: "NVIDIA RTX 4070", pci: "0300:10de:2786", chip: "AD104 [GeForce RTX 4070]", vendor: "NVIDIA Corporation",
+    profile: "nvidia-open-dkms", note: "GPU moderna: se conserva el driver NVIDIA open que ya trae la ISO.",
+    keep: ["linux-cachyos-nvidia-open", "nvidia-utils", "lib32-nvidia-utils", "nvidia-settings", "mesa", "vulkan-icd-loader"], remove: [] },
+  legacy: { name: "NVIDIA GeForce GTX 1060", short: "NVIDIA GTX 1060", pci: "0300:10de:1c03", chip: "GP106 [GeForce GTX 1060 6GB]", vendor: "NVIDIA Corporation",
+    profile: "nvidia-legacy (propietario)", note: "Serie 10 (Pascal): no admite el driver open, así que chwd cambia al driver propietario heredado.",
+    keep: ["nvidia-utils (rama heredada)", "lib32-nvidia-utils", "nvidia-settings", "mesa", "vulkan-icd-loader"], remove: ["linux-cachyos-nvidia-open"] },
+  amd: { name: "AMD Radeon RX 7800 XT", short: "AMD RX 7800 XT", pci: "0300:1002:747e", chip: "Navi 32 [Radeon RX 7800 XT]", vendor: "Advanced Micro Devices, Inc. [AMD/ATI]",
+    profile: "amd", note: "AMD usa los drivers libres de Mesa (RADV para Vulkan). Se quitan los paquetes de NVIDIA.",
+    keep: ["mesa", "lib32-mesa", "vulkan-radeon", "lib32-vulkan-radeon", "vulkan-icd-loader"], remove: ["nvidia-settings", "lib32-nvidia-utils", "linux-cachyos-nvidia-open", "nvidia-utils"] },
+  intel: { name: "Intel Arc A750", short: "Intel Arc A750", pci: "0300:8086:56a1", chip: "DG2 [Arc A750]", vendor: "Intel Corporation",
+    profile: "intel", note: "Intel usa Mesa (ANV para Vulkan) y el driver de vídeo intel-media-driver. Se quitan los paquetes de NVIDIA.",
+    keep: ["mesa", "lib32-mesa", "vulkan-intel", "lib32-vulkan-intel", "intel-media-driver"], remove: ["nvidia-settings", "lib32-nvidia-utils", "linux-cachyos-nvidia-open", "nvidia-utils"] },
+};
+
+/* ================= Wallpaper ================= */
+const wp = $("#wallpaper");
+function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+function drawWallpaper() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = wp.clientWidth, H = wp.clientHeight;
+  wp.width = W * dpr; wp.height = H * dpr;
+  const c = wp.getContext("2d"); c.scale(dpr, dpr);
+  const g = c.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#0a0920"); g.addColorStop(.7, "#221a52"); g.addColorStop(1, "#3a2a7a");
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  const r = rng(42);
+  for (let i = 0; i < (W * H) / 2600; i++) {
+    const x = r() * W, y = r() * H * .8, s = r() ** 3 * 1.8 + .4;
+    c.globalAlpha = .4 + r() * .6; c.fillStyle = "#fff";
+    c.beginPath(); c.arc(x, y, s, 0, 7); c.fill();
+  }
+  c.globalAlpha = 1;
+  // moon
+  const mr = Math.min(W, H) * (isPhone() ? .2 : .2);
+  const mx = W * (isPhone() ? .68 : .74), my = H * (isPhone() ? .5 : .3);
+  const glow = c.createRadialGradient(mx, my, mr * .6, mx, my, mr * 2.2);
+  glow.addColorStop(0, "rgba(170,150,255,.35)"); glow.addColorStop(1, "rgba(170,150,255,0)");
+  c.fillStyle = glow; c.fillRect(mx - mr * 3, my - mr * 3, mr * 6, mr * 6);
+  const off = document.createElement("canvas"); off.width = off.height = Math.ceil(mr * 2.4 * dpr);
+  const o = off.getContext("2d"); o.scale(dpr, dpr);
+  const cx = mr * 1.2;
+  o.fillStyle = "#ece6ff"; o.beginPath(); o.arc(cx, cx, mr, 0, 7); o.fill();
+  o.globalCompositeOperation = "destination-out";
+  o.beginPath(); o.arc(cx + mr * .5, cx - mr * .28, mr * .95, 0, 7); o.fill();
+  c.drawImage(off, mx - cx, my - cx, mr * 2.4, mr * 2.4);
+  // mountains
+  [["#241d58", .8, 90], ["#16123a", .88, 60]].forEach(([col, base, amp], li) => {
+    const rr = rng(7 + li * 13); let y = H * base;
+    c.fillStyle = col; c.beginPath(); c.moveTo(0, H);
+    for (let x = 0; x <= W + 40; x += 36) { c.lineTo(x, y); y = Math.max(H * .62, Math.min(H * .96, y + (rr() - .5) * amp * .7)); }
+    c.lineTo(W, H); c.closePath(); c.fill();
+  });
+}
+addEventListener("resize", () => { clearTimeout(drawWallpaper.t); drawWallpaper.t = setTimeout(drawWallpaper, 120); });
+
+/* ================= Toasts ================= */
+function toast(title, text, ic = "about", ms = 6000) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = `${icon(ic)}<div><b>${esc(title)}</b><p>${esc(text)}</p></div>`;
+  $("#toasts").append(t);
+  setTimeout(() => t.remove(), ms);
+}
+
+/* ================= Window manager ================= */
+const APPS = {};
+function focusWin(id) {
+  const w = S.wins[id]; if (!w) return;
+  w.el.classList.remove("min", "inactive");
+  w.el.style.zIndex = ++S.z;
+  Object.values(S.wins).forEach(o => { if (o !== w) o.el.classList.add("inactive"); });
+  renderTasks(id);
+}
+function closeWin(id) {
+  const w = S.wins[id]; if (!w) return;
+  w.onClose && w.onClose();
+  w.el.remove(); delete S.wins[id];
+  const top = Object.keys(S.wins).sort((a, b) => S.wins[b].el.style.zIndex - S.wins[a].el.style.zIndex)[0];
+  top ? focusWin(top) : renderTasks();
+}
+function openApp(id, opts = {}) {
+  hideLauncher();
+  if (S.wins[id]) { focusWin(id); return S.wins[id]; }
+  const app = APPS[id];
+  const area = $("#windows").getBoundingClientRect();
+  const w = Math.min(app.w, area.width - 20), h = Math.min(app.h, area.height - 20);
+  const x = Math.max(10, (area.width - w) / 2 + (S.cascade % 5) * 26 - 52);
+  const y = Math.max(8, (area.height - h) / 2 + (S.cascade % 5) * 22 - 44);
+  S.cascade++;
+  const el = document.createElement("section");
+  el.className = "win"; el.setAttribute("aria-label", app.title);
+  el.style.cssText = `left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
+  el.innerHTML = `<div class="titlebar">${icon(app.icon).replace("<svg", '<svg class="ticon"')}<span class="ttl">${esc(app.title)}</span>
+    <button class="wbtn" data-a="min" aria-label="Minimizar">${UI.min}</button>
+    <button class="wbtn" data-a="max" aria-label="Maximizar">${UI.max}</button>
+    <button class="wbtn close" data-a="close" aria-label="Cerrar">${UI.close}</button></div><div class="wbody"></div>`;
+  $("#windows").append(el);
+  const win = { id, el, body: $(".wbody", el), app };
+  S.wins[id] = win;
+  el.addEventListener("pointerdown", () => focusWin(id));
+  $(".titlebar", el).addEventListener("click", e => {
+    const a = e.target.closest("[data-a]")?.dataset.a;
+    if (a === "close") closeWin(id);
+    if (a === "min") { el.classList.add("min"); renderTasks(); }
+    if (a === "max") el.classList.toggle("max");
+  });
+  $(".titlebar", el).addEventListener("dblclick", e => { if (!e.target.closest("button")) el.classList.toggle("max"); });
+  drag(el);
+  app.render(win, opts);
+  focusWin(id);
+  return win;
+}
+function drag(el) {
+  const bar = $(".titlebar", el);
+  bar.addEventListener("pointerdown", e => {
+    if (e.target.closest("button") || el.classList.contains("max") || isPhone()) return;
+    const sx = e.clientX, sy = e.clientY, ox = el.offsetLeft, oy = el.offsetTop;
+    const area = $("#windows").getBoundingClientRect();
+    bar.setPointerCapture(e.pointerId);
+    const mv = ev => {
+      el.style.left = Math.min(area.width - 80, Math.max(-el.offsetWidth + 80, ox + ev.clientX - sx)) + "px";
+      el.style.top = Math.min(area.height - 40, Math.max(0, oy + ev.clientY - sy)) + "px";
+    };
+    const up = () => { bar.removeEventListener("pointermove", mv); bar.removeEventListener("pointerup", up); };
+    bar.addEventListener("pointermove", mv); bar.addEventListener("pointerup", up);
+  });
+}
+function renderTasks(active) {
+  const top = active || Object.keys(S.wins).find(k => !S.wins[k].el.classList.contains("min") && !S.wins[k].el.classList.contains("inactive"));
+  $("#tasks").innerHTML = Object.values(S.wins).map(w =>
+    `<button class="pbtn ${w.id === top && !w.el.classList.contains("min") ? "on" : ""}" data-w="${w.id}" title="${esc(w.app.title)}">${icon(w.app.icon)}<span>${esc(w.app.title)}</span></button>`).join("");
+}
+$("#tasks").addEventListener("click", e => {
+  const id = e.target.closest("[data-w]")?.dataset.w; if (!id) return;
+  const w = S.wins[id];
+  if (!w.el.classList.contains("min") && !w.el.classList.contains("inactive")) { w.el.classList.add("min"); renderTasks(); }
+  else focusWin(id);
+});
+
+/* ================= Launcher / desktop ================= */
+const LIST = () => [
+  ...(S.installed ? [] : [["install", "Instalar MoonOS", "Instala el sistema en tu disco"]]),
+  ["games", "Juegos", "Tu biblioteca, con GameMode y MangoHud"],
+  ["terminal", "Terminal", "Konsole: línea de comandos"],
+  ["drivers", "Drivers MoonOS", "Detección de tarjeta gráfica con chwd"],
+  ["files", "Archivos", "Administrador de archivos"],
+  ["about", "Acerca de MoonOS", "Versión e información del sistema"],
+];
+function renderDesktop() {
+  $("#desktop-icons").innerHTML = LIST().filter(a => a[0] !== "about").map(([id, name]) =>
+    `<button class="dicon" data-app="${id}">${icon(APPS[id].icon)}<span>${esc(name)}</span></button>`).join("");
+  renderLauncher("");
+  const u = S.user;
+  $("#l-avatar").textContent = u.name.trim()[0]?.toUpperCase() || "M";
+  $("#l-name").textContent = u.name;
+  $("#l-host").textContent = `${u.login}@${u.host}`;
+}
+function renderLauncher(q) {
+  q = q.trim().toLowerCase();
+  $("#lapps").innerHTML = LIST().filter(a => !q || (a[1] + " " + a[2]).toLowerCase().includes(q)).map(([id, name, desc]) =>
+    `<button class="lapp" data-app="${id}">${icon(APPS[id].icon)}<span><b>${esc(name)}</b><small>${esc(desc)}</small></span></button>`).join("")
+    || `<p class="muted" style="padding:10px 12px;margin:0">No hay aplicaciones con ese nombre.</p>`;
+}
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-app]"); if (a) openApp(a.dataset.app);
+});
+const hideLauncher = () => { $("#launcher").hidden = true; };
+$("#launcher-btn").innerHTML = moonSvg();
+$("#launcher-btn").addEventListener("click", e => {
+  e.stopPropagation();
+  const l = $("#launcher"); l.hidden = !l.hidden;
+  if (!l.hidden) { $("#lsearch").value = ""; renderLauncher(""); if (!isPhone()) $("#lsearch").focus(); }
+});
+$("#lsearch").addEventListener("input", e => renderLauncher(e.target.value));
+$("#lsearch").addEventListener("keydown", e => { if (e.key === "Enter") $("#lapps [data-app]")?.click(); if (e.key === "Escape") hideLauncher(); });
+document.addEventListener("pointerdown", e => { if (!e.target.closest("#launcher, #launcher-btn")) hideLauncher(); });
+$("#btn-reboot").innerHTML = UI.reboot + "Reiniciar";
+$("#btn-off").innerHTML = UI.power + "Apagar";
+$("#btn-reboot").addEventListener("click", () => reboot());
+$("#btn-off").addEventListener("click", () => { hideLauncher(); closeAll(); $("#off").hidden = false; });
+$("#btn-on").innerHTML = UI.power;
+$("#btn-on").addEventListener("click", () => { $("#off").hidden = true; boot(true); });
+$("#tray-net").innerHTML = UI.wifi; $("#tray-vol").innerHTML = UI.vol;
+function clock() {
+  const d = new Date();
+  $("#clock-t").textContent = d.toLocaleTimeString("es", { hour: "2-digit", minute: "2-digit" });
+  $("#clock-d").textContent = d.toLocaleDateString("es", { day: "numeric", month: "short" });
+}
+clock(); setInterval(clock, 15000);
+function closeAll() { Object.keys(S.wins).forEach(closeWin); }
+
+/* ================= Boot sequence ================= */
+$("#splash-logo").innerHTML = MOON("sp");
+async function boot(showMenu) {
+  if (showMenu) {
+    const entries = S.installed
+      ? ["MoonOS", "Opciones avanzadas para MoonOS", "Ajustes del firmware UEFI"]
+      : ["MoonOS Live (x86_64, UEFI)", "MoonOS Live con lector de pantalla", "Memtest86+"];
+    const g = $("#grub"); g.hidden = false;
+    $("#grub-title").textContent = S.installed ? "GNU GRUB" : "MoonOS · menú de arranque";
+    $("#grub-list").innerHTML = entries.map((t, i) => `<li class="${i ? "" : "sel"}" data-i="${i}">${esc(t)}</li>`).join("");
+    let n = 3;
+    await new Promise(res => {
+      const tick = () => { $("#grub-hint").textContent = `Se iniciará la opción resaltada en ${n} s. Pulsa una opción para arrancar ya.`; };
+      tick();
+      const iv = setInterval(() => { n--; tick(); if (n <= 0) done(); }, 1000);
+      const done = () => { clearInterval(iv); g.removeEventListener("click", onc); document.removeEventListener("keydown", onk); res(); };
+      const onc = e => { if (e.target.closest("li")) done(); };
+      const onk = e => { if (e.key === "Enter") done(); };
+      g.addEventListener("click", onc); document.addEventListener("keydown", onk);
+    });
+    g.hidden = true;
+  }
+  $("#splash").hidden = false;
+  await sleep(reduced ? 300 : 1500);
+  renderDesktop();
+  $("#splash").hidden = true;
+  if (S.installed) {
+    $("#login-name").textContent = S.user.name;
+    $("#login-avatar").textContent = S.user.name.trim()[0]?.toUpperCase() || "M";
+    $("#login-err").textContent = ""; $("#login-pass").value = "";
+    $("#login").hidden = false;
+    if (!isPhone()) $("#login-pass").focus();
+  } else {
+    toast("Bienvenido a MoonOS Live", "Esto es una demo en el navegador: nada se instala de verdad. Prueba la Terminal, los Juegos o el instalador.", "about", 9000);
+  }
+}
+$("#login-form").addEventListener("submit", e => {
+  e.preventDefault();
+  if ($("#login-pass").value !== S.user.pass) { $("#login-err").textContent = "Contraseña incorrecta. Inténtalo otra vez."; return; }
+  $("#login").hidden = true;
+  setTimeout(() => toast("Drivers configurados", `chwd aplicó el perfil «${GPUS[S.gpu].profile}» para ${GPUS[S.gpu].name}.`, "drivers"), 600);
+  setTimeout(() => toast("¡Hola, " + S.user.name.split(" ")[0] + "!", "MoonOS ya está instalado. Tu escritorio está listo.", "about"), 1400);
+});
+async function reboot() { hideLauncher(); closeAll(); await sleep(200); boot(true); }
+
+/* ================= App: Terminal ================= */
+const FASTFETCH = () => {
+  const g = GPUS[S.gpu], u = S.user;
+  const art = [
+    "        .-''''-.      ", "      .'  .--.  '.    ", "     /   /    '. \\   ", "    |   |       \\ |  ",
+    "    |   |        )|  ", "     \\   \\      / /  ", "      '.  '----' .'   ", "        '-......-'    ",
+  ];
+  const info = [
+    `<span class="c-acc c-b">${esc(u.login)}</span>@<span class="c-acc c-b">${esc(u.host)}</span>`,
+    "-".repeat(u.login.length + u.host.length + 1),
+    `<span class="c-acc c-b">SO</span>: MoonOS x86_64`,
+    `<span class="c-acc c-b">Kernel</span>: 6.17.9-2-cachyos`,
+    `<span class="c-acc c-b">Paquetes</span>: 1384 (pacman), 6 (flatpak)`,
+    `<span class="c-acc c-b">Escritorio</span>: KDE Plasma 6 (Wayland)`,
+    `<span class="c-acc c-b">GPU</span>: ${esc(g.name)}`,
+    `<span class="c-acc c-b">Memoria</span>: 3.1 GiB / 15.5 GiB`,
+  ];
+  return art.map((a, i) => `<span class="c-acc">${esc(a)}</span>${info[i] || ""}`).join("\n") +
+    "\n" + " ".repeat(22) + ["#ff8094", "#ffcf6e", "#6ee7a8", "#5fb3ff", "#a996ff", "#ff7ab6"].map(c => `<span style="color:${c}">███</span>`).join("");
+};
+APPS.terminal = {
+  title: "Terminal", icon: "terminal", w: 720, h: 440,
+  render(win) {
+    win.body.innerHTML = `<div class="term"><pre class="out"></pre><div class="line"><pre class="ps"></pre><input aria-label="Comando" autocomplete="off" autocapitalize="off" spellcheck="false"></div></div>`;
+    const out = $(".out", win.body), inp = $("input", win.body), ps = $(".ps", win.body), term = $(".term", win.body);
+    const prompt = () => `<span class="c-good c-b">${esc(S.user.login)}@${esc(S.user.host)}</span> <span class="c-acc c-b">~</span> $ `;
+    ps.innerHTML = prompt();
+    const hist = []; let hi = 0, busy = false;
+    const print = html => { out.innerHTML += html + "\n"; win.body.scrollTop = win.body.scrollHeight; };
+    print(`Bienvenido a la terminal de MoonOS. Escribe <span class="c-acc">help</span> para ver los comandos.\n`);
+    term.addEventListener("click", () => { if (!getSelection().toString()) inp.focus(); });
+    if (!isPhone()) setTimeout(() => inp.focus(), 50);
+    const slow = async lines => { for (const [l, ms] of lines) { print(l); await sleep(reduced ? 0 : ms); } };
+    const CMDS = {
+      help: () => print([
+        "Comandos disponibles:",
+        "  <span class=\"c-acc\">fastfetch</span>          información del sistema",
+        "  <span class=\"c-acc\">sudo pacman -Syu</span>   actualizar el sistema",
+        "  <span class=\"c-acc\">sudo chwd -a</span>       detectar e instalar drivers",
+        "  <span class=\"c-acc\">lspci</span>              ver la tarjeta gráfica",
+        "  <span class=\"c-acc\">gamemoded -s</span>       estado de GameMode",
+        "  <span class=\"c-acc\">cat /etc/os-release</span>",
+        "  <span class=\"c-acc\">uname -a</span>, <span class=\"c-acc\">whoami</span>, <span class=\"c-acc\">date</span>, <span class=\"c-acc\">ls</span>, <span class=\"c-acc\">echo</span>, <span class=\"c-acc\">clear</span>, <span class=\"c-acc\">exit</span>",
+      ].join("\n")),
+      fastfetch: () => print(FASTFETCH()), neofetch: () => print(FASTFETCH()),
+      uname: a => print(a.includes("-a") ? `Linux ${esc(S.user.host)} 6.17.9-2-cachyos #1 SMP PREEMPT_DYNAMIC x86_64 GNU/Linux` : "Linux"),
+      whoami: () => print(esc(S.user.login)),
+      hostname: () => print(esc(S.user.host)),
+      date: () => print(new Date().toLocaleString("es")),
+      pwd: () => print(`/home/${esc(S.user.login)}`),
+      ls: () => print('<span class="c-acc c-b">Descargas  Documentos  Escritorio  Imágenes  Juegos  Música  Vídeos</span>'),
+      echo: a => print(esc(a.join(" "))),
+      clear: () => { out.innerHTML = ""; },
+      exit: () => closeWin("terminal"),
+      lspci: () => print(`00:00.0 Host bridge: Advanced Micro Devices, Inc. Raphael Root Complex\n01:00.0 VGA compatible controller: ${esc(GPUS[S.gpu].vendor)} ${esc(GPUS[S.gpu].chip)}\n02:00.0 Network controller: Intel Corporation Wi-Fi 6 AX200\n03:00.0 Audio device: ${esc(GPUS[S.gpu].vendor)} HD Audio Controller`),
+      "gamemoded": a => print(a.includes("-s") ? (S.fx.gamemode ? "gamemode is <span class=\"c-good\">active</span>" : "gamemode is <span class=\"c-mut\">inactive</span>") : "uso: gamemoded -s"),
+      cat: a => {
+        if (a[0] === "/etc/os-release" || a[0] === "/usr/lib/os-release") print('NAME="MoonOS"\nPRETTY_NAME="MoonOS"\nID=moonos\nID_LIKE="cachyos arch"\nBUILD_ID=rolling\nLOGO=moonos');
+        else print(`cat: ${esc(a[0] || "")}: No existe el archivo o el directorio`);
+      },
+      pacman: async (a, sudo) => {
+        if (!a.join(" ").includes("-Syu")) return print("Prueba: sudo pacman -Syu");
+        if (!sudo) return print('<span class="c-bad">error:</span> debes ser root para realizar esta operación. Usa <span class="c-acc">sudo</span>.');
+        await slow([
+          ['<span class="c-acc c-b">::</span> <span class="c-b">Sincronizando las bases de datos de paquetes...</span>', 300],
+          [" cachyos              180,2 KiB  1203 KiB/s 00:00 [######################] 100%", 250],
+          [" core                 117,4 KiB   980 KiB/s 00:00 [######################] 100%", 250],
+          [" extra                  8,1 MiB  12,4 MiB/s 00:01 [######################] 100%", 450],
+          [" multilib             131,9 KiB  1,1 MiB/s 00:00 [######################] 100%", 250],
+          ['<span class="c-acc c-b">::</span> <span class="c-b">Iniciando actualización completa del sistema...</span>', 500],
+          [" no hay nada que hacer", 0],
+        ]);
+      },
+      chwd: async (a, sudo) => {
+        if (!a.includes("-a")) return print("uso: chwd -a   (configura los drivers automáticamente)");
+        if (!sudo) return print('<span class="c-bad">error:</span> chwd necesita permisos de root. Usa <span class="c-acc">sudo chwd -a</span>.');
+        const g = GPUS[S.gpu];
+        await slow([
+          ["> Buscando dispositivos PCI...", 400],
+          [`  ${g.pci}  ${esc(g.vendor)} ${esc(g.chip)}`, 400],
+          [`> Perfil elegido: <span class="c-acc">${esc(g.profile)}</span>`, 400],
+          ...g.keep.map(p => [`  instalado  ${esc(p)}`, 120]),
+          [`<span class="c-good">> Listo: drivers de ${esc(g.name)} configurados.</span>`, 0],
+        ]);
+        S.driversDone = true;
+      },
+    };
+    inp.addEventListener("keydown", async e => {
+      if (e.key === "ArrowUp") { if (hi > 0) inp.value = hist[--hi]; e.preventDefault(); return; }
+      if (e.key === "ArrowDown") { inp.value = hi < hist.length - 1 ? hist[++hi] : (hi = hist.length, ""); return; }
+      if (e.key !== "Enter" || busy) return;
+      const raw = inp.value; inp.value = "";
+      print(prompt() + esc(raw));
+      if (!raw.trim()) return;
+      hist.push(raw); hi = hist.length;
+      let parts = raw.trim().split(/\s+/), sudo = false;
+      if (parts[0] === "sudo") { sudo = true; parts = parts.slice(1); if (!parts.length) return print("uso: sudo &lt;comando&gt;"); }
+      const fn = CMDS[parts[0]];
+      if (!fn) return print(`bash: ${esc(parts[0])}: orden no encontrada. Escribe <span class="c-acc">help</span>.`);
+      busy = true; ps.style.visibility = "hidden";
+      await fn(parts.slice(1), sudo);
+      busy = false; ps.style.visibility = ""; ps.innerHTML = prompt();
+      win.body.scrollTop = win.body.scrollHeight;
+    });
+  },
+};
+
+/* ================= App: Installer ================= */
+APPS.install = {
+  title: "Instalar MoonOS", icon: "install", w: 900, h: 600,
+  render(win) {
+    const steps = ["Bienvenida", "Ubicación", "Teclado", "Particiones", "Usuario", "Resumen", "Instalar", "Terminado"];
+    const D = { lang: "Español (México)", zone: "America/Santiago", kb: "Latinoamericano", disk: "erase", fs: "btrfs", crypt: false,
+      name: "", login: "", host: "moonos-pc", p1: "", p2: "" };
+    let cur = 0, running = false;
+    win.body.innerHTML = `<div class="inst"><nav class="inst-side"><div class="logo">${moonSvg()}MoonOS</div>${steps.map((s, i) => `<div class="step" data-s="${i}">${s}</div>`).join("")}</nav>
+      <div class="inst-main"><div class="inst-content"></div><div class="inst-nav"><button class="btn" data-n="back" type="button">Atrás</button><button class="btn primary" data-n="next" type="button">Siguiente</button></div></div></div>`;
+    const C = $(".inst-content", win.body), back = $("[data-n=back]", win.body), next = $("[data-n=next]", win.body);
+    const userValid = () => D.name.trim() && /^[a-z_][a-z0-9_-]{0,31}$/.test(D.login) && /^[a-zA-Z0-9-]{1,63}$/.test(D.host) && D.p1.length > 0 && D.p1 === D.p2;
+    const sel = (id, label, val, opts) => `<div class="field"><label for="${id}">${label}</label><select id="${id}">${opts.map(o => `<option ${o === val ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></div>`;
+    const VIEWS = [
+      () => `<div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">${moonSvg().replace("<svg", '<svg style="width:72px;height:72px"')}<div><h2 class="app-h">Te damos la bienvenida al instalador de MoonOS</h2><p class="muted" style="margin:0">Basado en Arch Linux y CachyOS, con KDE Plasma y listo para jugar.</p></div></div>
+        ${sel("i-lang", "Idioma", D.lang, ["Español (México)", "Español (España)", "Español (Chile)", "English (US)"])}
+        <div><b>Requisitos</b><ul class="checks" style="margin-top:8px">
+        <li><span class="chip good">✓</span> Al menos 30 GB de espacio en disco (detectado: 512 GB)</li>
+        <li><span class="chip good">✓</span> Al menos 2 GB de memoria (detectado: 16 GB)</li>
+        <li><span class="chip good">✓</span> Conectado a internet: los drivers se configuran durante la instalación</li>
+        <li><span class="chip good">✓</span> Conectado a la corriente</li></ul></div>`,
+      () => `<h2 class="app-h">¿Dónde estás?</h2><p class="muted" style="margin:0">Se usa para la hora y el formato de fechas y números.</p>
+        <div class="grid2">${sel("i-zone", "Zona horaria", D.zone, ["America/Santiago", "America/Mexico_City", "America/Bogota", "America/Lima", "America/Argentina/Buenos_Aires", "Europe/Madrid"])}
+        ${sel("i-loc", "Formato regional", "es_CL.UTF-8", ["es_CL.UTF-8", "es_MX.UTF-8", "es_CO.UTF-8", "es_AR.UTF-8", "es_ES.UTF-8", "en_US.UTF-8"])}</div>`,
+      () => `<h2 class="app-h">Distribución del teclado</h2>
+        ${sel("i-kb", "Distribución", D.kb, ["Latinoamericano", "Español (España)", "Inglés (EE. UU.)", "Inglés (internacional, con teclas muertas)"])}
+        <div class="field"><label for="i-kbtest">Escribe aquí para probar tu teclado</label><input id="i-kbtest" placeholder="ñ á é í ó ú ¿ ¡ @"></div>`,
+      () => {
+        const encLabel = D.crypt ? " · cifrado" : "";
+        const bar = D.disk === "along"
+          ? `<div style="flex:1;background:#5fb3ff">Windows 11 · 250 GB</div><div style="flex:1;background:var(--accent)">MoonOS · ${D.fs}${encLabel} · 261 GB</div>`
+          : `<div style="flex:.04;background:#ffcf6e">EFI</div><div style="flex:1;background:var(--accent)">MoonOS · ${D.fs}${encLabel} · 511 GB</div>`;
+        return `<h2 class="app-h">Particiones</h2><p class="muted" style="margin:0">Disco: Samsung SSD 980 · 512 GB (/dev/nvme0n1)</p>
+        <label class="opt"><input type="radio" name="i-disk" value="erase" ${D.disk === "erase" ? "checked" : ""}><span><b>Borrar el disco</b><small>Elimina todo lo que hay en el disco e instala MoonOS.</small></span></label>
+        <label class="opt"><input type="radio" name="i-disk" value="along" ${D.disk === "along" ? "checked" : ""}><span><b>Instalar junto a Windows</b><small>Reduce la partición de Windows y te deja elegir el sistema al encender.</small></span></label>
+        <div class="grid2">${sel("i-fs", "Sistema de archivos", D.fs, ["btrfs", "ext4", "xfs"])}
+          <label class="toggle" style="align-self:end;padding-bottom:8px"><input type="checkbox" id="i-crypt" ${D.crypt ? "checked" : ""}> Cifrar el sistema (LUKS)</label></div>
+        <div><p class="muted" style="margin:0 0 6px;font-size:13px">Después de instalar:</p><div class="diskbar">${bar}</div></div>
+        <div class="legend">${D.fs === "btrfs" ? "<span>Subvolúmenes: @, @home, @cache, @log · compresión zstd</span>" : "<span>Partición única con " + D.fs + "</span>"}</div>`;
+      },
+      () => `<h2 class="app-h">¿Quién usará este equipo?</h2>
+        <div class="grid2"><div class="field"><label for="i-name">Tu nombre</label><input id="i-name" value="${esc(D.name)}" placeholder="Ej.: Felipe Placencio" autocomplete="off"></div>
+        <div class="field"><label for="i-login">Nombre de usuario</label><input id="i-login" value="${esc(D.login)}" autocapitalize="off" autocomplete="off"></div>
+        <div class="field"><label for="i-host">Nombre del equipo</label><input id="i-host" value="${esc(D.host)}" autocapitalize="off" autocomplete="off"></div></div>
+        <div class="grid2"><div class="field"><label for="i-p1">Contraseña</label><input id="i-p1" type="password" value="${esc(D.p1)}" autocomplete="new-password"></div>
+        <div class="field"><label for="i-p2">Repite la contraseña</label><input id="i-p2" type="password" value="${esc(D.p2)}" autocomplete="new-password"></div></div>
+        <p class="muted" id="i-uerr" style="margin:0;font-size:13px;min-height:1.3em"></p>`,
+      () => `<h2 class="app-h">Resumen</h2><p class="muted" style="margin:0">Revisa todo antes de empezar. En este paso todavía no se ha tocado el disco.</p>
+        <dl class="summary"><dt>Idioma</dt><dd>${esc(D.lang)}</dd><dt>Zona horaria</dt><dd>${esc(D.zone)}</dd><dt>Teclado</dt><dd>${esc(D.kb)}</dd>
+        <dt>Disco</dt><dd>${D.disk === "erase" ? "Borrar /dev/nvme0n1 e instalar MoonOS" : "Instalar junto a Windows 11"} (${D.fs}${D.crypt ? ", cifrado" : ""})</dd>
+        <dt>Usuario</dt><dd>${esc(D.name)} (${esc(D.login)})</dd><dt>Equipo</dt><dd>${esc(D.host)}</dd>
+        <dt>Tarjeta gráfica</dt><dd>${esc(GPUS[S.gpu].name)} <span class="muted">(cámbiala en «Drivers MoonOS»)</span></dd>
+        <dt>Arranque</dt><dd>GRUB (UEFI), detecta otros sistemas</dd></dl>`,
+      () => `<h2 class="app-h">Instalando MoonOS…</h2><div class="progress"><div></div></div><p class="muted" id="i-job" style="margin:0">Preparando…</p>
+        <div class="slide" id="i-slide"></div><pre class="joblog" id="i-log"></pre>`,
+      () => `<div style="display:grid;justify-items:center;gap:14px;text-align:center;padding-top:20px">${moonSvg().replace("<svg", '<svg style="width:96px;height:96px"')}
+        <h2 class="app-h">¡Todo listo!</h2><p class="muted" style="margin:0;max-width:46ch">MoonOS se instaló en tu disco (en esta demo, solo de mentira). Reinicia para entrar a tu nuevo sistema e iniciar sesión como <b>${esc(D.login)}</b>.</p></div>`,
+    ];
+    const show = () => {
+      $$(".step", win.body).forEach((s, i) => { s.className = "step" + (i === cur ? " cur" : i < cur ? " done" : ""); });
+      C.innerHTML = VIEWS[cur]();
+      $(".step.cur", win.body)?.scrollIntoView({ block: "nearest", inline: "center" });
+      back.hidden = cur === 0 || cur >= 6;
+      next.hidden = cur === 6;
+      next.textContent = cur === 5 ? "Instalar" : cur === 7 ? "Reiniciar ahora" : "Siguiente";
+      next.disabled = cur === 4 && !userValid();
+      bind();
+      if (cur === 6) install();
+    };
+    const bind = () => {
+      const on = (id, ev, fn) => { const el = $("#" + id, C); el && el.addEventListener(ev, fn); };
+      on("i-lang", "change", e => D.lang = e.target.value);
+      on("i-zone", "change", e => D.zone = e.target.value);
+      on("i-kb", "change", e => D.kb = e.target.value);
+      on("i-fs", "change", e => { D.fs = e.target.value; show(); });
+      on("i-crypt", "change", e => { D.crypt = e.target.checked; show(); });
+      $$("[name=i-disk]", C).forEach(r => r.addEventListener("change", e => { D.disk = e.target.value; show(); }));
+      if (cur === 4) {
+        let loginTouched = !!D.login;
+        const upd = () => {
+          next.disabled = !userValid();
+          const err = $("#i-uerr", C);
+          err.textContent = D.p2 && D.p1 !== D.p2 ? "Las contraseñas no coinciden."
+            : D.login && !/^[a-z_][a-z0-9_-]{0,31}$/.test(D.login) ? "El usuario solo puede tener minúsculas, números, - y _."
+            : "";
+          err.style.color = err.textContent ? "var(--bad)" : "";
+        };
+        on("i-name", "input", e => {
+          D.name = e.target.value;
+          if (!loginTouched) { D.login = D.name.trim().split(/\s+/)[0].toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9_-]/g, ""); $("#i-login", C).value = D.login; }
+          upd();
+        });
+        on("i-login", "input", e => { loginTouched = true; D.login = e.target.value; upd(); });
+        on("i-host", "input", e => { D.host = e.target.value; upd(); });
+        on("i-p1", "input", e => { D.p1 = e.target.value; upd(); });
+        on("i-p2", "input", e => { D.p2 = e.target.value; upd(); });
+        upd();
+      }
+    };
+    const install = async () => {
+      if (running) return; running = true;
+      const g = GPUS[S.gpu];
+      const jobs = [
+        ["Creando particiones (EFI 1 GiB + " + D.fs + ")", 6], ["Montando " + (D.fs === "btrfs" ? "subvolúmenes @, @home, @cache, @log" : "particiones"), 4],
+        ["Copiando el sistema (unpackfs: airootfs.sfs)", 26], ["Copiando el kernel linux-cachyos", 3], ["Configurando idioma, zona horaria y teclado", 5],
+        ["Creando el usuario " + D.login, 4], ["Activando SDDM, NetworkManager y Bluetooth", 4], ["moonos-postinstall: quitando las piezas del modo Live", 6],
+        ["moonos-postinstall: tarjeta gráfica " + g.short + " detectada", 6], ["moonos-drivers: pacman -Syu y chwd -a (perfil " + g.profile + ")", 14],
+        ["Generando el initramfs (mkinitcpio)", 8], ["Instalando GRUB y buscando otros sistemas", 7], ["Desmontando", 3],
+      ];
+      const slides = [["Listo para jugar", "Steam, Lutris, Proton-CachyOS, GameMode, MangoHud y Gamescope vienen incluidos."],
+        ["Drivers automáticos", "MoonOS detecta tu tarjeta gráfica y deja solo los drivers que necesitas."],
+        ["Kernel de CachyOS", "linux-cachyos está optimizado para más rendimiento y menos latencia."],
+        ["Escritorio completo", "KDE Plasma con Dolphin, Konsole, Kate, Firefox, VLC y mucho más."]];
+      const total = jobs.reduce((a, j) => a + j[1], 0); let done = 0, si = 0;
+      const sl = () => { const s = slides[si++ % slides.length]; const el = $("#i-slide", C); if (el) el.innerHTML = `<b>${s[0]}</b><span class="muted">${s[1]}</span>`; };
+      sl(); const siv = setInterval(sl, 3500);
+      for (const [name, wgt] of jobs) {
+        if (!S.wins.install) { clearInterval(siv); return; }
+        $("#i-job", C).textContent = name;
+        $("#i-log", C).textContent += "▸ " + name + "\n"; $("#i-log", C).scrollTop = 1e6;
+        const steps = Math.max(2, Math.round(wgt / 2));
+        for (let k = 0; k < steps; k++) { await sleep(reduced ? 20 : wgt * 55 / steps * 1.2); done += wgt / steps; const bar = $(".progress div", C); if (bar) bar.style.width = (done / total * 100).toFixed(1) + "%"; }
+      }
+      clearInterval(siv);
+      S.pending = { name: D.name.trim(), login: D.login, host: D.host, pass: D.p1 };
+      cur = 7; running = false; show();
+    };
+    back.addEventListener("click", () => { if (cur > 0) { cur--; show(); } });
+    next.addEventListener("click", () => {
+      if (cur === 7) { S.installed = true; S.user = S.pending; S.driversDone = true; reboot(); return; }
+      if (cur === 4 && !userValid()) return;
+      cur++; show();
+    });
+    win.onClose = () => { running = false; };
+    show();
+  },
+};
+
+/* ================= App: Drivers ================= */
+APPS.drivers = {
+  title: "Drivers MoonOS", icon: "drivers", w: 760, h: 560,
+  render(win) {
+    let log = "", busy = false;
+    const draw = () => {
+      const g = GPUS[S.gpu];
+      win.body.innerHTML = `<div class="pad" style="display:grid;gap:16px">
+        <div><h2 class="app-h">Drivers de la tarjeta gráfica</h2><p class="muted" style="margin:0">MoonOS usa <b>chwd</b> de CachyOS para elegir el driver correcto. Elige una tarjeta para ver qué haría el instalador.</p></div>
+        <div class="gpus">${Object.entries(GPUS).map(([k, v]) => `<button class="gpu ${k === S.gpu ? "sel" : ""}" data-g="${k}" type="button"><b>${esc(v.name)}</b><small>${esc(v.vendor.split(" ")[0])} · perfil ${esc(v.profile)}</small></button>`).join("")}</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center"><button class="btn primary" id="d-run" type="button" ${busy ? "disabled" : ""}>Configurar automáticamente</button>
+          <span class="chip ${S.driversDone ? "good" : "warn"}">${S.driversDone ? "Drivers configurados" : "Sin configurar"}</span></div>
+        <p style="margin:0">${esc(g.note)}</p>
+        <div class="pkgs"><div class="kp"><b>Se conservan</b><ul>${g.keep.map(p => `<li>✓ ${esc(p)}</li>`).join("")}</ul></div>
+          <div class="rm"><b>Se quitan</b><ul>${g.remove.length ? g.remove.map(p => `<li>${esc(p)}</li>`).join("") : '<li style="text-decoration:none">(nada)</li>'}</ul></div></div>
+        ${log ? `<div class="term" style="border-radius:8px;min-height:0"><pre>${log}</pre></div>` : ""}</div>`;
+      $$("[data-g]", win.body).forEach(b => b.addEventListener("click", () => { if (busy) return; S.gpu = b.dataset.g; S.driversDone = false; log = ""; draw(); }));
+      $("#d-run", win.body).addEventListener("click", run);
+    };
+    const run = async () => {
+      busy = true; log = ""; const g = GPUS[S.gpu];
+      const lines = ["$ sudo chwd -a", "> Buscando dispositivos PCI...", `  ${g.pci}  ${esc(g.chip)}`, `> Perfil elegido: <span class="c-acc">${esc(g.profile)}</span>`,
+        ...g.remove.map(p => `  quitando   ${esc(p)}`), ...g.keep.map(p => `  instalado  ${esc(p)}`), `<span class="c-good">> Listo.</span>`];
+      for (const l of lines) { log += l + "\n"; draw(); await sleep(reduced ? 0 : 280); win.body.scrollTop = 1e6; }
+      busy = false; S.driversDone = true; draw(); win.body.scrollTop = 1e6;
+      toast("Drivers configurados", `Perfil «${g.profile}» aplicado para ${g.name}.`, "drivers");
+    };
+    draw();
+  },
+};
+
+/* ================= App: Games ================= */
+function cover(title, c1, c2, kind) {
+  const cv = document.createElement("canvas"); cv.width = 300; cv.height = 400;
+  const c = cv.getContext("2d"); const g = c.createLinearGradient(0, 0, 0, 400);
+  g.addColorStop(0, c1); g.addColorStop(1, c2); c.fillStyle = g; c.fillRect(0, 0, 300, 400);
+  const r = rng(title.length * 97);
+  c.fillStyle = "rgba(255,255,255,.8)";
+  for (let i = 0; i < 60; i++) { c.globalAlpha = r(); c.fillRect(r() * 300, r() * 260, 2, 2); }
+  c.globalAlpha = 1;
+  if (kind === "moon") { c.fillStyle = "#ece6ff"; c.beginPath(); c.arc(210, 110, 50, 0, 7); c.fill(); c.fillStyle = c1; c.beginPath(); c.arc(235, 95, 46, 0, 7); c.fill();
+    c.fillStyle = "#ffcf6e"; c.beginPath(); c.moveTo(150, 250); c.lineTo(125, 300); c.lineTo(175, 300); c.fill(); }
+  if (kind === "road") { c.fillStyle = "rgba(0,0,0,.35)"; c.beginPath(); c.moveTo(130, 220); c.lineTo(170, 220); c.lineTo(300, 400); c.lineTo(0, 400); c.fill();
+    c.strokeStyle = "#ffcf6e"; c.lineWidth = 4; c.setLineDash([18, 14]); c.beginPath(); c.moveTo(150, 225); c.lineTo(150, 400); c.stroke(); c.setLineDash([]); }
+  if (kind === "cube") { c.fillStyle = "rgba(255,255,255,.18)"; for (let i = 0; i < 6; i++) c.fillRect(40 + i * 38, 300 - i * 30, 34, 34 + i * 30); }
+  if (kind === "forest") { c.fillStyle = "rgba(0,0,0,.4)"; for (let i = 0; i < 9; i++) { const x = i * 36 + 5, h = 120 + r() * 90; c.beginPath(); c.moveTo(x, 400); c.lineTo(x + 18, 400 - h); c.lineTo(x + 36, 400); c.fill(); } }
+  c.fillStyle = "rgba(0,0,0,.45)"; c.fillRect(0, 320, 300, 80);
+  c.fillStyle = "#fff"; c.font = "700 28px 'Noto Sans', sans-serif"; c.fillText(title, 18, 368);
+  return cv.toDataURL("image/png");
+}
+let COVERS;
+const GAMES = [
+  ["Polvo Lunar", "Arcade · jugable aquí", "#2a1f6e", "#0b0920", "moon", true],
+  ["Neón 2099", "Carreras · Proton", "#ff4fa0", "#2a0b3a", "road", false],
+  ["Bloques Sin Fin", "Construcción · nativo Linux", "#1f9a68", "#0c2a22", "cube", false],
+  ["Bosque Antiguo", "Aventura · Proton", "#2c6fd6", "#0a1630", "forest", false],
+];
+APPS.games = {
+  title: "Juegos", icon: "games", w: 820, h: 560,
+  render(win) {
+    COVERS = COVERS || GAMES.map(g => cover(g[0], g[2], g[3], g[4]));
+    const tg = (k, label) => `<label class="toggle"><input type="checkbox" data-fx="${k}" ${S.fx[k] ? "checked" : ""}> ${label}</label>`;
+    win.body.innerHTML = `<div class="games-top"><b style="margin-right:auto">Biblioteca</b>${tg("gamemode", "GameMode")}${tg("mangohud", "MangoHud")}${tg("gamescope", "Gamescope")}</div>
+      <div class="glib">${GAMES.map((g, i) => `<button class="gcard" data-game="${i}" type="button"><img src="${COVERS[i]}" alt=""><span class="gi"><b>${esc(g[0])}</b><span class="chip ${g[5] ? "good" : ""}">${esc(g[1])}</span></span></button>`).join("")}</div>`;
+    $$("[data-fx]", win.body).forEach(i => i.addEventListener("change", () => {
+      S.fx[i.dataset.fx] = i.checked;
+      const names = { gamemode: "GameMode", mangohud: "MangoHud", gamescope: "Gamescope" };
+      toast(names[i.dataset.fx] + (i.checked ? " activado" : " desactivado"),
+        { gamemode: "Prioriza la CPU y la GPU mientras juegas.", mangohud: "Muestra FPS, temperaturas y uso dentro del juego.", gamescope: "Ejecuta el juego en una ventana a 1280×720, escalada." }[i.dataset.fx], "games", 3500);
+    }));
+    $$("[data-game]", win.body).forEach(b => b.addEventListener("click", () => {
+      const g = GAMES[+b.dataset.game];
+      if (g[5]) openApp("moondust");
+      else toast(g[0], "Es un juego de muestra: en esta demo solo «Polvo Lunar» se puede jugar.", "games", 4000);
+    }));
+  },
+};
+
+/* Mini-game: Polvo Lunar */
+APPS.moondust = {
+  title: "Polvo Lunar", icon: "game", w: 760, h: 520,
+  render(win) {
+    win.body.style.overflow = "hidden";
+    win.body.innerHTML = `<div class="gamewrap" tabindex="0" aria-label="Juego Polvo Lunar. Usa las flechas o toca los lados de la pantalla."><canvas></canvas></div>`;
+    const wrap = $(".gamewrap", win.body), cv = $("canvas", wrap), c = cv.getContext("2d");
+    let W = 0, H = 0, dpr = 1, raf = 0, last = 0, fps = 60, ft = 16.7;
+    const G = { x: .5, dir: 0, keys: new Set(), items: [], score: 0, lives: 3, t: 0, spawn: 0, over: false, started: false, best: 0 };
+    const resize = () => { const r = wrap.getBoundingClientRect(); dpr = Math.min(devicePixelRatio || 1, 2); W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; };
+    const ro = new ResizeObserver(resize); ro.observe(wrap); resize();
+    const bgStars = Array.from({ length: 90 }, (_, i) => [rng(i + 3)(), rng(i + 99)(), rng(i + 7)() * 1.5 + .3]);
+    const reset = () => Object.assign(G, { x: .5, items: [], score: 0, lives: 3, t: 0, spawn: 0, over: false, started: true });
+    const kd = e => {
+      if (!S.wins.moondust || S.wins.moondust.el.classList.contains("inactive")) return;
+      if (["ArrowLeft", "ArrowRight", "a", "d", "A", "D"].includes(e.key)) { G.keys.add(e.key.toLowerCase()); e.preventDefault(); }
+      if ((e.key === " " || e.key === "Enter") && (!G.started || G.over)) { reset(); e.preventDefault(); }
+    };
+    const ku = e => G.keys.delete(e.key.toLowerCase());
+    addEventListener("keydown", kd); addEventListener("keyup", ku);
+    wrap.addEventListener("pointerdown", e => {
+      if (!G.started || G.over) { reset(); return; }
+      const r = wrap.getBoundingClientRect(); G.dir = e.clientX - r.left < r.width / 2 ? -1 : 1; wrap.setPointerCapture(e.pointerId);
+    });
+    wrap.addEventListener("pointermove", e => { if (e.buttons) { const r = wrap.getBoundingClientRect(); G.dir = e.clientX - r.left < r.width / 2 ? -1 : 1; } });
+    const stop = () => { G.dir = 0; }; wrap.addEventListener("pointerup", stop); wrap.addEventListener("pointercancel", stop);
+    const view = () => {
+      if (!S.fx.gamescope) return { x: 0, y: 0, w: W, h: H };
+      const s = Math.min(W / 16, H / 9); return { x: (W - s * 16) / 2, y: (H - s * 9) / 2, w: s * 16, h: s * 9 };
+    };
+    const frame = now => {
+      raf = requestAnimationFrame(frame);
+      const dt = Math.min(.05, (now - (last || now)) / 1000); last = now;
+      if (dt > 0) { ft = ft * .9 + dt * 1000 * .1; fps = 1000 / ft; }
+      const v = view();
+      c.setTransform(dpr, 0, 0, dpr, 0, 0); c.fillStyle = "#000"; c.fillRect(0, 0, W, H);
+      c.save(); c.beginPath(); c.rect(v.x, v.y, v.w, v.h); c.clip(); c.translate(v.x, v.y);
+      const g = c.createLinearGradient(0, 0, 0, v.h); g.addColorStop(0, "#07061a"); g.addColorStop(1, "#231a55");
+      c.fillStyle = g; c.fillRect(0, 0, v.w, v.h);
+      G.t += dt;
+      bgStars.forEach(s => { c.globalAlpha = .6; c.fillStyle = "#fff"; c.fillRect(s[0] * v.w, ((s[1] * v.h + G.t * 20 * s[2]) % v.h), s[2], s[2]); });
+      c.globalAlpha = 1;
+      const shipY = v.h - 46, sz = Math.max(14, v.w * .022);
+      if (G.started && !G.over) {
+        const left = G.keys.has("arrowleft") || G.keys.has("a") || G.dir < 0, right = G.keys.has("arrowright") || G.keys.has("d") || G.dir > 0;
+        G.x = Math.max(.04, Math.min(.96, G.x + ((right ? 1 : 0) - (left ? 1 : 0)) * dt * .75));
+        const speed = 1 + G.t / 25 * (S.fx.gamemode ? 1 : 1.15);
+        G.spawn -= dt;
+        if (G.spawn <= 0) { G.spawn = Math.max(.25, .8 - G.t / 60); G.items.push({ x: Math.random() * .92 + .04, y: -20, star: Math.random() < .45, r: 8 + Math.random() * 10, s: (120 + Math.random() * 90) * speed }); }
+        G.items.forEach(it => { it.y += it.s * dt; });
+        G.items = G.items.filter(it => {
+          const dx = it.x * v.w - G.x * v.w, dy = it.y - shipY;
+          if (Math.hypot(dx, dy) < it.r + sz * .7) { if (it.star) G.score += 10; else { G.lives--; if (G.lives <= 0) { G.over = true; G.best = Math.max(G.best, G.score); } } return false; }
+          return it.y < v.h + 30;
+        });
+        G.score += dt * 2;
+      }
+      G.items.forEach(it => {
+        const x = it.x * v.w;
+        if (it.star) { c.fillStyle = "#ffcf6e"; c.beginPath(); for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? it.r * .45 : it.r; c.lineTo(x + Math.cos(a) * rr, it.y + Math.sin(a) * rr); } c.fill(); }
+        else { c.fillStyle = "#7c6a9e"; c.beginPath(); c.arc(x, it.y, it.r, 0, 7); c.fill(); c.fillStyle = "#5b4c78"; c.beginPath(); c.arc(x - it.r * .3, it.y - it.r * .2, it.r * .3, 0, 7); c.fill(); }
+      });
+      const sx = G.x * v.w;
+      c.fillStyle = "#ece6ff"; c.beginPath(); c.moveTo(sx, shipY - sz); c.lineTo(sx - sz * .8, shipY + sz * .7); c.lineTo(sx + sz * .8, shipY + sz * .7); c.fill();
+      if (G.started && !G.over) { c.fillStyle = "#a996ff"; c.beginPath(); c.moveTo(sx - sz * .35, shipY + sz * .7); c.lineTo(sx, shipY + sz * (1.2 + Math.random() * .4)); c.lineTo(sx + sz * .35, shipY + sz * .7); c.fill(); }
+      c.fillStyle = "#fff"; c.font = "600 16px 'Noto Sans', sans-serif"; c.textAlign = "right";
+      c.fillText(`Puntos ${Math.floor(G.score)}   ${"♥".repeat(Math.max(0, G.lives))}`, v.w - 14, 26);
+      c.textAlign = "center";
+      if (!G.started || G.over) {
+        c.fillStyle = "rgba(7,6,26,.7)"; c.fillRect(0, 0, v.w, v.h); c.fillStyle = "#fff";
+        c.font = "700 30px 'Noto Sans', sans-serif"; c.fillText(G.over ? "Fin del juego" : "Polvo Lunar", v.w / 2, v.h / 2 - 30);
+        c.font = "15px 'Noto Sans', sans-serif"; c.fillStyle = "#c8c2e8";
+        c.fillText(G.over ? `Puntos: ${Math.floor(G.score)} · Récord: ${Math.floor(G.best)}` : "Atrapa estrellas y esquiva meteoritos", v.w / 2, v.h / 2 + 2);
+        c.fillText(isPhone() || matchMedia("(pointer: coarse)").matches ? "Toca para jugar · toca los lados para moverte" : "Pulsa Espacio o haz clic para jugar · flechas para moverte", v.w / 2, v.h / 2 + 28);
+      }
+      c.restore();
+      if (S.fx.gamescope) { c.fillStyle = "#77739a"; c.font = "11px 'JetBrains Mono', monospace"; c.textAlign = "right"; c.fillText("gamescope · 1280×720 → escalado", W - 8, H - 8); }
+      if (S.fx.mangohud) {
+        c.textAlign = "left"; c.fillStyle = "rgba(0,0,0,.55)"; c.fillRect(v.x + 8, v.y + 8, 172, 92);
+        c.font = "12px 'JetBrains Mono', monospace";
+        const rows = [["GPU", "#6ee7a8", `${S.fx.gamemode ? 61 : 54}%  ${GPUS[S.gpu].short.split(" ")[0]}`], ["CPU", "#5fb3ff", `${S.fx.gamemode ? 23 : 31}%  4.9GHz`], ["FPS", "#ffcf6e", `${Math.round(fps)}`], ["ms", "#c8c2e8", ft.toFixed(1)], ["GM", "#ff7ab6", S.fx.gamemode ? "activo" : "inactivo"]];
+        rows.forEach(([k, col, val], i) => { c.fillStyle = col; c.fillText(k, v.x + 16, v.y + 26 + i * 16); c.fillStyle = "#fff"; c.fillText(val, v.x + 56, v.y + 26 + i * 16); });
+      }
+    };
+    raf = requestAnimationFrame(frame);
+    win.onClose = () => { cancelAnimationFrame(raf); ro.disconnect(); removeEventListener("keydown", kd); removeEventListener("keyup", ku); };
+    wrap.focus();
+  },
+};
+
+/* ================= App: Files ================= */
+APPS.files = {
+  title: "Archivos", icon: "files", w: 720, h: 460,
+  render(win) {
+    const FS = {
+      "Inicio": [["folder", "Descargas"], ["folder", "Documentos"], ["folder", "Escritorio"], ["folder", "Imágenes"], ["folder", "Juegos"], ["folder", "Música"], ["folder", "Vídeos"]],
+      "Escritorio": S.installed ? [] : [["install", "Instalar MoonOS.desktop"]],
+      "Descargas": [["file", "moonos-2026.11.27-x86_64.iso"], ["file", "moonos-2026.11.27-x86_64.iso.sha256"]],
+      "Documentos": [["file", "ideas-para-moonos.txt"], ["file", "lista-de-juegos.md"]],
+      "Imágenes": [["image", "fondo-moonos.png"], ["image", "captura-polvo-lunar.png"]],
+      "Juegos": [["folder", "Steam"], ["folder", "Lutris"], ["folder", "Proton-CachyOS"]],
+    };
+    let at = "Inicio";
+    const draw = () => {
+      const items = FS[at] || [];
+      win.body.innerHTML = `<div class="files"><nav class="places">${Object.keys(FS).map(k => `<button class="${k === at ? "sel" : ""}" data-p="${k}" type="button">${k}</button>`).join("")}</nav>
+        <div class="fgrid">${items.length ? items.map(([t, n]) => `<div class="fitem" data-open="${t === "folder" ? esc(n) : ""}">${icon(t)}<span>${esc(n)}</span></div>`).join("") : '<p class="muted" style="margin:0">Esta carpeta está vacía.</p>'}</div></div>`;
+      $$("[data-p]", win.body).forEach(b => b.addEventListener("click", () => { at = b.dataset.p; draw(); }));
+      $$("[data-open]", win.body).forEach(b => b.addEventListener("dblclick", () => { if (FS[b.dataset.open]) { at = b.dataset.open; draw(); } }));
+    };
+    draw();
+  },
+};
+
+/* ================= App: About ================= */
+APPS.about = {
+  title: "Acerca de MoonOS", icon: "about", w: 520, h: 520,
+  render(win) {
+    const u = S.user, g = GPUS[S.gpu];
+    win.body.innerHTML = `<div class="about">${moonSvg()}<div><h2 class="app-h">MoonOS</h2><span class="chip">${S.installed ? "Instalado" : "Sesión Live"} · rolling</span></div>
+      <table><tbody>
+      <tr><td>Base</td><td>Arch Linux + repositorios de CachyOS</td></tr>
+      <tr><td>Kernel</td><td>linux-cachyos 6.17</td></tr>
+      <tr><td>Escritorio</td><td>KDE Plasma 6 (Wayland)</td></tr>
+      <tr><td>Gráficos</td><td>${esc(g.name)} · ${S.driversDone ? "drivers configurados" : "pendiente de chwd"}</td></tr>
+      <tr><td>Usuario</td><td>${esc(u.name)} (${esc(u.login)}@${esc(u.host)})</td></tr>
+      <tr><td>Juegos</td><td>Steam, Lutris, Proton-CachyOS, GameMode, MangoHud, Gamescope</td></tr>
+      </tbody></table>
+      <p class="muted" style="margin:0;font-size:13px;max-width:44ch">Esta es una demo interactiva en el navegador. La ISO real se construye a partir de la carpeta <b>moonos/</b> del repositorio.</p></div>`;
+  },
+};
+
+/* ================= Start ================= */
+drawWallpaper();
+renderDesktop();
+boot(false);
+})();
+</script>
