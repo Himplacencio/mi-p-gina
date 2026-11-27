@@ -95,14 +95,28 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .btn-small { padding: 8px 16px; font-size: 0.9rem; }
 
 /* Hero */
-.hero { padding-block: 64px 40px; }
-.hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 48px; align-items: center; }
+.hero { position: relative; overflow: hidden; padding-block: 72px 0; isolation: isolate; }
+.hero-sky { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.hero-sky::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 70% at 70% 30%, rgba(124, 99, 255, 0.28), transparent 70%), linear-gradient(180deg, transparent 55%, rgba(58, 42, 122, 0.45) 100%); }
+.moon-glow { position: absolute; width: 760px; aspect-ratio: 1; right: -150px; top: -230px; border-radius: 50%; background: radial-gradient(circle, rgba(244, 236, 208, 0.22) 0%, rgba(169, 150, 255, 0.14) 35%, transparent 68%); }
+.big-moon { position: absolute; width: 460px; aspect-ratio: 1; right: 0; top: -120px; border-radius: 50%;
+  background: radial-gradient(circle at 36% 40%, #fffaf0 0%, #f4ecd0 45%, #d9ccff 100%);
+  -webkit-mask: radial-gradient(circle at 78% 26%, transparent 47%, #000 47.6%); mask: radial-gradient(circle at 78% 26%, transparent 47%, #000 47.6%);
+  animation: moonrise 1.8s cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes moonrise { from { transform: translateY(70px); opacity: .35; } }
+.shooting { position: absolute; top: 18%; left: 8%; width: 160px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff); transform: rotate(-18deg); opacity: 0; animation: shoot 11s 2.5s ease-out infinite; }
+@keyframes shoot { 0% { transform: translate(0, 0) rotate(-18deg); opacity: 0; } 2% { opacity: 1; } 9% { transform: translate(520px, 170px) rotate(-18deg); opacity: 0; } 100% { opacity: 0; transform: translate(520px, 170px) rotate(-18deg); } }
+.ridge { position: absolute; left: 0; bottom: 0; width: 100%; height: 190px; display: block; }
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: center; }
 .hero-copy { display: grid; gap: 22px; min-width: 0; }
-.hero h1 { font-size: var(--step-3); }
-.hero h1 em { font-style: normal; color: var(--moonlight); }
+.hero h1 { font-size: clamp(2.3rem, 1.2rem + 3.4vw, 3.9rem); line-height: 1.06; }
+.hero h1 em { font-style: normal; color: var(--moonlight); text-shadow: 0 0 40px rgba(244, 236, 208, 0.35); }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .hero-meta { font-family: var(--font-mono); font-size: 0.82rem; color: var(--ink-faint); }
-.screen { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 0 6px rgba(169, 150, 255, 0.06); aspect-ratio: 16 / 9; max-width: 100%; background: var(--sky-2); }
+.screen-stage { perspective: 1600px; }
+.screen { transform: rotateY(-9deg) rotateX(3deg); transform-origin: left center; transition: transform .6s ease; }
+.screen-stage:hover .screen { transform: none; }
+.screen { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 0 6px rgba(169, 150, 255, 0.08), 0 0 80px rgba(169, 150, 255, 0.25); aspect-ratio: 16 / 9; max-width: 100%; background: var(--sky-2); }
 .screen img { width: 100%; height: 100%; object-fit: cover; }
 .screen .panel { position: absolute; left: 0; right: 0; bottom: 0; height: 9%; background: rgba(18, 16, 40, 0.88); border-top: 1px solid rgba(169, 150, 255, 0.2); display: flex; align-items: center; gap: 2%; padding: 0 2%; }
 .screen .panel i { display: block; height: 58%; aspect-ratio: 1; border-radius: 22%; }
@@ -112,6 +126,15 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .screen .win pre { margin: 0; padding: 4% 5%; font-family: var(--font-mono); font-size: clamp(5px, 0.82vw, 10px); line-height: 1.45; color: var(--ink-soft); white-space: pre; overflow: hidden; }
 .screen .win pre b { color: var(--lavender); font-weight: 500; }
 .screen-caption { margin-top: 10px; font-size: 0.82rem; color: var(--ink-faint); font-family: var(--font-mono); }
+
+/* Numbers strip */
+.stats { list-style: none; margin: 56px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: var(--radius); background: rgba(20, 17, 52, 0.78); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); position: relative; z-index: 1; }
+.stats li { padding: 22px 24px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.stats li + li { border-left: 1px solid var(--line); }
+.stats b { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.4rem, 1rem + 1.4vw, 2rem); color: var(--moonlight); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stats span { color: var(--ink-soft); font-size: 0.92rem; }
+.hero-foot { padding-bottom: 120px; }
+.stack-row { padding-top: 8px; }
 
 /* Chips row */
 .stack { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -177,6 +200,12 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
 
 @media (max-width: 900px) {
   .hero .wrap, .dl { grid-template-columns: minmax(0, 1fr); }
+  .screen { transform: none; }
+  .big-moon { width: 280px; top: -110px; right: -90px; opacity: .3; }
+  .moon-glow { width: 520px; right: -170px; top: -200px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats li:nth-child(3) { border-left: 0; }
+  .stats li:nth-child(n+3) { border-top: 1px solid var(--line); }
   .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 620px) {
@@ -188,6 +217,8 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .big-moon, .shooting { animation: none; }
+  .screen { transition: none; }
   .btn { transition: none; }
 }
 </style>
@@ -209,18 +240,24 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
 
 <main>
   <section class="hero">
+    <div class="hero-sky" aria-hidden="true">
+      <div class="moon-glow"></div>
+      <div class="big-moon"></div>
+      <span class="shooting"></span>
+      <svg class="ridge" viewBox="0 0 1440 220" preserveAspectRatio="none"><path d="M0,220 L0,120 L48,129 L96,148 L144,170 L192,204 L240,210 L288,210 L336,174 L384,172 L432,205 L480,210 L528,210 L576,181 L624,178 L672,159 L720,162 L768,168 L816,131 L864,109 L912,93 L960,124 L1008,144 L1056,119 L1104,141 L1152,114 L1200,123 L1248,94 L1296,56 L1344,85 L1392,63 L1440,41 L1440,220 Z" fill="#1c1647"/><path d="M0,220 L0,170 L60,189 L120,178 L180,202 L240,204 L300,210 L360,195 L420,210 L480,210 L540,210 L600,210 L660,200 L720,192 L780,175 L840,157 L900,134 L960,124 L1020,129 L1080,103 L1140,112 L1200,104 L1260,94 L1320,111 L1380,110 L1440,100 L1440,220 Z" fill="#0c0a22"/></svg>
+    </div>
     <div class="wrap">
       <div class="hero-copy">
         <span class="eyebrow">Linux para jugar · basado en Arch y CachyOS</span>
         <h1>Tu PC, a pleno rendimiento <em>cuando juegas</em></h1>
-        <p class="lead">MoonOS trae el kernel optimizado de CachyOS, un escritorio KDE Plasma completo y un modo juego que pone la CPU y la GPU al máximo en cuanto abres un juego. Los drivers de tu tarjeta gráfica se instalan solos.</p>
+        <p class="lead">MoonOS trae el kernel optimizado de CachyOS, un escritorio KDE Plasma ligero y un modo juego que pone la CPU y la GPU al máximo en cuanto abres un juego. Los drivers de tu tarjeta gráfica se instalan solos.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#descargar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Descargar MoonOS</a>
           <a class="btn btn-ghost" href="demo/">Probar la demo en el navegador</a>
         </div>
         <p class="hero-meta" id="hero-meta">Gratis · 64 bits (x86_64) · Imagen ISO para USB</p>
       </div>
-      <div>
+      <div class="screen-stage">
         <div class="screen" id="screen">
           <img src="web/wallpaper.jpg" alt="Escritorio de MoonOS con KDE Plasma: cielo nocturno con una luna creciente sobre montañas" width="1280" height="720">
           <div class="win"><div class="bar"></div><pre><b>liveuser@moonos</b> ~ $ fastfetch
@@ -236,9 +273,19 @@ gamemode is active</pre></div>
         <p class="screen-caption" id="screen-caption">Ilustración del escritorio de MoonOS</p>
       </div>
     </div>
+    <div class="hero-foot">
+      <div class="wrap" style="display:block">
+        <ul class="stats" aria-label="MoonOS en cifras">
+          <li><b>&lt; 1,5 GB</b><span>de RAM con el escritorio abierto</span></li>
+          <li><b>&lt; 4 GB</b><span>pesa la descarga</span></li>
+          <li><b>0</b><span>drivers que instalar a mano</span></li>
+          <li><b>Auto</b><span>modo juego al abrir cualquier juego</span></li>
+        </ul>
+      </div>
+    </div>
   </section>
 
-  <div class="wrap">
+  <div class="wrap stack-row">
     <div class="stack" aria-label="Incluye">
       <span>linux-cachyos</span><span>KDE Plasma 6</span><span>Steam</span><span>Lutris</span><span>GameMode</span><span>MangoHud</span><span>Gamescope</span><span>chwd</span><span>Btrfs + zstd</span><span>Flatpak</span><span>&lt; 1,5 GB de RAM</span>
     </div>
