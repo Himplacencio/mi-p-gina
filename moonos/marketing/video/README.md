@@ -23,3 +23,11 @@ grabaciones reales y cierre «BETA · LLEGA EN 2027». Todo se dibuja en `cine.h
    en la lista `SECCIONES` de `cine.html`.
 2. `node montar-cine.js cuadros ../moonos-cine.mp4` dibuja los 1515 cuadros y arma el video (sin audio:
    en TikTok se le pone un sonido).
+
+## Video 5: la historia (`moonos-historia.mp4`, 16:9, con voz)
+
+Mismo `cine.html`, con la parte «TENGO 13 AÑOS…» al inicio y la voz `voz-historia.mp3`.
+Cuadros de 9 s por sección (CINE_MAXF=270) y tiempos cuadrados con las pausas de la voz:
+
+    CINE_MAXF=270 CINE_TIEMPOS='{"hist":[1.7,6.9,1.4],"intro":3.6,"secs":[2.3,4.8,3.5,4.2,4.3,4.8,3.4,5.6,5.7],"outro":6.9}' \
+      node montar-cine.js cuadros ../moonos-historia.mp4 voz-historia.mp3

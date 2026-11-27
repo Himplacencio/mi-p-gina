@@ -175,10 +175,11 @@ function vineta() {
 }
 function marca(alpha) { texto('IMÁGENES REALES  ·  MOONOS BETA', 300, 1040, 19, 5, .5 * alpha, 400, '#e9e3ff'); }
 
-async function seccion(k, u, alpha = 1) {
-  const im = await cargar(cuadro(k, u));
+async function seccion(k, u0, alpha = 1) {
+  const im = await cargar(cuadro(k, u0));
+  const f = clamp(DUR[k] / 4.5, .55, 1), u = u0 / f;     // en secciones cortas el título dura menos
   const claro = smooth(.75, 1.55, u);
-  dibujaGrab(im, k, u, 20 * (1 - claro), .62 * (1 - claro), alpha);
+  dibujaGrab(im, k, u0, 20 * (1 - claro), .62 * (1 - claro), alpha);
   if (alpha < 1) return;
   vineta();
   const [tit, sub] = SECCIONES[k];
@@ -226,7 +227,8 @@ async function render(i) {
   t -= HIST;
   x.save(); x.clearRect(0, 0, W, H); x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
   if (t < INTRO) {
-    // ---- intro ----
+    // ---- intro (se acelera si dura menos de 5 s) ----
+    t = t * 5.0 / INTRO;
     const zoom = 1 + Math.pow(smooth(4.2, 5.0, t), 2) * 5;
     x.save(); x.translate(C[0], C[1]); x.scale(zoom, zoom); x.translate(-C[0], -C[1]);
     fondo();
@@ -255,8 +257,8 @@ async function render(i) {
     const cab = trazo(p); if (p < .999) punta(cab);
     texto('MOONOS', C[0], C[1] + R + 85, 60, lerp(40, 26, smooth(1.2, 2.6, v)), smooth(1.2, 2.0, v), 200);
     texto('«BETA»   ·   LLEGA EN 2027', C[0], C[1] + R + 150, 26, 9, smooth(2.0, 2.7, v) * .9, 300, '#c3bcff');
-    texto('síguenos para verlo nacer', C[0], C[1] + R + 200, 26, 4, smooth(2.6, 3.3, v) * .7, 300, '#d9d6ff');
-    x.fillStyle = `rgba(0,0,0,${smooth(4.4, 5.0, v)})`; x.fillRect(0, 0, W, H);
+    texto('síguenos para verlo nacer', C[0], C[1] + R + 200, 26, 4, smooth(OUTRO - 2.0, OUTRO - 1.4, v) * .7, 300, '#d9d6ff');
+    x.fillStyle = `rgba(0,0,0,${smooth(OUTRO - .5, OUTRO, v)})`; x.fillRect(0, 0, W, H);
   }
   x.restore();
 }
