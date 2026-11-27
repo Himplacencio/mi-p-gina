@@ -7,6 +7,10 @@ on:
       - 'moonos/**'
       - '!moonos/demo/**'
       - '!moonos/test-results/**'
+      - '!moonos/index.html'
+      - '!moonos/web/**'
+      - '!moonos/marketing/**'
+      - '!moonos/README.md'
       - '.github/workflows/moonos-iso.yml'
       - '.github/scripts/moonos-vm-test.py'
 
@@ -52,7 +56,7 @@ jobs:
           echo "bytes=$BYTES" >> "$GITHUB_OUTPUT"
           if [ "$BYTES" -le 4294967296 ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; R="✅ dentro del límite"; else echo "ok=false" >> "$GITHUB_OUTPUT"; R="❌ supera los 4 GB"; fi
           echo "### Tamaño de la ISO: $GB GB ($R)" | tee -a "$GITHUB_STEP_SUMMARY"
-          echo "$GB GB ($R)" > /mnt/moonos/size.txt
+          echo "$GB GB ($R)" > /tmp/moonos-size.txt
 
       - name: Subir la ISO
         uses: actions/upload-artifact@v4
@@ -104,7 +108,7 @@ jobs:
           echo "ram_used=${RAM:-?}" >> "$GITHUB_OUTPUT"
           if echo "$RES" | grep -q '/usr/bin/plasmashell'; then echo "desktop=true" >> "$GITHUB_OUTPUT"; D="✅ el escritorio Plasma arrancó"; else echo "desktop=false" >> "$GITHUB_OUTPUT"; D="❌ el escritorio no arrancó"; fi
           { echo "### Prueba en máquina virtual"; echo "- $D"; echo "- RAM usada con el escritorio abierto: ${RAM:-?} MiB (objetivo: ≤ 1536 MiB)"; } | tee -a "$GITHUB_STEP_SUMMARY"
-          { echo "Tamaño de la ISO: $(cat /mnt/moonos/size.txt)"; echo "$D"; echo "RAM usada: ${RAM:-?} MiB (objetivo ≤ 1536 MiB)"; } > /tmp/vm/resumen.txt
+          { echo "Tamaño de la ISO: $(cat /tmp/moonos-size.txt)"; echo "$D"; echo "RAM usada: ${RAM:-?} MiB (objetivo ≤ 1536 MiB)"; } > /tmp/vm/resumen.txt
 
       - name: Guardar los resultados de la prueba en el repositorio
         if: always()
