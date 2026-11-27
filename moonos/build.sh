@@ -35,18 +35,13 @@ pacman-key --lsign-key "$CACHYOS_KEY"
 
 msg "Preparando el perfil (base: releng de archiso + MoonOS)"
 rm -rf "$WORK"
-mkdir -p "$PROFILE/airootfs/etc/mkinitcpio.conf.d" "$PROFILE/airootfs/etc/mkinitcpio.d" "$OUT"
+mkdir -p "$PROFILE" "$OUT"
 
 # Menús de arranque oficiales de archiso
 for d in efiboot syslinux grub; do
     if [[ -d "$RELENG/$d" ]]; then cp -a "$RELENG/$d" "$PROFILE/"; fi
 done
-# Configuración de initramfs del modo Live, adaptada al kernel de CachyOS
-cp "$RELENG/airootfs/etc/mkinitcpio.conf.d/archiso.conf" "$PROFILE/airootfs/etc/mkinitcpio.conf.d/"
-sed -e 's#vmlinuz-linux#vmlinuz-linux-cachyos#g' \
-    -e 's#initramfs-linux#initramfs-linux-cachyos#g' \
-    "$RELENG/airootfs/etc/mkinitcpio.d/linux.preset" \
-    > "$PROFILE/airootfs/etc/mkinitcpio.d/linux-cachyos.preset"
+echo "Contenido de releng:"; find "$RELENG" -maxdepth 3 | sed "s|$RELENG|  releng|" | sort
 
 # Archivos propios de MoonOS encima
 cp -a "$HERE/profile/." "$PROFILE/"
