@@ -28,27 +28,45 @@ const smooth = (a, b, t) => { const u = clamp((t - a) / (b - a)); return u * u *
 const easeIO = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
 const lerp = (a, b, u) => a + (b - a) * u;
 
-// ---------- trazo de neón: entra ondulando, da vuelta y media a la órbita y sale ----------
-const C = [960, 500], R = 232;
+// ---------- trazo de neón: entra ondulando, dibuja el contorno de una media luna y sale ----------
+const C = [960, 450], R = 230;
+// Media luna = círculo de afuera menos un círculo corrido hacia arriba a la derecha
+const IC = [C[0] + R * .46, C[1] - R * .36], IR = R * .88;
+function puntaAng() {                                   // ángulos (círculo de afuera) de las dos puntas
+  const f = th => Math.hypot(C[0] + R * Math.cos(th) - IC[0], C[1] + R * Math.sin(th) - IC[1]) - IR;
+  const raices = []; let prev = f(0);
+  for (let i = 1; i <= 3600; i++) { const th = i / 3600 * Math.PI * 2, v = f(th); if (Math.sign(v) !== Math.sign(prev)) raices.push(th); prev = v; }
+  return raices;                                        // [punta de abajo, punta de arriba]
+}
+const [TB, TT] = puntaAng();
+function arcoFuera(pts, a, b, n) { for (let i = 1; i <= n; i++) { const th = lerp(a, b, i / n); pts.push([C[0] + R * Math.cos(th), C[1] + R * Math.sin(th)]); } }
+function angIn(p) { return Math.atan2(p[1] - IC[1], p[0] - IC[0]); }
 function orbitaPts() {
   const pts = [];
-  for (let i = 0; i <= 120; i++) {                       // entrada desde abajo a la izquierda
+  for (let i = 0; i <= 120; i++) {                       // entrada desde abajo a la izquierda hasta el borde izquierdo
     const u = i / 120, px = lerp(-90, C[0] - R, u);
-    const py = lerp(1010, C[1] + 6, Math.pow(u, .9)) + Math.sin(u * Math.PI * 2.2) * 38 * (1 - u);
+    const py = lerp(1010, C[1], Math.pow(u, .9)) + Math.sin(u * Math.PI * 2.2) * 38 * (1 - u);
     pts.push([px, py]);
   }
-  for (let i = 1; i <= 420; i++) {                      // órbita (1,5 vueltas) un poco irregular
-    const th = Math.PI + (i / 420) * Math.PI * 3;
-    const r = R * (1 + .035 * Math.sin(3 * th + .6) + .022 * Math.sin(5 * th + 1.3));
-    pts.push([C[0] + r * Math.cos(th), C[1] + r * Math.sin(th)]);
-  }
-  const s = pts[pts.length - 1];
-  for (let i = 1; i <= 120; i++) {                      // salida hacia arriba a la derecha
-    const u = i / 120, px = lerp(s[0], 2010, u);
-    const py = lerp(s[1], 70, Math.pow(u, 1.1)) + Math.sin(u * Math.PI * 2.4) * 34 * u;
+  arcoFuera(pts, Math.PI, TT, 140);                       // por arriba hasta la punta de arriba
+  const pT = pts[pts.length - 1], pB = [C[0] + R * Math.cos(TB), C[1] + R * Math.sin(TB)];
+  let a0 = angIn(pT), a1 = angIn(pB);                     // borde de adentro (cóncavo) por el lado izquierdo del círculo interior
+  if (a1 > a0) a1 -= Math.PI * 2;                       // en contra del reloj: el lado que queda dentro de la luna
+  for (let i = 1; i <= 140; i++) { const th = lerp(a0, a1, i / 140); pts.push([IC[0] + IR * Math.cos(th), IC[1] + IR * Math.sin(th)]); }
+  arcoFuera(pts, TB, Math.PI, 120);                       // por abajo de vuelta al borde izquierdo
+  arcoFuera(pts, Math.PI, TT, 140);                       // segunda pasada por arriba (brilla más)
+  const s0 = pts[pts.length - 1];
+  for (let i = 1; i <= 120; i++) {                       // salida desde la punta hacia arriba a la derecha
+    const u = i / 120, px = lerp(s0[0], 2010, u);
+    const py = lerp(s0[1], 60, Math.pow(u, 1.1)) + Math.sin(u * Math.PI * 2.4) * 30 * u;
     pts.push([px, py]);
   }
   return pts;
+}
+function lunaPath() {                                   // contorno cerrado de la media luna (para rellenarla)
+  x.beginPath(); x.arc(C[0], C[1], R, TB, TT, false);
+  const pT = [C[0] + R * Math.cos(TT), C[1] + R * Math.sin(TT)], pB = [C[0] + R * Math.cos(TB), C[1] + R * Math.sin(TB)];
+  x.arc(IC[0], IC[1], IR, angIn(pT), angIn(pB), true); x.closePath();
 }
 function barridoPts(seed) {                              // línea que cruza la pantalla en las transiciones
   const pts = [];
@@ -60,6 +78,14 @@ function barridoPts(seed) {                              // línea que cruza la 
 }
 function largos(pts) { const L = [0]; for (let i = 1; i < pts.length; i++) L.push(L[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return L; }
 const ORB = orbitaPts(), ORB_L = largos(ORB);
+const F_INI = ORB_L[120] / ORB_L[ORB_L.length - 1], F_FIN = ORB_L[ORB.length - 121] / ORB_L[ORB_L.length - 1];
+function trazo(p) {                                      // la luna queda dibujada; solo la línea de entrada se apaga
+  let cab = neon(ORB, ORB_L, Math.max(0, p - .4), Math.min(p, F_INI + .002));
+  if (p > F_INI) cab = neon(ORB, ORB_L, F_INI, Math.min(p, F_FIN)) || cab;
+  if (p > F_FIN) cab = neon(ORB, ORB_L, Math.max(F_FIN, p - .2), p) || cab;
+  return cab;
+}
+
 const BARR = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => { const p = barridoPts(k * 1.7); return [p, largos(p)]; });
 
 function neon(pts, L, desde, hasta, alpha = 1) {        // dibuja el tramo [desde, hasta] (0..1 del largo)
@@ -68,11 +94,11 @@ function neon(pts, L, desde, hasta, alpha = 1) {        // dibuja el tramo [desd
   for (let i = 0; i < pts.length; i++) if (L[i] >= a && L[i] <= b) sel.push(pts[i]);
   if (sel.length < 2) return null;
   const g = x.createLinearGradient(0, 1080, 1920, 0);
-  g.addColorStop(0, '#ff8ad8'); g.addColorStop(.5, '#e07bff'); g.addColorStop(1, '#9d7bff');
+  g.addColorStop(0, '#6f86ff'); g.addColorStop(.5, '#8f7bff'); g.addColorStop(1, '#b3a0ff');
   x.save(); x.globalCompositeOperation = 'lighter'; x.lineCap = 'round'; x.lineJoin = 'round';
   for (const [w, al, bl] of [[18, .10, 40], [8, .28, 16], [3, .9, 4]]) {
     x.beginPath(); x.moveTo(sel[0][0], sel[0][1]); for (const p of sel) x.lineTo(p[0], p[1]);
-    x.strokeStyle = g; x.globalAlpha = al * alpha; x.lineWidth = w; x.shadowColor = '#ff8ad8'; x.shadowBlur = bl; x.stroke();
+    x.strokeStyle = g; x.globalAlpha = al * alpha; x.lineWidth = w; x.shadowColor = '#7d78ff'; x.shadowBlur = bl; x.stroke();
   }
   x.restore();
   return sel[sel.length - 1];
@@ -81,18 +107,19 @@ function punta(p, alpha = 1) {
   if (!p) return;
   x.save(); x.globalCompositeOperation = 'lighter'; x.globalAlpha = alpha;
   const g = x.createRadialGradient(p[0], p[1], 0, p[0], p[1], 34);
-  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,200,240,.8)'); g.addColorStop(1, 'rgba(255,120,220,0)');
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(200,195,255,.8)'); g.addColorStop(1, 'rgba(120,120,255,0)');
   x.fillStyle = g; x.beginPath(); x.arc(p[0], p[1], 34, 0, 7); x.fill(); x.restore();
 }
 function fondo() {
   const g = x.createRadialGradient(C[0], C[1], 60, C[0], C[1], 1150);
-  g.addColorStop(0, '#2b1743'); g.addColorStop(.45, '#1a0d29'); g.addColorStop(1, '#06030a');
+  g.addColorStop(0, '#221d58'); g.addColorStop(.45, '#140f36'); g.addColorStop(1, '#05040e');
   x.fillStyle = g; x.fillRect(0, 0, W, H);
 }
-function nucleo(alpha) {
-  const g = x.createRadialGradient(C[0], C[1], 0, C[0], C[1], R * 1.05);
-  g.addColorStop(0, 'rgba(4,2,8,.95)'); g.addColorStop(.75, 'rgba(8,4,14,.85)'); g.addColorStop(1, 'rgba(8,4,14,0)');
-  x.save(); x.globalAlpha = alpha; x.fillStyle = g; x.beginPath(); x.arc(C[0], C[1], R * 1.05, 0, 7); x.fill(); x.restore();
+function nucleo(alpha) {                                // relleno suave de la media luna
+  if (alpha <= 0) return;
+  const g = x.createRadialGradient(C[0] - R * .35, C[1] + R * .2, 10, C[0], C[1], R * 1.1);
+  g.addColorStop(0, 'rgba(200,190,255,.30)'); g.addColorStop(1, 'rgba(110,120,255,.06)');
+  x.save(); x.globalAlpha = alpha; x.fillStyle = g; x.shadowColor = '#7d78ff'; x.shadowBlur = 60; lunaPath(); x.fill(); x.restore();
 }
 const luna = document.createElement('canvas'); luna.width = luna.height = 260;
 (() => { const l = luna.getContext('2d'); l.fillStyle = '#efeaff'; l.beginPath(); l.arc(130, 130, 74, 0, 7); l.fill();
@@ -105,7 +132,7 @@ function texto(t, px, py, size, track, alpha, weight = 200, color = '#f4f0ff') {
   if (alpha <= 0) return;
   x.save(); x.globalAlpha = alpha; x.font = `${weight} ${size}px "Inter", "Inter Display", sans-serif`;
   x.letterSpacing = track + 'px'; x.textAlign = 'center'; x.textBaseline = 'middle';
-  x.shadowColor = 'rgba(200,170,255,.55)'; x.shadowBlur = 18; x.fillStyle = color;
+  x.shadowColor = 'rgba(150,150,255,.55)'; x.shadowBlur = 18; x.fillStyle = color;
   x.fillText(t, px + track / 2, py); x.restore();
 }
 
@@ -154,8 +181,8 @@ async function seccion(k, u, alpha = 1) {
   const lw = 520 * smooth(.15, .7, u);                    // rayita de neón bajo el título
   if (a > 0 && lw > 2) { x.save(); x.globalAlpha = a; x.globalCompositeOperation = 'lighter';
     const g = x.createLinearGradient(W / 2 - lw / 2, 0, W / 2 + lw / 2, 0);
-    g.addColorStop(0, 'rgba(255,138,216,0)'); g.addColorStop(.5, 'rgba(224,123,255,1)'); g.addColorStop(1, 'rgba(157,123,255,0)');
-    x.fillStyle = g; x.shadowColor = '#e07bff'; x.shadowBlur = 16; x.fillRect(W / 2 - lw / 2, H / 2 + 48, lw, 2.5); x.restore(); }
+    g.addColorStop(0, 'rgba(111,134,255,0)'); g.addColorStop(.5, 'rgba(169,150,255,1)'); g.addColorStop(1, 'rgba(111,134,255,0)');
+    x.fillStyle = g; x.shadowColor = '#8f7bff'; x.shadowBlur = 16; x.fillRect(W / 2 - lw / 2, H / 2 + 48, lw, 2.5); x.restore(); }
   texto(sub, W / 2, H / 2 + 100, 34, 3, a * .9, 300, '#e6ddff');
   marca(smooth(1.2, 1.8, u));
 }
@@ -170,11 +197,10 @@ async function render(i) {
     fondo();
     nucleo(smooth(1.2, 2.6, t));
     const p = easeIO(clamp((t - .25) / 3.1));
-    const cab = neon(ORB, ORB_L, Math.max(0, p - .62), p);
+    const cab = trazo(p);
     if (p < .999) punta(cab);
-    creciente(smooth(2.4, 3.3, t), C[1] - 50);
-    texto('MOONOS', C[0], C[1] + 78, 46, lerp(30, 16, smooth(2.6, 4.2, t)), smooth(2.7, 3.5, t), 200);
-    texto('LINUX PARA JUGAR', C[0], C[1] + R + 110, 24, 10, smooth(3.3, 3.9, t) * .75, 300, '#e6ddff');
+    texto('MOONOS', C[0], C[1] + R + 85, 60, lerp(44, 26, smooth(2.6, 4.2, t)), smooth(2.7, 3.5, t), 200);
+    texto('LINUX PARA JUGAR', C[0], C[1] + R + 150, 24, 10, smooth(3.3, 3.9, t) * .75, 300, '#d9d6ff');
     x.restore();
     x.fillStyle = `rgba(0,0,0,${(1 - smooth(0, .5, t)) + smooth(4.55, 5.0, t)})`; x.fillRect(0, 0, W, H);
   } else if (t < INTRO + SECCIONES.length * SEC) {
@@ -191,11 +217,10 @@ async function render(i) {
     const v = t - INTRO - SECCIONES.length * SEC;
     fondo(); nucleo(smooth(.3, 1.3, v));
     const p = easeIO(clamp(v / 1.8));
-    const cab = neon(ORB, ORB_L, Math.max(0, p - .62), p); if (p < .999) punta(cab);
-    creciente(smooth(1.0, 1.8, v), C[1] - 50);
-    texto('MOONOS', C[0], C[1] + 78, 46, lerp(28, 16, smooth(1.2, 2.6, v)), smooth(1.2, 2.0, v), 200);
-    texto('«BETA»   ·   LLEGA EN 2027', C[0], C[1] + R + 105, 26, 9, smooth(2.0, 2.7, v) * .9, 300, '#f1c6ff');
-    texto('síguenos para verlo nacer', C[0], C[1] + R + 160, 26, 4, smooth(2.6, 3.3, v) * .7, 300, '#e6ddff');
+    const cab = trazo(p); if (p < .999) punta(cab);
+    texto('MOONOS', C[0], C[1] + R + 85, 60, lerp(40, 26, smooth(1.2, 2.6, v)), smooth(1.2, 2.0, v), 200);
+    texto('«BETA»   ·   LLEGA EN 2027', C[0], C[1] + R + 150, 26, 9, smooth(2.0, 2.7, v) * .9, 300, '#c3bcff');
+    texto('síguenos para verlo nacer', C[0], C[1] + R + 200, 26, 4, smooth(2.6, 3.3, v) * .7, 300, '#d9d6ff');
     x.fillStyle = `rgba(0,0,0,${smooth(4.4, 5.0, v)})`; x.fillRect(0, 0, W, H);
   }
   x.restore();
