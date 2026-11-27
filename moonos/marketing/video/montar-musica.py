@@ -17,10 +17,10 @@ TMP = tempfile.mkdtemp(prefix='musica-')
 
 # Planos: (inicio, fin, recorte x, y, ancho, alto) sobre la grabación de 1920x1080
 SHOTS = [
-    (0.0, 4.0, 0, 0, 1500, 820),         # escritorio completo (barra, widgets, luna animada)
+    (0.0, 4.0, 0, 0, 1920, 1080),         # escritorio completo (barra, widgets, luna animada)
     (4.0, 11.0, 1380, 0, 420, 40),       # zoom: la música en la barra de arriba (⏭ a los 8 s)
     (11.0, 19.5, 120, 520, 610, 225),    # zoom: tarjeta de música de vidrio (pausa y play)
-    (19.5, 26.0, 0, 0, 1500, 820),       # escritorio completo (⏮ a los 21 s)
+    (19.5, 26.0, 0, 0, 1920, 1080),       # escritorio completo (⏮ a los 21 s)
 ]
 HIGHLIGHT = {}
 CAPTIONS = [
@@ -57,7 +57,7 @@ run('node', '-e', node, f'{TMP}/jobs.json')
 parts = []
 for i, (a, z, x, y, w, h) in enumerate(SHOTS):
     fh = round(W * h / w / 2) * 2
-    vy = VY + max(0, (600 - fh) // 2)
+    vy = VY + max(0, (608 - fh) // 2)
     hl = ''
     if i in HIGHLIGHT:
         hx, hy, hw, hh = HIGHLIGHT[i]
