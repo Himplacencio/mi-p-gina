@@ -25,6 +25,7 @@ A = os.path.join(REAL, 'arranque-real.mp4')
 R = os.path.join(REAL, 'recorrido.mp4')
 T = os.path.join(REAL, 'terminal.mp4')
 TA = os.path.join(REAL, 'terminal-antes.mp4')
+BI = os.path.join(WEB, 'bienvenida-inicio.png')  # captura real de la prueba automática
 
 # Tiempos de la grabación «recorrido» (segundos desde que empieza a grabar)
 RT = json.load(open(os.path.join(HERE, 'recorrido-tiempos.json')))
@@ -34,12 +35,12 @@ Z = RT['zonas']
 SHOTS = [
     (0.00, 4.10, TA, RT['ta_fastfetch'], Z['ta_logo'], 1.00, 1.15),        # el logo de CachyOS de antes
     (4.10, 7.05, TA, RT['ta_fastfetch'] + 1, Z['ta_todo'], 1.15, 1.00),
-    (7.05, 13.40, TA, RT['ta_fastfetch'] + 2, Z['ta_kernel'], 1.00, 1.15), # Kernel: linux-cachyos
+    (7.05, 13.40, TA, RT['ta_fastfetch'] + 2, Z['ta_kernel'], 1.00, 1.25), # Kernel: linux-cachyos
     (13.40, 16.50, T, RT['t_fastfetch'], Z['t_logo'], 1.20, 1.00),         # la luna de MoonOS
     (16.50, 21.50, R, RT['splash'], Z['splash'], 1.00, 1.12),              # pantalla de carga
-    (21.50, 23.85, R, RT['bienvenida'] + 0.5, Z['ventana'], 1.10, 1.00),
-    (23.85, 26.30, R, RT['bienvenida'] + 3.0, Z['instalar'], 1.00, 1.10),
-    (26.30, 28.95, R, RT['bienvenida'] + 5.5, Z['equipo'], 1.00, 1.10),
+    (21.50, 23.85, BI, 0, Z['b_ventana'], 1.10, 1.00),
+    (23.85, 26.30, BI, 0, Z['b_instalar'], 1.00, 1.10),
+    (26.30, 28.95, BI, 0, Z['b_equipo'], 1.00, 1.10),
     (28.95, 35.05, R, RT['tuyo'] + 0.5, Z['ventana'], 1.00, 1.10),
     (35.05, 40.00, R, RT['tienda'] + 1.0, Z['tienda'], 1.00, 1.08),
     (40.00, 44.30, R, RT['comandos'] + 0.5, Z['tienda'], 1.08, 1.00),
@@ -50,21 +51,21 @@ SHOTS = [
     (57.55, 63.79, R, RT['menu'] - 2.5, Z['completo'], 1.12, 1.00),
 ]
 CAPTIONS = [
-    (0.00, 4.10, 'me dijeron que moonos es solo<br>cachyos con otro nombre 🤨'),
+    (0.00, 4.10, '«moonos es solo cachyos<br>con otro nombre» 🤨'),
     (4.10, 7.05, 'así que les muestro<br>cómo va por dentro 👀'),
     (7.05, 10.70, 'sí, está basado en cachyos<br>y no lo escondo'),
     (10.70, 13.40, 'es de lo más rápido<br>que hay en linux ⚡'),
     (13.40, 16.50, 'pero todo lo que van a ver<br>ahora lo hice yo'),
-    (16.50, 21.50, 'al prenderlo ya no sale el logo<br>de nadie: sale la luna 🌙'),
+    (16.50, 21.50, 'al prenderlo ya no sale<br>otro logo: sale la luna 🌙'),
     (21.50, 23.85, 'te recibe una bienvenida<br>en español 👋'),
-    (23.85, 28.95, 'lo instalas con un botón<br>y ve qué tarjeta gráfica tienes'),
+    (23.85, 28.95, 'se instala con un botón y<br>ve tu tarjeta gráfica 🖥️'),
     (28.95, 35.05, '«hazlo tuyo»: colores, fondo<br>y estilo, sin cosas raras 🎨'),
     (35.05, 40.00, 'la tienda: spotify, discord,<br>steam… a un clic 🛍️'),
     (40.00, 44.30, 'y te explica los comandos<br>de la terminal con ejemplos 💻'),
     (44.30, 49.05, 'arriba tu música: la canción,<br>cuánto falta y los controles 🎵'),
     (49.05, 50.70, 'abajo, tus apps'),
     (50.70, 53.35, 'y de fondo una luna<br>que se mueve ✨'),
-    (53.35, 57.55, 'todo esto usando apenas<br>1 giga de ram 🪶'),
+    (53.35, 57.55, 'todo esto usando poco más<br>de 1 giga de ram 🪶'),
     (57.55, 60.55, 'todavía falta, pero<br>cada semana avanza 🚀'),
     (60.55, 63.79, '¿qué le agregarían ustedes?<br>los leo en comentarios 👇'),
 ]
@@ -84,7 +85,7 @@ def run(*a):
 
 html = '''<html><head><meta charset="utf-8"><style>
 html,body{margin:0;background:transparent}
-div{width:1000px;padding:10px 40px;font-family:"Noto Sans","DejaVu Sans",sans-serif;font-weight:800;font-size:60px;line-height:1.2;
+div{width:1000px;padding:10px 40px;font-family:"Noto Sans","DejaVu Sans",sans-serif;font-weight:800;font-size:56px;line-height:1.2;
  color:#fff;text-align:center;-webkit-text-stroke:10px #000;paint-order:stroke fill;letter-spacing:-.5px}
 div.nota{font-size:28px;font-weight:700;-webkit-text-stroke:6px #000;color:#e6e1ff}
 </style></head><body><div id="t" class="CLS">TEXT</div></body></html>'''
