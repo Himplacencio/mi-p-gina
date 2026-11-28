@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Name=Luna
+GenericName=Asistente de voz
+Comment=Háblale o escríbele: abre apps, controla la música y ejecuta comandos por ti (sin internet)
+Exec=/usr/local/bin/moonos-luna
+Icon=/usr/share/pixmaps/moonos-luna.png
+Terminal=false
+Categories=Utility;Accessibility;
+Keywords=asistente;voz;jarvis;luna;comandos;
+Actions=escribir;ajustes;
+X-KDE-Shortcuts=Meta+J
+
+[Desktop Action escribir]
+Name=Escribirle a Luna
+Exec=/usr/local/bin/moonos-luna --escribir
+
+[Desktop Action ajustes]
+Name=Configurar a Luna
+Exec=/usr/local/bin/moonos-luna --ajustes

@@ -370,10 +370,10 @@ def comando_voz(texto, conf, archivo=None):
     texto = para_decir(texto)
     clave = conf.get("voz") if conf.get("voz") in VOCES else "daniela"
     f = VOCES_DIR / f"{VOCES[clave][0]}.onnx"
-    if PIPER.exists() and not f.exists() and voces_disponibles():
+    if os.access(PIPER, os.X_OK) and not f.exists() and voces_disponibles():
         f = VOCES_DIR / f"{VOCES[voces_disponibles()[0]][0]}.onnx"
     vel = max(0.6, min(float(conf.get("velocidad", 1.0)), 1.6))
-    if PIPER.exists() and f.exists():
+    if os.access(PIPER, os.X_OK) and f.exists():
         piper = [str(PIPER), "--model", str(f), "--length_scale", f"{1 / vel:.2f}", "--quiet"]
         if archivo:
             return [piper + ["--output_file", archivo]], texto
@@ -470,8 +470,13 @@ if len(sys.argv) > 3 and sys.argv[1] == "--decir-archivo":
     _c = leer_conf()
     if _c.get("voz") == "ninguna":
         _c["voz"] = "daniela"
-    p = hablar(" ".join(sys.argv[3:]), _c, archivo=sys.argv[2], esperar=True)
-    ok = p is not None and Path(sys.argv[2]).exists() and Path(sys.argv[2]).stat().st_size > 1000
+    cv = comando_voz(" ".join(sys.argv[3:]), _c, sys.argv[2])
+    print("voz:", " ".join(cv[0][0][:1]) if cv else "ninguna")
+    if cv:
+        r = subprocess.run(cv[0][0], input=cv[1].encode(), capture_output=True, timeout=120)
+        if r.returncode:
+            print("error:", r.stderr.decode(errors="replace")[-400:])
+    ok = Path(sys.argv[2]).exists() and Path(sys.argv[2]).stat().st_size > 1000
     print(("voz guardada en " + sys.argv[2]) if ok else "no se pudo generar la voz")
     sys.exit(0 if ok else 1)
 if len(sys.argv) > 2 and sys.argv[1] == "--escuchar-archivo":
