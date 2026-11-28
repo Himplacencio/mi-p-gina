@@ -151,7 +151,29 @@ while time.time() < end:
     pump()
 
 # Pantalla de inicio de sesión: se quita el inicio automático del Live y se reinicia SDDM
+def monitor(cmd):
+    if not mon_path:
+        return
+    m = socket.socket(socket.AF_UNIX)
+    m.connect(mon_path)
+    time.sleep(0.5)
+    m.sendall((cmd + "\n").encode())
+    time.sleep(1)
+    m.close()
+
+
 if mon_path:
     shot("2-escritorio")
+    # Luna: el atajo Super + J de verdad, y una respuesta escrita
+    run("busctl --user tree org.kde.kglobalaccel 2>&1 | grep -i luna", 4)
+    monitor("sendkey meta_l-j")
+    time.sleep(7)
+    shot("5-luna-atajo")
+    monitor("sendkey esc")
+    time.sleep(2)
+    run("env WAYLAND_DISPLAY=wayland-0 XDG_RUNTIME_DIR=/run/user/$(id -u) QT_QPA_PLATFORM=wayland "
+        "MOONOS_SHOT_TEXTO='¿cuánta RAM estoy usando?' setsid moonos-luna --escribir >/dev/null 2>&1 &", 8)
+    shot("6-luna-respuesta")
+    run("pkill -f moonos-luna", 2)
     run("sudo rm -f /etc/sddm.conf.d/90-live-autologin.conf; sudo systemctl restart sddm", 25)
     shot("4-pantalla-de-inicio")
