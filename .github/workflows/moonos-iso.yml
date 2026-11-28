@@ -2,6 +2,11 @@ name: Construir ISO de MoonOS
 
 on:
   workflow_dispatch:
+    inputs:
+      liviana:
+        description: 'Prueba: ISO sin NVIDIA ni Steam/Lutris (solo para medir el tamaño; no se publica)'
+        type: boolean
+        default: false
   push:
     paths:
       - 'moonos/**'
@@ -41,7 +46,7 @@ jobs:
           sudo docker run --rm --privileged \
             -v "$PWD":/src:ro \
             -v /mnt/moonos:/work \
-            -e WORK=/work/tmp -e OUT=/work/out \
+            -e WORK=/work/tmp -e OUT=/work/out -e MOONOS_LIVIANA=${{ inputs.liviana && '1' || '0' }} \
             archlinux:latest bash /src/moonos/build.sh
           sudo rm -rf /mnt/moonos/tmp
           sudo chmod -R a+r /mnt/moonos/out
@@ -134,7 +139,7 @@ jobs:
 
       - name: Publicar la ISO en GitHub Releases
         # Solo se publica desde main; en otras ramas la ISO se compila y se prueba, sin publicarse
-        if: github.ref == 'refs/heads/main' && steps.vmtest.outputs.desktop == 'true' && steps.size.outputs.ok == 'true'
+        if: github.ref == 'refs/heads/main' && !inputs.liviana && steps.vmtest.outputs.desktop == 'true' && steps.size.outputs.ok == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

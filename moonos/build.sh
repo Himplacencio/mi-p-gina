@@ -52,6 +52,12 @@ releng_bootmodes="bootmodes=($(bash -c 'declare -A file_permissions; source "$1"
 [[ "$releng_bootmodes" != "bootmodes=()" ]] || die "No pude leer los modos de arranque de releng."
 sed -i "s|^bootmodes=.*|${releng_bootmodes}|" "$PROFILE/profiledef.sh"
 bash -n "$PROFILE/profiledef.sh" || die "profiledef.sh quedó con errores."
+
+# Prueba «liviana» (solo a mano, para medir): sin drivers de NVIDIA ni Steam/Lutris en la ISO
+if [[ "${MOONOS_LIVIANA:-0}" == 1 ]]; then
+    echo "==> Versión liviana de prueba: sin NVIDIA, Steam ni Lutris"
+    sed -i -E '/^(linux-cachyos-nvidia-open|nvidia-utils|lib32-nvidia-utils|nvidia-settings|steam|lutris)$/d' "$PROFILE/packages.x86_64"
+fi
 echo "Modos de arranque: $releng_bootmodes"
 
 # Menús de arranque: kernel de CachyOS y nombre MoonOS
