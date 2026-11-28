@@ -76,6 +76,15 @@ def kwin_reconfigure():
         pass
 
 
+def pc_modesto():
+    """True si el equipo tiene poca RAM (≤ 4,5 GB) o pocos núcleos (≤ 2): ahí conviene el modo PC antiguo."""
+    try:
+        kb = int(re.search(r"MemTotal:\s+(\d+)", Path("/proc/meminfo").read_text()).group(1))
+        return kb <= 4.5 * 1048576 or (os.cpu_count() or 4) <= 2
+    except (OSError, AttributeError):
+        return False
+
+
 def hardware():
     gpu = "No detectada"
     try:
@@ -254,6 +263,9 @@ class Bienvenida(QMainWindow):
             g.addWidget(kl, r, 0); g.addWidget(vl, r, 1)
         g.setColumnStretch(1, 1)
         eq.lay.addLayout(g)
+        if pc_modesto():
+            aviso = QLabel("💡 Tu PC es modesto: en «Hazlo tuyo» → Efectos activa el «Modo PC antiguo» para que todo vaya más fluido.")
+            aviso.setWordWrap(True); aviso.setObjectName("muted"); eq.lay.addWidget(aviso)
         v.addWidget(eq)
 
         tips = Card("Primeros pasos")
@@ -374,7 +386,9 @@ class Bienvenida(QMainWindow):
         fast.toggled.connect(lambda on: (run("kwriteconfig6", "--file", "kdeglobals", "--group", "KDE", "--key",
                                              "AnimationDurationFactor", "0.5" if on else "1", detached=False),
                                          kwin_reconfigure(), self.notify("Animaciones " + ("rápidas" if on else "normales"))))
-        c.lay.addWidget(wob); c.lay.addWidget(fast)
+        viejo = QCheckBox("Modo PC antiguo: sin desenfoque ni animaciones y con fondo fijo (más fluido en PCs lentos)")
+        viejo.toggled.connect(self.modo_pc_antiguo)
+        c.lay.addWidget(wob); c.lay.addWidget(fast); c.lay.addWidget(viejo)
         v.addWidget(c)
 
         # Seguridad
@@ -432,6 +446,17 @@ class Bienvenida(QMainWindow):
         else:
             caja.blockSignals(True); caja.setChecked(not on); caja.blockSignals(False)
             self.notify("No se cambió el firewall")
+
+    def modo_pc_antiguo(self, on):
+        """Apaga (o vuelve a prender) lo que más carga a la tarjeta gráfica: desenfoque, transparencias y animaciones."""
+        for key in ("blurEnabled", "contrastEnabled"):
+            run("kwriteconfig6", "--file", "kwinrc", "--group", "Plugins", "--key", key, "false" if on else "true", detached=False)
+        run("kwriteconfig6", "--file", "kdeglobals", "--group", "KDE", "--key", "AnimationDurationFactor",
+            "0" if on else "1", detached=False)
+        kwin_reconfigure()
+        if on:  # el fondo animado gasta tarjeta gráfica todo el rato
+            run("plasma-apply-wallpaperimage", "/usr/share/wallpapers/MoonOS/contents/images/1920x1080.png")
+        self.notify("Modo PC antiguo " + ("activado 🐢→🚀" if on else "desactivado"))
 
     def kwin_plugin(self, key, on, label):
         run("kwriteconfig6", "--file", "kwinrc", "--group", "Plugins", "--key", key, "true" if on else "false", detached=False)

@@ -13,6 +13,7 @@
 ## Bienvenida y personalización
 
 - **Bienvenida a MoonOS** se abre sola al iniciar. En el modo Live tiene el botón **Instalar MoonOS** y muestra el equipo detectado; ya instalado, da la bienvenida y lleva a personalizar. Se puede desactivar con «Mostrar al iniciar».
+- **Modo PC antiguo** (Hazlo tuyo → Efectos): apaga desenfoque, transparencias, animaciones y el fondo animado para PCs lentos. La Bienvenida lo sugiere sola si el equipo tiene ≤ 4,5 GB de RAM o ≤ 2 núcleos.
 - **Hazlo tuyo:** tema oscuro o claro, 8 colores de acento, fondo (luna animada, luna clásica o una imagen propia), panel abajo, arriba o a la izquierda, estilo clásico o dock tipo Mac, panel flotante, ventanas gelatina y animaciones rápidas.
 - **Tienda MoonOS:** instala Spotify, Discord, Chrome, Brave, Heroic, OBS, LibreOffice y más con un clic, o busca cualquier otra app en Flathub. Las apps se instalan aisladas (Flatpak, sin contraseña) y no pueden dañar el sistema. Está anclada en la barra.
 - **Estilo MoonOS Dock** (en «Hazlo tuyo»): barra superior con menú, reloj al centro, música y bandeja; dock centrado y flotante abajo; y widgets de vidrio en el escritorio: reloj, fase lunar (calculada en el equipo), calendario y tarjeta de música. Es el **estilo de inicio por defecto**; el botón «Clásico» lo deja con una sola barra abajo.
