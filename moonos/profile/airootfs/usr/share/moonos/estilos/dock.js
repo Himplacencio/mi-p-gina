@@ -2,7 +2,7 @@
 // Se ejecuta con el intérprete de scripts de Plasma (evaluateScript).
 // Las barras se crean desde cero: modificar la barra original de Plasma la dejaba invisible.
 var APPS = ['preferred://filemanager', 'preferred://browser', 'applications:steam.desktop',
-            'applications:moonos-tienda.desktop', 'applications:org.kde.konsole.desktop'];
+            'applications:moonos-tienda.desktop', 'applications:moonos-luna.desktop', 'applications:org.kde.konsole.desktop'];
 
 function lanzadores(tareas) {
     try {

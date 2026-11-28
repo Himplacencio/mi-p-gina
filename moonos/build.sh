@@ -46,6 +46,11 @@ echo "Contenido de releng:"; find "$RELENG" -maxdepth 3 | sed "s|$RELENG|  relen
 # Archivos propios de MoonOS encima
 cp -a "$HERE/profile/." "$PROFILE/"
 
+# Luna, el asistente de voz: reconocimiento de voz, modelo en español, Piper y voces
+msg "Descargando lo que necesita Luna (asistente de voz)"
+pacman -S --noconfirm --needed unzip curl >/dev/null
+bash "$HERE/luna-recursos.sh" "$PROFILE/airootfs"
+
 # Usar los mismos modos de arranque que el releng de esta versión de archiso
 # (la lista puede ocupar varias líneas, así que se lee cargando el archivo)
 releng_bootmodes="bootmodes=($(bash -c 'declare -A file_permissions; source "$1" >/dev/null; printf "%q " "${bootmodes[@]}"' _ "$RELENG/profiledef.sh"))"

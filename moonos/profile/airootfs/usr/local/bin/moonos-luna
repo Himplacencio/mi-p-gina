@@ -1,0 +1,971 @@
+#!/usr/bin/env python3
+"""Luna, la asistente de voz de MoonOS.
+
+Funciona sin internet: escucha con Vosk (libvosk.so + modelo en español), entiende
+órdenes en español y responde con voz usando Piper (o espeak-ng si no hay Piper).
+Nada de lo que dices sale de tu PC.
+
+Uso:
+  moonos-luna                     abre la burbuja de Luna y escucha (atajo: Super + J)
+  moonos-luna --escribir          abre la burbuja sin escuchar (para escribir)
+  moonos-luna --ajustes           ventana para configurar a Luna
+  moonos-luna --primera-vez       presentación y configuración (tras instalar MoonOS)
+  moonos-luna --probar "texto"    muestra qué entendería Luna (no hace nada; para pruebas)
+  moonos-luna --decir-archivo A "texto"   guarda en A.wav lo que diría Luna
+  moonos-luna --escuchar-archivo A        reconoce lo que se dice en el .wav A
+"""
+import ctypes
+import datetime
+import json
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+import unicodedata
+import wave
+from pathlib import Path
+
+LIB = Path("/usr/lib/moonos-luna")
+DAT = Path("/usr/share/moonos/luna")
+MODELO = DAT / "vosk-es"
+PIPER = LIB / "piper" / "piper"
+VOCES_DIR = DAT / "voces"
+CONF = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "moonos" / "luna.json"
+VOCES = {  # clave: (archivo, nombre, descripción)
+    "daniela": ("es_AR-daniela-high", "Daniela", "voz femenina"),
+    "ald": ("es_MX-ald-medium", "Ald", "voz masculina"),
+}
+ATAJO = "Super + J"
+POR_DEFECTO = {"activa": True, "voz": "daniela", "velocidad": 1.0, "configurada": False}
+
+
+# ======================================================================
+#  Configuración
+# ======================================================================
+def leer_conf():
+    c = dict(POR_DEFECTO)
+    try:
+        c.update(json.loads(CONF.read_text()))
+    except (OSError, ValueError):
+        pass
+    return c
+
+
+def guardar_conf(c):
+    try:
+        CONF.parent.mkdir(parents=True, exist_ok=True)
+        CONF.write_text(json.dumps(c, indent=2, ensure_ascii=False))
+    except OSError:
+        pass
+
+
+def es_live():
+    try:
+        return "archisobasedir" in Path("/proc/cmdline").read_text()
+    except OSError:
+        return False
+
+
+def voces_disponibles():
+    return [k for k, (f, _, _) in VOCES.items() if (VOCES_DIR / f"{f}.onnx").exists()]
+
+
+# ======================================================================
+#  Entender lo que se dice
+# ======================================================================
+def normalizar(t):
+    t = t.lower().replace("ñ", "\0")
+    t = "".join(ch for ch in unicodedata.normalize("NFD", t) if unicodedata.category(ch) != "Mn").replace("\0", "ñ")
+    t = re.sub(r"[¿?¡!.,;:«»\"']", " ", t)
+    t = re.sub(r"^\s*(oye|hey|ey|hola)?\s*luna\b", " ", t)  # «oye Luna, …»
+    return re.sub(r"\s+", " ", t).strip()
+
+
+NUMEROS = {"cero": 0, "uno": 1, "un": 1, "una": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, "seis": 6, "siete": 7,
+           "ocho": 8, "nueve": 9, "diez": 10, "quince": 15, "veinte": 20, "veinticinco": 25, "treinta": 30,
+           "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta": 70, "setenta y cinco": 75, "ochenta": 80,
+           "noventa": 90, "cien": 100, "ciento": 100, "maximo": 100, "medio": 50, "la mitad": 50}
+
+
+def numero(t):
+    m = re.search(r"\b(\d{1,3})\b", t)
+    if m:
+        return int(m.group(1))
+    for palabra in sorted(NUMEROS, key=len, reverse=True):
+        if re.search(rf"\b{palabra}\b", t):
+            return NUMEROS[palabra]
+    return None
+
+
+# (palabras que la nombran, nombre bonito, id del .desktop o comando, ¿se instala desde la Tienda?)
+APPS = [
+    (r"steam", "Steam", "steam.desktop", False),
+    (r"spotify|musica de spotify", "Spotify", "com.spotify.Client.desktop", True),
+    (r"discord", "Discord", "com.discordapp.Discord.desktop", True),
+    (r"firefox|navegador|internet|google", "Firefox", "firefox.desktop", False),
+    (r"terminal|consola|konsole", "la terminal", "org.kde.konsole.desktop", False),
+    (r"archivos|carpetas|dolphin|explorador|mis documentos", "los archivos", "org.kde.dolphin.desktop", False),
+    (r"tienda|tienda de apps|app store", "la Tienda", "moonos-tienda.desktop", False),
+    (r"bienvenida", "la Bienvenida", "moonos-bienvenida.desktop", False),
+    (r"configuracion|ajustes del sistema|preferencias", "la configuración", "systemsettings.desktop", False),
+    (r"lutris", "Lutris", "net.lutris.Lutris.desktop", False),
+    (r"videos|reproductor|haruna", "el reproductor de video", "org.kde.haruna.desktop", False),
+    (r"notas|editor de texto|bloc de notas|kwrite", "el editor de texto", "org.kde.kwrite.desktop", False),
+    (r"obs|grabar pantalla", "OBS Studio", "com.obsproject.Studio.desktop", True),
+    (r"heroic|epic games", "Heroic", "com.heroicgameslauncher.hgl.desktop", True),
+    (r"chrome", "Chrome", "com.google.Chrome.desktop", True),
+    (r"brave", "Brave", "com.brave.Browser.desktop", True),
+    (r"vlc", "VLC", "org.videolan.VLC.desktop", True),
+]
+DIRS_APPS = [Path.home() / ".local/share/flatpak/exports/share/applications", Path("/var/lib/flatpak/exports/share/applications"),
+             Path("/usr/local/share/applications"), Path("/usr/share/applications"), Path.home() / ".local/share/applications"]
+
+
+def buscar_desktop(did):
+    for d in DIRS_APPS:
+        if (d / did).exists():
+            return d / did
+    return None
+
+
+def paquete(texto):
+    """De «instala obs studio» saca «obs-studio» (solo letras, números y guiones)."""
+    p = re.sub(r"\b(el|la|los|las|un|una|programa|paquete|app|aplicacion|por favor|porfa)\b", " ", texto)
+    p = re.sub(r"[^a-z0-9+. -]", "", p).strip()
+    return re.sub(r"\s+", "-", p)[:60]
+
+
+DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+         "noviembre", "diciembre"]
+
+AYUDA = {
+    "Apps": ["abre Steam", "abre Spotify", "abre el navegador", "abre la terminal", "abre la Tienda"],
+    "Música y volumen": ["sube el volumen", "volumen al 50", "silencio", "pausa la música", "siguiente canción",
+                         "¿qué canción suena?"],
+    "Tu PC": ["¿cuánta RAM estoy usando?", "¿cuánto espacio me queda?", "¿qué tarjeta gráfica tengo?",
+              "¿está activo el modo juego?", "¿cuánta batería tengo?", "toma una captura", "bloquea la pantalla"],
+    "Terminal": ["actualiza el sistema", "instala vlc", "busca discord", "limpia paquetes viejos",
+                 "muestra mi sistema"],
+    "Otros": ["¿qué hora es?", "¿qué día es hoy?", "apaga el computador", "reinicia el computador"],
+}
+
+
+def leer(archivo):
+    try:
+        return Path(archivo).read_text()
+    except OSError:
+        return ""
+
+
+def ram():
+    m = {k: int(v) for k, v in re.findall(r"^(\w+):\s+(\d+)", leer("/proc/meminfo"), re.M)}
+    if "MemTotal" not in m:
+        return "No pude leer la memoria."
+    usada = (m["MemTotal"] - m.get("MemAvailable", 0)) / 1048576
+    return f"Estás usando {usada:.1f} de {m['MemTotal'] / 1048576:.1f} gigas de RAM.".replace(".", ",", 2)
+
+
+def disco():
+    try:
+        u = shutil.disk_usage(Path.home())
+        return f"Te quedan {u.free / 1e9:.0f} gigas libres de {u.total / 1e9:.0f}."
+    except OSError:
+        return "No pude revisar el disco."
+
+
+def grafica():
+    try:
+        out = subprocess.run(["lspci"], capture_output=True, text=True, timeout=5).stdout
+        g = [l.split(": ", 1)[1] for l in out.splitlines() if re.search(r"VGA|3D|Display", l)]
+        if g:
+            return "Tu tarjeta gráfica es " + re.sub(r"\s*\(rev .*\)$", "", g[-1]) + "."
+    except (OSError, subprocess.SubprocessError, IndexError):
+        pass
+    return "No pude detectar la tarjeta gráfica."
+
+
+def bateria():
+    for b in sorted(Path("/sys/class/power_supply").glob("BAT*")):
+        cap = leer(b / "capacity").strip()
+        if cap:
+            est = leer(b / "status").strip()
+            extra = ", y se está cargando" if est == "Charging" else ""
+            return f"Tienes {cap} por ciento de batería{extra}."
+    return "Este equipo no tiene batería, está conectado a la corriente."
+
+
+def modo_juego():
+    try:
+        out = subprocess.run(["gamemoded", "-s"], capture_output=True, text=True, timeout=5).stdout
+        return "Sí, el modo juego está activo." if "is active" in out else \
+            "Ahora no está activo. Se activa solo cuando abres un juego."
+    except (OSError, subprocess.SubprocessError):
+        return "No pude revisar el modo juego."
+
+
+def cancion():
+    try:
+        out = subprocess.run(["playerctl", "metadata", "--format", "{{title}}|{{artist}}"], capture_output=True,
+                             text=True, timeout=5).stdout.strip()
+        if out and out != "|":
+            t, a = (out.split("|") + [""])[:2]
+            return f"Está sonando {t}" + (f", de {a}." if a else ".")
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return "No está sonando nada ahora."
+
+
+def entender(dicho):
+    """Devuelve un dict: respuesta (texto), y opcionalmente:
+       run (lista: comando), term (comando para la terminal), abrir (archivo .desktop),
+       confirmar (texto del botón), tienda (abrir la Tienda), ayuda (True)."""
+    t = normalizar(dicho)
+    r = lambda texto, **kw: dict(respuesta=texto, entendido=t, **kw)  # noqa: E731
+    if not t:
+        return r("No te escuché. Puedes volver a intentarlo o escribirme.")
+    tiene = lambda pat: re.search(pat, t) is not None  # noqa: E731
+
+    # --- conversación ---
+    if tiene(r"^(hola|buenas|buenos dias|buenas tardes|buenas noches)\b") and len(t.split()) <= 3:
+        return r("¡Hola! ¿En qué te ayudo?")
+    if tiene(r"\bgracias\b"):
+        return r("¡De nada! Para eso estoy.")
+    if tiene(r"quien eres|como te llamas|que eres"):
+        return r("Soy Luna, la asistente de MoonOS. Funciono sin internet y lo que me dices no sale de tu PC.")
+    if tiene(r"\bayuda\b|que (puedes|sabes) hacer|que haces|comandos"):
+        return r("Esto es lo que sé hacer. Prueba con cualquiera.", ayuda=True)
+
+    # --- energía (siempre se pregunta antes) ---
+    if tiene(r"\b(apaga|apagar|apagate)\b.*\b(pc|computador|computadora|equipo|ordenador|sistema|todo)\b|^apaga(r)?$"):
+        return r("¿Seguro que quieres apagar el computador?", run=["systemctl", "poweroff"], confirmar="Sí, apagar")
+    if tiene(r"\b(reinicia|reiniciar)\b"):
+        return r("¿Seguro que quieres reiniciar el computador?", run=["systemctl", "reboot"], confirmar="Sí, reiniciar")
+    if tiene(r"\bbloquea|bloquear\b"):
+        return r("Listo, bloqueo la pantalla.", run=["loginctl", "lock-session"])
+
+    # --- volumen ---
+    if tiene(r"\bvolumen\b|\bsonido\b|\bsilencio|\bmutea|\bsilencia"):
+        n = numero(t)
+        if tiene(r"silencio|mutea|silencia|quita el sonido|sin sonido"):
+            return r("Silencio.", run=["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
+        if n is not None and tiene(r"\b(al|a|en|pon)\b"):
+            n = max(0, min(n, 100))
+            return r(f"Volumen al {n} por ciento.", run=["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", f"{n / 100:.2f}"])
+        if tiene(r"\bsube|subir|mas alto|aumenta|mas fuerte"):
+            return r("Subo el volumen.", run=["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SINK@", "10%+"])
+        if tiene(r"\bbaja|bajar|mas bajo|disminuye|mas despacio"):
+            return r("Bajo el volumen.", run=["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "10%-"])
+
+    # --- música ---
+    if tiene(r"que (cancion|tema|musica) (suena|esta sonando|es)|que esta sonando"):
+        return r(cancion())
+    if tiene(r"\bsiguiente\b|\bsalta\b|proxima cancion|otra cancion"):
+        return r("Siguiente canción.", run=["playerctl", "next"])
+    if tiene(r"\banterior\b|cancion de antes"):
+        return r("Canción anterior.", run=["playerctl", "previous"])
+    if tiene(r"\b(pausa|pausar|para|deten|detener)\b.*\b(musica|cancion|spotify|video)\b|^(pausa|pausar)$"):
+        return r("Pausado.", run=["playerctl", "pause"])
+    if tiene(r"\b(reproduce|reproducir|play|continua|sigue|reanuda|pon)\b.*\b(musica|cancion|spotify)\b|^play$"):
+        return r("¡Dale play!", run=["playerctl", "play"])
+
+    # --- terminal (Luna muestra el comando para que aprendas) ---
+    if tiene(r"\b(actualiza|actualizar|actualizacion|actualizaciones)\b"):
+        return r("Abro la terminal para actualizar el sistema. Te va a pedir tu contraseña.", term="sudo pacman -Syu")
+    m = re.search(r"\b(desinstala|desinstalar|borra el programa|elimina el programa|quita el programa)\s+(.+)", t)
+    if m and paquete(m.group(2)):
+        p = paquete(m.group(2))
+        return r(f"Abro la terminal para desinstalar {p}. Te va a pedir tu contraseña.", term=f"sudo pacman -Rns {p}")
+    m = re.search(r"\b(instala|instalar|instalame|descarga|descargar)\s+(.+)", t)
+    if m:
+        nombre = m.group(2)
+        for pat, bonito, _did, de_tienda in APPS:
+            if de_tienda and re.search(rf"\b({pat})\b", nombre):
+                return r(f"{bonito} se instala desde la Tienda MoonOS. Te la abro.", abrir="moonos-tienda.desktop")
+        p = paquete(nombre)
+        if p:
+            return r(f"Abro la terminal para instalar {p}. Te va a pedir tu contraseña.", term=f"sudo pacman -S {p}")
+    m = re.search(r"\b(busca|buscar|buscame)\s+(.+)", t)
+    if m and paquete(m.group(2)):
+        p = paquete(m.group(2))
+        return r(f"Busco {p} en los programas de MoonOS.", term=f"pacman -Ss {p}")
+    if tiene(r"limpia|limpiar|huerfanos|paquetes viejos|basura"):
+        return r("Abro la terminal para limpiar paquetes que ya nadie usa.", term="sudo pacman -Rns $(pacman -Qdtq)")
+    if tiene(r"fastfetch|muestra mi sistema|informacion del sistema|info del sistema|presumir"):
+        return r("¡A presumir!", term="fastfetch")
+    if tiene(r"errores|que fallo|que falla"):
+        return r("Te muestro los errores del arranque.", term="journalctl -p err -b --no-pager | tail -40")
+    if tiene(r"procesos|que usa la cpu|que esta usando|monitor"):
+        return r("Abro el monitor de procesos. Sales con F10.", term="htop")
+
+    # --- tu PC ---
+    if tiene(r"\b(ram|memoria)\b"):
+        return r(ram())
+    if tiene(r"espacio|disco|almacenamiento"):
+        return r(disco())
+    if tiene(r"grafica|tarjeta de video|gpu"):
+        return r(grafica())
+    if tiene(r"bateria|carga"):
+        return r(bateria())
+    if tiene(r"modo juego|gamemode"):
+        return r(modo_juego())
+    if tiene(r"captura|pantallazo|screenshot"):
+        return r("Listo, guardé la captura en tu carpeta Imágenes.", run=["spectacle", "-b", "-n", "-f"])
+
+    # --- hora y fecha ---
+    ahora = datetime.datetime.now()
+    if tiene(r"que hora|la hora"):
+        h, mi = ahora.hour, ahora.minute
+        return r(f"Son las {h}:{mi:02d}." if h != 1 else f"Es la {h}:{mi:02d}.")
+    if tiene(r"que dia|fecha|hoy es"):
+        return r(f"Hoy es {DIAS[ahora.weekday()]} {ahora.day} de {MESES[ahora.month - 1]}.")
+
+    # --- abrir apps ---
+    abrir = tiene(r"\b(abre|abrir|abreme|inicia|iniciar|ejecuta|lanza|entra a|quiero (usar|jugar|ver|abrir)|pon|muestra)\b")
+    for pat, bonito, did, de_tienda in APPS:
+        if re.search(rf"\b({pat})\b", t) and (abrir or len(t.split()) <= 2):
+            if buscar_desktop(did) or did.startswith("moonos-"):
+                return r(f"Abro {bonito}.", abrir=did)
+            if de_tienda:
+                return r(f"{bonito} todavía no está instalado. Te abro la Tienda para instalarlo.",
+                         abrir="moonos-tienda.desktop")
+            return r(f"No encontré {bonito} en este equipo.")
+
+    return r("No entendí eso. Di «ayuda» para ver lo que sé hacer.")
+
+
+# ======================================================================
+#  Hacer lo que se pidió
+# ======================================================================
+def ejecutar(accion):
+    if accion.get("run"):
+        subprocess.Popen(accion["run"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    if accion.get("abrir"):
+        d = buscar_desktop(accion["abrir"])
+        cmd = ["gio", "launch", str(d)] if d else [accion["abrir"].removesuffix(".desktop")]
+        subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    if accion.get("term"):
+        c = accion["term"]
+        guion = (f"printf '\\033[1;38;2;169;150;255m🌙 Luna ejecuta:\\033[0m %s\\n\\n' {shlex.quote(c)}; {c}; "
+                 "echo; read -rp 'Listo. Pulsa Enter para cerrar esta ventana… '")
+        subprocess.Popen(["konsole", "-e", "bash", "-c", guion], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+
+
+# ======================================================================
+#  Voz (texto a voz)
+# ======================================================================
+def para_decir(texto):
+    """Ajustes para que la voz lo lea bien."""
+    t = texto.replace("MoonOS", "Mun O Ese").replace("RAM", "ram").replace("Super + J", "Super más jota")
+    return re.sub(r"(\d+):(\d\d)", lambda m: f"{m.group(1)} y {int(m.group(2))}" if m.group(2) != "00" else m.group(1), t)
+
+
+def comando_voz(texto, conf, archivo=None):
+    """Devuelve (lista de comandos encadenados) para decir el texto, o None si no hay voz."""
+    if conf.get("voz") == "ninguna":
+        return None
+    texto = para_decir(texto)
+    clave = conf.get("voz") if conf.get("voz") in VOCES else "daniela"
+    f = VOCES_DIR / f"{VOCES[clave][0]}.onnx"
+    if PIPER.exists() and not f.exists() and voces_disponibles():
+        f = VOCES_DIR / f"{VOCES[voces_disponibles()[0]][0]}.onnx"
+    vel = max(0.6, min(float(conf.get("velocidad", 1.0)), 1.6))
+    if PIPER.exists() and f.exists():
+        piper = [str(PIPER), "--model", str(f), "--length_scale", f"{1 / vel:.2f}", "--quiet"]
+        if archivo:
+            return [piper + ["--output_file", archivo]], texto
+        try:
+            rate = json.loads(Path(str(f) + ".json").read_text())["audio"]["sample_rate"]
+        except (OSError, ValueError, KeyError):
+            rate = 22050
+        return [piper + ["--output_raw"], ["pw-play", "--rate", str(rate), "--channels", "1", "--format", "s16", "-"]], texto
+    if shutil.which("espeak-ng"):
+        esp = ["espeak-ng", "-v", "es-419", "-s", str(int(165 * vel))]
+        return [esp + (["-w", archivo] if archivo else [])], texto
+    return None
+
+
+def hablar(texto, conf, archivo=None, esperar=False):
+    cv = comando_voz(texto, conf, archivo)
+    if not cv:
+        return None
+    cmds, texto = cv
+    try:
+        p1 = subprocess.Popen(cmds[0], stdin=subprocess.PIPE, stdout=subprocess.PIPE if len(cmds) > 1 else subprocess.DEVNULL,
+                              stderr=subprocess.DEVNULL)
+        last = p1
+        if len(cmds) > 1:
+            last = subprocess.Popen(cmds[1], stdin=p1.stdout, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            p1.stdout.close()
+        p1.stdin.write(texto.encode()); p1.stdin.close()
+        if esperar:
+            last.wait(timeout=60)
+        return last
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+# ======================================================================
+#  Oído (voz a texto) con libvosk.so
+# ======================================================================
+class Oido:
+    def __init__(self, rate=16000):
+        lib = ctypes.CDLL(str(LIB / "libvosk.so"))
+        lib.vosk_set_log_level(-1)
+        lib.vosk_model_new.restype = ctypes.c_void_p
+        lib.vosk_model_new.argtypes = [ctypes.c_char_p]
+        lib.vosk_recognizer_new.restype = ctypes.c_void_p
+        lib.vosk_recognizer_new.argtypes = [ctypes.c_void_p, ctypes.c_float]
+        lib.vosk_recognizer_accept_waveform.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int]
+        for fn in ("vosk_recognizer_result", "vosk_recognizer_partial_result", "vosk_recognizer_final_result"):
+            getattr(lib, fn).restype = ctypes.c_char_p
+            getattr(lib, fn).argtypes = [ctypes.c_void_p]
+        lib.vosk_recognizer_free.argtypes = [ctypes.c_void_p]
+        self.lib = lib
+        self.modelo = lib.vosk_model_new(str(MODELO).encode())
+        if not self.modelo:
+            raise OSError("no se pudo cargar el modelo de voz")
+        self.rec = lib.vosk_recognizer_new(self.modelo, float(rate))
+
+    def oir(self, datos):
+        """Le pasa audio (16 bits mono). Devuelve (terminó_frase, texto)."""
+        fin = self.lib.vosk_recognizer_accept_waveform(self.rec, datos, len(datos))
+        if fin:
+            return True, json.loads(self.lib.vosk_recognizer_result(self.rec) or b"{}").get("text", "")
+        return False, json.loads(self.lib.vosk_recognizer_partial_result(self.rec) or b"{}").get("partial", "")
+
+    def final(self):
+        return json.loads(self.lib.vosk_recognizer_final_result(self.rec) or b"{}").get("text", "")
+
+
+def puede_escuchar():
+    return (LIB / "libvosk.so").exists() and MODELO.is_dir() and shutil.which("pw-record") is not None
+
+
+def escuchar_archivo(ruta):
+    with wave.open(ruta, "rb") as w:
+        o = Oido(w.getframerate())
+        texto = ""
+        while True:
+            d = w.readframes(4000)
+            if not d:
+                break
+            fin, t = o.oir(d)
+            if fin and t:
+                texto += " " + t
+        return (texto + " " + o.final()).strip()
+
+
+# ======================================================================
+#  Línea de comandos (pruebas, sin ventanas)
+# ======================================================================
+if len(sys.argv) > 2 and sys.argv[1] == "--probar":
+    a = entender(" ".join(sys.argv[2:]))
+    print(json.dumps({k: v for k, v in a.items()}, ensure_ascii=False))
+    sys.exit(0)
+if len(sys.argv) > 3 and sys.argv[1] == "--decir-archivo":
+    _c = leer_conf()
+    if _c.get("voz") == "ninguna":
+        _c["voz"] = "daniela"
+    p = hablar(" ".join(sys.argv[3:]), _c, archivo=sys.argv[2], esperar=True)
+    ok = p is not None and Path(sys.argv[2]).exists() and Path(sys.argv[2]).stat().st_size > 1000
+    print(("voz guardada en " + sys.argv[2]) if ok else "no se pudo generar la voz")
+    sys.exit(0 if ok else 1)
+if len(sys.argv) > 2 and sys.argv[1] == "--escuchar-archivo":
+    try:
+        print("Luna escuchó:", escuchar_archivo(sys.argv[2]))
+    except (OSError, wave.Error) as e:
+        print("no se pudo escuchar:", e); sys.exit(1)
+    sys.exit(0)
+
+
+# ======================================================================
+#  Ventanas
+# ======================================================================
+import math  # noqa: E402
+
+from PyQt6.QtCore import QObject, QPointF, QRectF, Qt, QThread, QTimer, pyqtSignal  # noqa: E402
+from PyQt6.QtGui import QColor, QFont, QIcon, QPainter, QPainterPath, QPen, QRadialGradient  # noqa: E402
+from PyQt6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QFrame, QGridLayout, QHBoxLayout,  # noqa: E402
+                             QLabel, QLineEdit, QProgressBar, QPushButton, QRadioButton, QScrollArea, QSlider,
+                             QStackedWidget, QVBoxLayout, QWidget)
+
+ICONO = "/usr/share/pixmaps/moonos-luna.png"
+ESTILO = """
+* { font-family: 'Inter', 'Noto Sans', sans-serif; color: #eeeaff; }
+QWidget#fondo { background: #0f0d26; }
+QFrame#card { background: #1a1640; border: 1px solid #2f2a6b; border-radius: 16px; }
+QLabel#h1 { font-size: 26px; font-weight: 800; }
+QLabel#h2 { font-size: 17px; font-weight: 700; color: #f4f0ff; }
+QLabel#muted { color: #a9a3d6; font-size: 13px; }
+QLabel#estado { color: #b9adff; font-size: 12px; font-weight: 700; letter-spacing: 3px; }
+QLabel#dicho { color: #cfc8ff; font-size: 15px; font-style: italic; }
+QLabel#respuesta { color: #ffffff; font-size: 21px; font-weight: 600; }
+QPushButton { background: #241f55; border: 1px solid #3a3480; border-radius: 12px; padding: 8px 14px; font-size: 13px; }
+QPushButton:hover { border-color: #a996ff; background: #2c2666; }
+QPushButton#principal { background: #a996ff; color: #120e2e; border: 0; font-weight: 800; padding: 10px 18px; }
+QPushButton#principal:hover { background: #bcadff; }
+QPushButton#chip { background: #1e1a4a; border-radius: 14px; padding: 6px 12px; color: #d8d2ff; font-size: 12px; }
+QPushButton#icono { background: transparent; border: 0; font-size: 18px; padding: 4px 8px; color: #b9b2e6; }
+QPushButton#icono:hover { color: #ffffff; }
+QLineEdit { background: #120f2e; border: 1px solid #3a3480; border-radius: 12px; padding: 9px 14px; font-size: 14px; }
+QLineEdit:focus { border-color: #a996ff; }
+QCheckBox, QRadioButton { font-size: 14px; spacing: 10px; }
+QProgressBar { background: #120f2e; border: 0; border-radius: 4px; height: 8px; }
+QProgressBar::chunk { background: #a996ff; border-radius: 4px; }
+QSlider::groove:horizontal { height: 6px; background: #2c2666; border-radius: 3px; }
+QSlider::handle:horizontal { background: #a996ff; width: 18px; margin: -6px 0; border-radius: 9px; }
+QScrollArea { border: 0; background: transparent; }
+"""
+
+
+class Orbe(QWidget):
+    """La luna de Luna: brilla, late con tu voz y gira cuando piensa."""
+    def __init__(self, tam=150):
+        super().__init__()
+        self.setFixedSize(tam, tam)
+        self.estado = "quieta"  # quieta, escuchando, pensando, hablando, error
+        self.nivel = 0.0
+        self.t = 0.0
+        tm = QTimer(self); tm.timeout.connect(self._paso); tm.start(33)
+
+    def _paso(self):
+        self.t += 0.033
+        self.nivel *= 0.86
+        self.update()
+
+    def paintEvent(self, _):
+        p = QPainter(self); p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w = self.width(); c = QPointF(w / 2, w / 2); R = w * 0.27
+        col = {"error": QColor("#ff9db5"), "hablando": QColor("#8fb2ff")}.get(self.estado, QColor("#a996ff"))
+        # halo
+        late = 1 + (0.06 * math.sin(self.t * 2.4) if self.estado == "quieta" else 0.0) + min(self.nivel, 1) * 0.35
+        if self.estado == "hablando":
+            late += 0.08 * abs(math.sin(self.t * 7))
+        rh = min(w / 2 - 1, R * 1.75 * late)  # el halo nunca toca el borde (si no, se ve cuadrado)
+        g = QRadialGradient(c, rh)
+        h = QColor(col); h.setAlpha(110); g.setColorAt(0, h); h.setAlpha(40); g.setColorAt(0.6, h)
+        h.setAlpha(0); g.setColorAt(1, h)
+        p.setPen(Qt.PenStyle.NoPen); p.setBrush(g); p.drawEllipse(c, rh, rh)
+        # anillos que salen cuando escucha
+        if self.estado in ("escuchando", "hablando"):
+            for k in range(3):
+                f = ((self.t * 0.7 + k / 3) % 1)
+                a = QColor(col); a.setAlphaF(max(0.0, 0.45 * (1 - f)))
+                p.setPen(QPen(a, 2)); p.setBrush(Qt.BrushStyle.NoBrush)
+                rr = R * (1.15 + f * 0.85 + self.nivel * 0.2)
+                p.drawEllipse(c, rr, rr)
+        # arco que gira cuando piensa
+        if self.estado == "pensando":
+            pen = QPen(col, 4); pen.setCapStyle(Qt.PenCapStyle.RoundCap); p.setPen(pen)
+            rr = R * 1.32
+            p.drawArc(QRectF(c.x() - rr, c.y() - rr, 2 * rr, 2 * rr), int(-self.t * 300 * 16), 100 * 16)
+        # la media luna
+        luna = QPainterPath(); luna.addEllipse(c, R, R)
+        corte = QPainterPath(); corte.addEllipse(QPointF(c.x() + R * 0.45, c.y() - R * 0.32), R * 0.86, R * 0.86)
+        p.setPen(Qt.PenStyle.NoPen)
+        fondo = QColor(col); fondo.setAlpha(45); p.setBrush(fondo); p.drawEllipse(c, R, R)
+        p.setBrush(QColor("#f1edff")); p.drawPath(luna.subtracted(corte))
+
+
+class Oreja(QObject):
+    """Graba del micrófono con pw-record y se lo pasa a Vosk (en otro hilo)."""
+    nivel = pyqtSignal(float)
+    parcial = pyqtSignal(str)
+    listo = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, segundos=8):
+        super().__init__()
+        self.segundos = segundos
+        self.parar = False
+
+    def correr(self):
+        try:
+            o = Oido(16000)
+        except OSError as e:
+            self.error.emit(str(e)); return
+        try:
+            proc = subprocess.Popen(["pw-record", "--rate", "16000", "--channels", "1", "--format", "s16", "-"],
+                                    stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        except OSError:
+            self.error.emit("No encontré el micrófono."); return
+        leidos, habla, silencio, ultimo = 0, False, 0, ""
+        try:
+            while not self.parar and leidos < 16000 * 2 * self.segundos:
+                d = proc.stdout.read(3200)
+                if not d:
+                    break
+                leidos += len(d)
+                muestras = memoryview(d).cast("h")
+                rms = math.sqrt(sum(x * x for x in muestras[::8]) / max(1, len(muestras[::8]))) / 32768
+                self.nivel.emit(min(1.0, rms * 6))
+                fin, texto = o.oir(d)
+                if texto and texto != ultimo:
+                    ultimo = texto; habla = True; silencio = 0; self.parcial.emit(texto)
+                elif habla:
+                    silencio += 1
+                if fin and texto:
+                    self.listo.emit(texto); return
+                if habla and silencio > 12:  # 1,2 s de silencio después de hablar
+                    break
+            self.listo.emit(o.final() or ultimo)
+        finally:
+            proc.terminate()
+
+
+class Burbuja(QWidget):
+    def __init__(self, escuchar=True):
+        super().__init__()
+        self.conf = leer_conf()
+        self.setWindowTitle("Luna")
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setFixedWidth(760)
+        self.pendiente = None
+        self.hilo = None
+        self.oreja = None
+        self.voz = None
+
+        caja = QHBoxLayout(self); caja.setContentsMargins(26, 22, 22, 22); caja.setSpacing(18)
+        self.orbe = Orbe(150); caja.addWidget(self.orbe, 0, Qt.AlignmentFlag.AlignTop)
+        col = QVBoxLayout(); col.setSpacing(8); caja.addLayout(col, 1)
+        arriba = QHBoxLayout()
+        self.estado = QLabel("LUNA"); self.estado.setObjectName("estado")
+        arriba.addWidget(self.estado); arriba.addStretch(1)
+        for txt, tip, fn in (("🎙", "Volver a escuchar", self.escuchar), ("⚙", "Configurar a Luna", self.ajustes),
+                             ("✕", "Cerrar (Esc)", self.close)):
+            b = QPushButton(txt); b.setObjectName("icono"); b.setToolTip(tip); b.clicked.connect(fn); arriba.addWidget(b)
+        col.addLayout(arriba)
+        self.dicho = QLabel(""); self.dicho.setObjectName("dicho"); self.dicho.setWordWrap(True); self.dicho.hide()
+        self.resp = QLabel(""); self.resp.setObjectName("respuesta"); self.resp.setWordWrap(True)
+        col.addWidget(self.dicho); col.addWidget(self.resp)
+        self.extra = QVBoxLayout(); col.addLayout(self.extra)
+        self.chips = QHBoxLayout(); self.chips.setSpacing(6); col.addLayout(self.chips)
+        for s in ("abre Steam", "sube el volumen", "¿cuánta RAM uso?", "ayuda"):
+            b = QPushButton(s); b.setObjectName("chip"); b.clicked.connect(lambda _=False, s=s: self.procesar(s))
+            self.chips.addWidget(b)
+        self.chips.addStretch(1)
+        self.entrada = QLineEdit(); self.entrada.setPlaceholderText("Escríbele a Luna…  (por ejemplo: abre Spotify)")
+        self.entrada.returnPressed.connect(lambda: self.procesar(self.entrada.text()))
+        col.addWidget(self.entrada)
+
+        self.cerrar_luego = QTimer(self); self.cerrar_luego.setSingleShot(True); self.cerrar_luego.timeout.connect(self.close)
+        if not self.conf.get("activa", True):
+            self.decir("Estoy desactivada. Puedes activarme en mis ajustes (botón ⚙).", hablar_tambien=False)
+        elif escuchar and puede_escuchar():
+            QTimer.singleShot(250, self.escuchar)
+        else:
+            self.decir("¡Hola! ¿En qué te ayudo?" + ("" if puede_escuchar() else " Escríbeme abajo."), hablar_tambien=False)
+            self.entrada.setFocus()
+
+    def paintEvent(self, _):
+        p = QPainter(self); p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        r = QRectF(self.rect()).adjusted(4, 4, -4, -4)
+        path = QPainterPath(); path.addRoundedRect(r, 30, 30)
+        g = QRadialGradient(QPointF(r.left() + 100, r.top() + 90), r.width())
+        g.setColorAt(0, QColor(46, 38, 110, 245)); g.setColorAt(1, QColor(14, 12, 36, 245))
+        p.fillPath(path, g)
+        p.setPen(QPen(QColor(169, 150, 255, 120), 1.5)); p.drawPath(path)
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key.Key_Escape:
+            self.close()
+        else:
+            super().keyPressEvent(e)
+
+    def enterEvent(self, _):
+        self.cerrar_luego.stop()
+
+    def closeEvent(self, e):
+        if self.hilo and self.oreja:
+            self.oreja.parar = True
+        super().closeEvent(e)
+
+    # --- escuchar ---
+    def escuchar(self):
+        if not puede_escuchar():
+            self.decir("No tengo micrófono o reconocimiento de voz aquí. Escríbeme abajo.", hablar_tambien=False)
+            return
+        if self.hilo and self.hilo.isRunning():
+            return
+        self.cerrar_luego.stop(); self._limpiar_extra()
+        self.orbe.estado = "escuchando"; self.estado.setText("TE ESCUCHO…")
+        self.dicho.hide(); self.resp.setText("Habla ahora…")
+        self.hilo = QThread(self); self.oreja = Oreja()
+        self.oreja.moveToThread(self.hilo)
+        self.hilo.started.connect(self.oreja.correr)
+        self.oreja.nivel.connect(lambda n: setattr(self.orbe, "nivel", max(self.orbe.nivel, n)))
+        self.oreja.parcial.connect(lambda t: (self.dicho.setText(f"«{t}»"), self.dicho.show()))
+        self.oreja.listo.connect(self._oido)
+        self.oreja.error.connect(lambda m: self.decir(m + " Escríbeme abajo.", hablar_tambien=False))
+        self.oreja.listo.connect(self.hilo.quit); self.oreja.error.connect(self.hilo.quit)
+        self.hilo.start()
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        QTimer.singleShot(0, self._ajustar)
+
+    def _oido(self, texto):
+        if not texto.strip():
+            self.orbe.estado = "quieta"; self.estado.setText("LUNA")
+            self.resp.setText("No te escuché bien. Toca 🎙 para intentarlo otra vez, o escríbeme.")
+            self.entrada.setFocus(); return
+        self.procesar(texto)
+
+    # --- entender y responder ---
+    def procesar(self, texto):
+        texto = texto.strip()
+        if not texto:
+            return
+        self.entrada.clear(); self._limpiar_extra()
+        self.dicho.setText(f"«{texto}»"); self.dicho.show()
+        self.orbe.estado = "pensando"; self.estado.setText("PENSANDO…")
+        QTimer.singleShot(350, lambda: self._responder(entender(texto)))
+
+    def _responder(self, a):
+        self.decir(a["respuesta"])
+        if a.get("confirmar"):
+            fila = QHBoxLayout()
+            si = QPushButton(a["confirmar"]); si.setObjectName("principal")
+            no = QPushButton("Cancelar")
+            si.clicked.connect(lambda: (ejecutar(a), self.close())); no.clicked.connect(self.close)
+            fila.addWidget(si); fila.addWidget(no); fila.addStretch(1)
+            w = QWidget(); w.setLayout(fila); self.extra.addWidget(w)
+            QTimer.singleShot(0, self._ajustar)
+            return
+        if a.get("ayuda"):
+            g = QGridLayout(); g.setHorizontalSpacing(14); g.setVerticalSpacing(4)
+            for i, (grupo, frases) in enumerate(AYUDA.items()):
+                tl = QLabel(grupo); tl.setObjectName("estado"); g.addWidget(tl, (i // 2) * 2, i % 2)
+                fl = QLabel("\n".join("• " + f for f in frases[:4])); fl.setObjectName("muted")
+                g.addWidget(fl, (i // 2) * 2 + 1, i % 2)
+            w = QWidget(); w.setLayout(g); self.extra.addWidget(w)
+            QTimer.singleShot(0, self._ajustar)
+            return
+        if any(a.get(k) for k in ("run", "abrir", "term")):
+            ejecutar(a)
+            self.cerrar_luego.start(5000)
+
+    def decir(self, texto, hablar_tambien=True):
+        self.resp.setText(texto)
+        QTimer.singleShot(0, self._ajustar)
+        self.estado.setText("LUNA")
+        if hablar_tambien and self.conf.get("voz") != "ninguna":
+            self.orbe.estado = "hablando"
+            self.voz = hablar(texto, self.conf)
+            QTimer.singleShot(400 + 70 * len(texto), lambda: setattr(self.orbe, "estado", "quieta"))
+        else:
+            self.orbe.estado = "quieta"
+
+    def _ajustar(self):
+        """La burbuja crece o se achica según lo que tenga adentro."""
+        lay = self.layout(); lay.activate()
+        h = lay.totalHeightForWidth(self.width()) if lay.hasHeightForWidth() else lay.sizeHint().height()
+        self.resize(self.width(), max(h, 200))
+
+    def _limpiar_extra(self):
+        while self.extra.count():
+            it = self.extra.takeAt(0)
+            if it.widget():
+                it.widget().deleteLater()
+
+    def ajustes(self):
+        subprocess.Popen([sys.argv[0], "--ajustes"], start_new_session=True)
+        self.close()
+
+
+def tarjeta(titulo, texto=""):
+    f = QFrame(); f.setObjectName("card")
+    v = QVBoxLayout(f); v.setContentsMargins(20, 16, 20, 18); v.setSpacing(10)
+    t = QLabel(titulo); t.setObjectName("h2"); v.addWidget(t)
+    if texto:
+        d = QLabel(texto); d.setObjectName("muted"); d.setWordWrap(True); v.addWidget(d)
+    return f, v
+
+
+class PanelVoz(QWidget):
+    """Elegir voz, velocidad y probarla (se usa en Ajustes y en la presentación)."""
+    def __init__(self, conf, al_cambiar):
+        super().__init__()
+        self.conf, self.al_cambiar = conf, al_cambiar
+        v = QVBoxLayout(self); v.setContentsMargins(0, 0, 0, 0); v.setSpacing(8)
+        g = QButtonGroup(self)
+        hay = voces_disponibles()
+        opciones = [(k, f"{VOCES[k][1]} ({VOCES[k][2]})") for k in VOCES if k in hay]
+        if not opciones and shutil.which("espeak-ng"):
+            opciones = [("daniela", "Voz básica")]
+        opciones.append(("ninguna", "Sin voz: Luna solo escribe"))
+        for clave, txt in opciones:
+            rb = QRadioButton(txt); g.addButton(rb); v.addWidget(rb)
+            rb.setChecked(conf.get("voz") == clave)
+            rb.toggled.connect(lambda on, clave=clave: on and self._cambia("voz", clave))
+        if not any(b.isChecked() for b in g.buttons()):
+            g.buttons()[0].setChecked(True)
+        fila = QHBoxLayout()
+        fila.addWidget(QLabel("🐢"))
+        sl = QSlider(Qt.Orientation.Horizontal); sl.setRange(70, 140); sl.setValue(int(conf.get("velocidad", 1.0) * 100))
+        sl.valueChanged.connect(lambda n: self._cambia("velocidad", n / 100)); fila.addWidget(sl, 1)
+        fila.addWidget(QLabel("🐇"))
+        prueba = QPushButton("▶  Probar voz"); prueba.clicked.connect(
+            lambda: hablar("Hola, soy Luna. ¿En qué te ayudo hoy?", self.conf))
+        fila.addSpacing(10); fila.addWidget(prueba)
+        v.addLayout(fila)
+
+    def _cambia(self, k, val):
+        self.conf[k] = val; self.al_cambiar()
+
+
+class Ajustes(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.conf = leer_conf()
+        self.setWindowTitle("Luna · Ajustes"); self.resize(760, 820); self.setObjectName("fondo")
+        if Path(ICONO).exists():
+            self.setWindowIcon(QIcon(ICONO))
+        fuera = QVBoxLayout(self); fuera.setContentsMargins(0, 0, 0, 0)
+        sc = QScrollArea(); sc.setWidgetResizable(True); fuera.addWidget(sc)
+        cont = QWidget(); cont.setObjectName("fondo"); sc.setWidget(cont)
+        v = QVBoxLayout(cont); v.setContentsMargins(30, 26, 30, 30); v.setSpacing(16)
+
+        cab = QHBoxLayout(); cab.addWidget(Orbe(110))
+        tx = QVBoxLayout(); h = QLabel("Luna"); h.setObjectName("h1")
+        s = QLabel("Tu asistente de voz. Funciona sin internet: lo que le dices no sale de tu PC.")
+        s.setObjectName("muted"); s.setWordWrap(True)
+        tx.addStretch(1); tx.addWidget(h); tx.addWidget(s); tx.addStretch(1); cab.addLayout(tx, 1); v.addLayout(cab)
+
+        f, c = tarjeta("Activar a Luna", f"Ábrela con {ATAJO} o con su ícono en el dock, y háblale o escríbele.")
+        act = QCheckBox("Luna activada"); act.setChecked(self.conf.get("activa", True))
+        act.toggled.connect(lambda on: self._cambia("activa", on)); c.addWidget(act)
+        abrir = QPushButton("🌙  Hablar con Luna ahora"); abrir.setObjectName("principal")
+        abrir.clicked.connect(lambda: subprocess.Popen([sys.argv[0]], start_new_session=True))
+        fila = QHBoxLayout(); fila.addWidget(abrir); fila.addStretch(1); c.addLayout(fila)
+        v.addWidget(f)
+
+        f, c = tarjeta("Voz", "Elige cómo te habla Luna y a qué velocidad.")
+        c.addWidget(PanelVoz(self.conf, lambda: guardar_conf(self.conf))); v.addWidget(f)
+
+        f, c = tarjeta("Micrófono", "Toca «Probar» y di algo como «abre Steam». La barra se mueve si Luna te oye.")
+        self.barra = QProgressBar(); self.barra.setRange(0, 100); self.barra.setTextVisible(False)
+        self.oido = QLabel("" if puede_escuchar() else "Este equipo no tiene el reconocimiento de voz o el micrófono "
+                                                         "listo; puedes escribirle a Luna.")
+        self.oido.setObjectName("muted"); self.oido.setWordWrap(True)
+        pb = QPushButton("🎙  Probar"); pb.clicked.connect(self._probar_mic); pb.setEnabled(puede_escuchar())
+        fila = QHBoxLayout(); fila.addWidget(pb); fila.addWidget(self.barra, 1); c.addLayout(fila); c.addWidget(self.oido)
+        v.addWidget(f)
+
+        f, c = tarjeta("Atajo de teclado", f"Ahora es {ATAJO}. Puedes cambiarlo en Configuración → Atajos → Luna.")
+        cb = QPushButton("⌨  Cambiar el atajo")
+        cb.clicked.connect(lambda: subprocess.Popen(["systemsettings", "kcm_keys"], start_new_session=True))
+        fila = QHBoxLayout(); fila.addWidget(cb); fila.addStretch(1); c.addLayout(fila); v.addWidget(f)
+
+        f, c = tarjeta("Lo que sé hacer", "Dilo con tus palabras: Luna entiende varias formas de pedir lo mismo. "
+                                          "Los comandos de la terminal se muestran antes de ejecutarse, y los que "
+                                          "cambian el sistema piden tu contraseña.")
+        g = QGridLayout(); g.setHorizontalSpacing(20); g.setVerticalSpacing(4)
+        for i, (grupo, frases) in enumerate(AYUDA.items()):
+            tl = QLabel(grupo); tl.setObjectName("estado"); g.addWidget(tl, (i // 2) * 2, i % 2)
+            fl = QLabel("\n".join("• " + x for x in frases)); fl.setObjectName("muted"); g.addWidget(fl, (i // 2) * 2 + 1, i % 2)
+        c.addLayout(g); v.addWidget(f)
+        v.addStretch(1)
+
+    def _cambia(self, k, val):
+        self.conf[k] = val; guardar_conf(self.conf)
+
+    def _probar_mic(self):
+        self.oido.setText("Habla ahora…")
+        self.hilo = QThread(self); self.oreja = Oreja(5); self.oreja.moveToThread(self.hilo)
+        self.hilo.started.connect(self.oreja.correr)
+        self.oreja.nivel.connect(lambda n: self.barra.setValue(int(n * 100)))
+        self.oreja.parcial.connect(lambda t: self.oido.setText(f"«{t}»"))
+        self.oreja.listo.connect(lambda t: self.oido.setText(f"Luna entendió: «{t}»" if t else "No te escuché. ¿El micrófono está conectado?"))
+        self.oreja.error.connect(self.oido.setText)
+        self.oreja.listo.connect(self.hilo.quit); self.oreja.error.connect(self.hilo.quit)
+        self.hilo.start()
+
+
+class Presentacion(QWidget):
+    """Se abre una vez después de instalar MoonOS: Luna se presenta y se configura en 3 pasos."""
+    def __init__(self):
+        super().__init__()
+        self.conf = leer_conf()
+        self.setWindowTitle("Conoce a Luna"); self.resize(640, 560); self.setObjectName("fondo")
+        if Path(ICONO).exists():
+            self.setWindowIcon(QIcon(ICONO))
+        v = QVBoxLayout(self); v.setContentsMargins(34, 30, 34, 28); v.setSpacing(14)
+        self.orbe = Orbe(150); v.addWidget(self.orbe, 0, Qt.AlignmentFlag.AlignHCenter)
+        self.pasos = QStackedWidget(); v.addWidget(self.pasos, 1)
+
+        def paso(titulo, texto, extra=None, botones=()):
+            w = QWidget(); l = QVBoxLayout(w); l.setSpacing(12)
+            t = QLabel(titulo); t.setObjectName("h1"); t.setAlignment(Qt.AlignmentFlag.AlignHCenter); l.addWidget(t)
+            d = QLabel(texto); d.setObjectName("muted"); d.setWordWrap(True); d.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            d.setStyleSheet("font-size: 15px;"); l.addWidget(d)
+            if extra:
+                l.addWidget(extra)
+            l.addStretch(1)
+            fila = QHBoxLayout(); fila.addStretch(1)
+            for txt, principal, fn in botones:
+                b = QPushButton(txt); b.clicked.connect(fn)
+                if principal:
+                    b.setObjectName("principal")
+                fila.addWidget(b)
+            fila.addStretch(1); l.addLayout(fila)
+            self.pasos.addWidget(w)
+
+        paso("¡Hola! Soy Luna 🌙",
+             "Soy la asistente de voz de MoonOS. Puedo abrir tus apps y juegos, controlar la música y el volumen, "
+             "decirte cuánta RAM usas y hasta ejecutar comandos de la terminal por ti.\n\n"
+             "Funciono sin internet: lo que me dices no sale de tu PC.",
+             botones=(("Ahora no", False, self._no), ("¡Actívala!", True, self._si)))
+        paso("Elige mi voz", "Puedes cambiarla cuando quieras en mis ajustes.",
+             extra=PanelVoz(self.conf, lambda: guardar_conf(self.conf)),
+             botones=(("Siguiente →", True, lambda: self.pasos.setCurrentIndex(2)),))
+        paso("¡Lista!", f"Pulsa {ATAJO} o toca mi ícono en el dock y dime, por ejemplo:\n"
+                         "«abre Steam» · «sube el volumen» · «¿cuánta RAM estoy usando?»",
+             botones=(("Probar ahora", True, self._probar), ("Cerrar", False, self.close)))
+
+    def _si(self):
+        self.conf.update(activa=True, configurada=True); guardar_conf(self.conf)
+        hablar("¡Gracias! Ahora elige mi voz.", self.conf)
+        self.pasos.setCurrentIndex(1)
+
+    def _no(self):
+        self.conf.update(activa=False, configurada=True); guardar_conf(self.conf)
+        self.close()
+
+    def _probar(self):
+        subprocess.Popen([sys.argv[0]], start_new_session=True); self.close()
+
+
+def main():
+    args = sys.argv[1:]
+    if "--primera-vez" in args:
+        c = leer_conf()
+        if c.get("configurada") or es_live():
+            return 0
+    app = QApplication(sys.argv)
+    app.setApplicationName("Luna"); app.setDesktopFileName("moonos-luna")
+    app.setStyleSheet(ESTILO)
+    if Path(ICONO).exists():
+        app.setWindowIcon(QIcon(ICONO))
+    if "--ajustes" in args:
+        w = Ajustes()
+    elif "--primera-vez" in args:
+        w = Presentacion()
+    else:
+        w = Burbuja(escuchar="--escribir" not in args)
+    w.show()
+    if os.environ.get("MOONOS_SHOT_TEXTO") and isinstance(w, Burbuja):  # pruebas: simula una orden
+        QTimer.singleShot(100, lambda: w.procesar(os.environ["MOONOS_SHOT_TEXTO"]))
+    foto = os.environ.get("MOONOS_SHOT")
+    if foto:  # pruebas: captura y salir
+        QTimer.singleShot(int(os.environ.get("MOONOS_SHOT_MS", "900")), lambda: (w.grab().save(foto), app.quit()))
+    return app.exec()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

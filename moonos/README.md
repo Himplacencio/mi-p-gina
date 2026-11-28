@@ -8,6 +8,7 @@
 - **Listo para jugar:** Steam, Lutris, GameMode, MangoHud y Gamescope. Steam descarga Proton por su cuenta. Si quieres Proton-CachyOS: `sudo pacman -S proton-cachyos`.
 - **Instalador gráfico (Calamares)** con sistema de archivos Btrfs y compresión zstd.
 - **Flatpak** preinstalado para instalar más programas fácilmente.
+- **Luna, asistente de voz** (Super + J o su ícono en el dock): háblale o escríbele en español. Abre apps y juegos, controla música y volumen, responde cuánta RAM usas o qué tarjeta tienes, y ejecuta comandos de la terminal mostrándolos antes (los que cambian el sistema piden contraseña; apagar o reiniciar siempre pregunta). Funciona **sin internet** (Vosk para escuchar, Piper para hablar, con voz femenina o masculina) y nada de lo que dices sale del PC. Se configura en «Luna → ⚙» o en la Bienvenida, y se presenta sola tras instalar MoonOS.
 - **Seguridad:** firewall (ufw) activado de serie: bloquea lo que intenta entrar sin permiso y deja salir todo (internet, Steam y juegos funcionan igual; Steam Remote Play queda permitido). Se apaga o prende en Bienvenida → Hazlo tuyo → Seguridad.
 
 ## Bienvenida y personalización

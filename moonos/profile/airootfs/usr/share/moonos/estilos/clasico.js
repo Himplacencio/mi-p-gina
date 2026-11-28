@@ -1,7 +1,7 @@
 // Estilo «Clásico»: una sola barra abajo (vidrio) y escritorio limpio.
 // La barra se crea desde cero: modificar la barra original de Plasma la dejaba invisible.
 var APPS = ['preferred://filemanager', 'preferred://browser', 'applications:steam.desktop',
-            'applications:moonos-tienda.desktop', 'applications:org.kde.konsole.desktop'];
+            'applications:moonos-tienda.desktop', 'applications:moonos-luna.desktop', 'applications:org.kde.konsole.desktop'];
 
 desktops().forEach(function (d) {
     ['org.moonos.reloj', 'org.moonos.luna', 'org.moonos.calendario', 'org.moonos.musica'].forEach(function (t) {

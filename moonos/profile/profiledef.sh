@@ -28,6 +28,7 @@ file_permissions=(
   ["/usr/local/bin/moonos-steam-gamemode"]="0:0:755"
   ["/usr/local/bin/moonos-install"]="0:0:755"
   ["/usr/local/bin/moonos-live-setup"]="0:0:755"
+  ["/usr/local/bin/moonos-luna"]="0:0:755"
   ["/usr/local/bin/moonos-postinstall"]="0:0:755"
   ["/usr/local/bin/moonos-tienda"]="0:0:755"
   ["/usr/local/bin/moonos-user-setup"]="0:0:755"

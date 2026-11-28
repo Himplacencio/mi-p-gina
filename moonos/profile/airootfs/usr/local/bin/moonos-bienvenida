@@ -187,7 +187,8 @@ class Bienvenida(QMainWindow):
         self.stack = QStackedWidget()
         self.navs = QButtonGroup(self)
         pages = [("🏠  Inicio", self.page_inicio()), ("🎨  Hazlo tuyo", self.page_tuyo()),
-                 ("🎮  Juegos", self.page_juegos()), ("💬  Ayuda y comunidad", self.page_ayuda())]
+                 ("🎮  Juegos", self.page_juegos()), ("🎙  Luna", self.page_luna()),
+                 ("💬  Ayuda y comunidad", self.page_ayuda())]
         for i, (label, page) in enumerate(pages):
             b = QPushButton(label); b.setObjectName("nav"); b.setCheckable(True)
             b.clicked.connect(lambda _=False, i=i: self.stack.setCurrentIndex(i))
@@ -272,6 +273,7 @@ class Bienvenida(QMainWindow):
         for t in ["🎮  Abre Steam: el modo juego se activa solo cuando juegas.",
                   "🛍️  En la Tienda MoonOS instalas Spotify, Discord, Chrome y miles de apps con un clic.",
                   "🎨  En «Hazlo tuyo» puedes poner la luna animada de fondo.",
+                  "🎙  Pulsa Super + J y háblale a Luna: «abre Steam», «sube el volumen»…",
                   "🐛  ¿Algo falla? Repórtalo en «Ayuda y comunidad»: todos los reportes son públicos."]:
             x = QLabel(t); x.setWordWrap(True); tips.lay.addWidget(x)
         v.addWidget(tips)
@@ -494,6 +496,31 @@ class Bienvenida(QMainWindow):
                      "mangohud %command%")
         tip.setObjectName("muted"); tip.setWordWrap(True); c.lay.addWidget(tip)
         v.addWidget(c); v.addStretch(1)
+        return w
+
+    def page_luna(self):
+        w, v = self.page()
+        h = QLabel("Luna, tu asistente 🌙"); h.setObjectName("h1")
+        l = QLabel("Háblale o escríbele y ella lo hace por ti. Funciona sin internet: lo que le dices no sale de tu PC.")
+        l.setObjectName("lead"); l.setWordWrap(True)
+        v.addWidget(h); v.addWidget(l)
+        hablar = QPushButton("🎙  Hablar con Luna (Super + J)"); hablar.setObjectName("primary")
+        hablar.clicked.connect(lambda: run("/usr/local/bin/moonos-luna"))
+        escribir = QPushButton("⌨️  Escribirle")
+        escribir.clicked.connect(lambda: run("/usr/local/bin/moonos-luna", "--escribir"))
+        ajustes = QPushButton("⚙️  Configurar a Luna (voz, micrófono…)")
+        ajustes.clicked.connect(lambda: run("/usr/local/bin/moonos-luna", "--ajustes"))
+        v.addWidget(row(hablar, escribir)); v.addWidget(row(ajustes))
+        for titulo, ejemplos in [("🎮  Apps y juegos", "«abre Steam» · «abre Spotify» · «abre la Tienda»"),
+                                 ("🎵  Música y volumen", "«sube el volumen» · «volumen al 50» · «pausa la música» · «siguiente canción»"),
+                                 ("💻  Tu PC", "«¿cuánta RAM estoy usando?» · «¿qué tarjeta gráfica tengo?» · «toma una captura»"),
+                                 ("⌨️  Terminal", "«actualiza el sistema» · «instala vlc» · «limpia paquetes viejos» · «muestra mi sistema»")]:
+            c = Card(titulo, ejemplos)
+            v.addWidget(c)
+        nota = QLabel("Los comandos de la terminal se muestran antes de ejecutarse, para que aprendas, y los que cambian "
+                      "el sistema piden tu contraseña. Para apagar o reiniciar, Luna siempre pregunta antes.")
+        nota.setObjectName("muted"); nota.setWordWrap(True); v.addWidget(nota)
+        v.addStretch(1)
         return w
 
     def page_ayuda(self):

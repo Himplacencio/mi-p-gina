@@ -32,7 +32,7 @@ fi
 # A veces el dock nace sin su lista de apps: se vuelve a poner si quedó vacía
 sleep 3
 plasma_js "
-var APPS = 'preferred://filemanager,preferred://browser,applications:steam.desktop,applications:moonos-tienda.desktop,applications:org.kde.konsole.desktop';
+var APPS = 'preferred://filemanager,preferred://browser,applications:steam.desktop,applications:moonos-tienda.desktop,applications:moonos-luna.desktop,applications:org.kde.konsole.desktop';
 panels().forEach(function (p) {
     p.widgets('org.kde.plasma.icontasks').forEach(function (w) {
         w.currentConfigGroup = ['General'];

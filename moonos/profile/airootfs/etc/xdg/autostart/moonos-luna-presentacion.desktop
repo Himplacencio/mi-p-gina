@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Conoce a Luna
+Comment=Presentación de Luna (una sola vez, después de instalar MoonOS)
+Exec=/usr/local/bin/moonos-luna --primera-vez
+Icon=/usr/share/pixmaps/moonos-luna.png
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=2
