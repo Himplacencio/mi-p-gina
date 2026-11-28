@@ -181,6 +181,10 @@ td.rec { color: var(--moonlight); }
 .hash code { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 0.78rem; padding: 10px 12px; border-radius: 8px; background: var(--sky); border: 1px solid var(--line); overflow-wrap: anywhere; color: var(--ink-soft); user-select: all; }
 .hash button { border: 1px solid var(--line); background: var(--card-2); color: var(--ink); border-radius: 8px; padding: 0 14px; font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
 .hash button:hover { border-color: var(--lavender); }
+ol.pasos { margin: 18px 0 6px; padding-left: 22px; display: grid; gap: 12px; color: var(--ink-soft); font-size: 0.95rem; }
+ol.pasos li::marker { color: var(--lavender); font-weight: 700; }
+ol.pasos .hash { margin-top: 8px; }
+ol.pasos .hash code { user-select: all; white-space: pre-wrap; }
 pre.cmd { margin: 0; font-family: var(--font-mono); font-size: 0.82rem; padding: 12px 14px; border-radius: 8px; background: var(--sky); border: 1px solid var(--line); overflow-x: auto; color: var(--ink-soft); }
 .small { font-size: 0.88rem; color: var(--ink-faint); }
 
@@ -427,6 +431,14 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
           <div class="parts" id="dl-buttons">
             <a class="btn btn-primary" id="dl-main" href="https://github.com/Himplacencio/mi-p-gina/releases/latest" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Ver versiones en GitHub</a>
           </div>
+          <ol class="pasos" id="dl-pasos" hidden>
+            <li><b>Descarga las dos partes</b> con los botones de arriba, en la misma carpeta (por ejemplo, Descargas). GitHub no deja subir archivos de más de 2 GB, por eso viene en dos pedazos.</li>
+            <li><b>En Windows:</b> abre esa carpeta, escribe <code>cmd</code> en la barra de direcciones de arriba y presiona Enter. Pega este comando y presiona Enter:
+              <div class="hash"><code id="paso-win"></code><button type="button" data-copiar="paso-win">Copiar</button></div></li>
+            <li><b>En Linux o Mac:</b> abre una terminal en esa carpeta y pega:
+              <div class="hash"><code id="paso-linux"></code><button type="button" data-copiar="paso-linux">Copiar</button></div></li>
+            <li><b>Listo:</b> te queda <code id="paso-iso">la ISO</code> (<span id="paso-tam"></span>). Grábala en un USB con <a href="https://www.ventoy.net" target="_blank" rel="noopener">Ventoy</a> o <a href="https://rufus.ie" target="_blank" rel="noopener">Rufus</a>, o pruébala en VirtualBox.</li>
+          </ol>
           <p class="small">MoonOS es gratis. Si te gusta, puedes <a href="#apoyar">apoyar el proyecto</a>.</p>
           <p class="small" id="dl-note">Las descargas se publican en GitHub Releases. Son gratuitas y no necesitas cuenta.</p>
         </div>
@@ -438,11 +450,6 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
           <pre class="cmd"><code>sha256sum moonos-*.iso</code></pre>
           <p class="small">En Windows (PowerShell):</p>
           <pre class="cmd"><code>Get-FileHash .\moonos-*.iso</code></pre>
-          <div id="join-help" hidden>
-            <p class="small" style="margin-top:6px">La ISO viene en partes porque supera el límite de 2 GB por archivo de GitHub. Descarga todas las partes en la misma carpeta y únelas:</p>
-            <pre class="cmd"><code id="join-linux"></code></pre>
-            <pre class="cmd"><code id="join-win"></code></pre>
-          </div>
         </div>
       </div>
     </div>
@@ -651,6 +658,11 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
   $("rp-form").addEventListener("submit", e => e.preventDefault());
 
   /* Copiar huella */
+  document.querySelectorAll("[data-copiar]").forEach(b => b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($(b.dataset.copiar).textContent.trim()); b.textContent = "✓ Copiado"; }
+    catch (e) { b.textContent = "Selecciónalo y copia"; }
+    setTimeout(() => (b.textContent = "Copiar"), 1800);
+  }));
   $("copy-sha").addEventListener("click", async () => {
     const t = $("sha").textContent.trim(), b = $("copy-sha");
     if (!/^[0-9a-f]{64}$/.test(t)) return;
@@ -694,9 +706,10 @@ footer p { font-size: 0.85rem; color: var(--ink-faint); max-width: 60ch; }
       if (m) $("sha").textContent = m[0];
       if (parts.length) {
         const isoName = parts[0].name.replace(/\.part\d+$/, "");
-        $("join-help").hidden = false;
-        $("join-linux").textContent = `# Linux / macOS\ncat ${isoName}.part* > ${isoName}`;
-        $("join-win").textContent = `REM Windows (Símbolo del sistema)\ncopy /b ${parts.map(p => p.name).join(" + ")} ${isoName}`;
+        $("dl-pasos").hidden = false;
+        $("paso-win").textContent = `copy /b ${parts.map(p => p.name).join(" + ")} ${isoName}`;
+        $("paso-linux").textContent = `cat ${isoName}.part* > ${isoName}`;
+        $("paso-iso").textContent = isoName; $("paso-tam").textContent = fmtSize(total);
       }
     })
     .catch(() => notYet("Próximamente"));
