@@ -1,3 +1,3 @@
-Tamaño de la ISO: 2.49 GB (✅ dentro del límite)
+Tamaño de la ISO: 3.05 GB (✅ dentro del límite)
 ✅ el escritorio Plasma arrancó con su barra de apps
-RAM usada: 1140 MiB (objetivo ≤ 1536 MiB)
+RAM usada: 1165 MiB (objetivo ≤ 1536 MiB)
