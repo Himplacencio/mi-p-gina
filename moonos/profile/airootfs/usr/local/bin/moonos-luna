@@ -672,7 +672,7 @@ class Burbuja(QWidget):
         r = QRectF(self.rect()).adjusted(4, 4, -4, -4)
         path = QPainterPath(); path.addRoundedRect(r, 30, 30)
         g = QRadialGradient(QPointF(r.left() + 100, r.top() + 90), r.width())
-        g.setColorAt(0, QColor(46, 38, 110, 245)); g.setColorAt(1, QColor(14, 12, 36, 245))
+        g.setColorAt(0, QColor(46, 38, 110, 252)); g.setColorAt(1, QColor(14, 12, 36, 252))
         p.fillPath(path, g)
         p.setPen(QPen(QColor(169, 150, 255, 120), 1.5)); p.drawPath(path)
 
@@ -699,12 +699,12 @@ class Burbuja(QWidget):
             return
         self.cerrar_luego.stop(); self._limpiar_extra()
         self.orbe.estado = "escuchando"; self.estado.setText("TE ESCUCHO…")
-        self.dicho.hide(); self.resp.setText("Habla ahora…")
+        self.dicho.hide(); self.resp.setText("Habla ahora…"); QTimer.singleShot(0, self._ajustar)
         self.hilo = QThread(self); self.oreja = Oreja()
         self.oreja.moveToThread(self.hilo)
         self.hilo.started.connect(self.oreja.correr)
         self.oreja.nivel.connect(lambda n: setattr(self.orbe, "nivel", max(self.orbe.nivel, n)))
-        self.oreja.parcial.connect(lambda t: (self.dicho.setText(f"«{t}»"), self.dicho.show()))
+        self.oreja.parcial.connect(lambda t: (self.dicho.setText(f"«{t}»"), self.dicho.show(), self._ajustar()))
         self.oreja.listo.connect(self._oido)
         self.oreja.error.connect(lambda m: self.decir(m + " Escríbeme abajo.", hablar_tambien=False))
         self.oreja.listo.connect(self.hilo.quit); self.oreja.error.connect(self.hilo.quit)
@@ -718,6 +718,7 @@ class Burbuja(QWidget):
         if not texto.strip():
             self.orbe.estado = "quieta"; self.estado.setText("LUNA")
             self.resp.setText("No te escuché bien. Toca 🎙 para intentarlo otra vez, o escríbeme.")
+            QTimer.singleShot(0, self._ajustar)
             self.entrada.setFocus(); return
         self.procesar(texto)
 
@@ -727,7 +728,7 @@ class Burbuja(QWidget):
         if not texto:
             return
         self.entrada.clear(); self._limpiar_extra()
-        self.dicho.setText(f"«{texto}»"); self.dicho.show()
+        self.dicho.setText(f"«{texto}»"); self.dicho.show(); QTimer.singleShot(0, self._ajustar)
         self.orbe.estado = "pensando"; self.estado.setText("PENSANDO…")
         QTimer.singleShot(350, lambda: self._responder(entender(texto)))
 
