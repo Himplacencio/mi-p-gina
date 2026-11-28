@@ -5,6 +5,11 @@ Requires=etc-pacman.d-gnupg.mount
 After=etc-pacman.d-gnupg.mount time-sync.target
 BindsTo=etc-pacman.d-gnupg.mount
 Before=archlinux-keyring-wkd-sync.service
+# Corre en paralelo: el escritorio no tiene que esperar a que se prepare el llavero (~10 s)
+DefaultDependencies=no
+After=sysinit.target
+Conflicts=shutdown.target
+Before=shutdown.target
 
 [Service]
 Type=oneshot

@@ -1,9 +1,11 @@
 [Unit]
 Description=MoonOS: activar el firewall (ufw) la primera vez
 ConditionPathExists=!/var/lib/moonos/firewall-listo
-After=local-fs.target ufw.service
-Before=network-pre.target
-Wants=network-pre.target
+After=sysinit.target local-fs.target ufw.service
+# Corre en paralelo para no retrasar el arranque (~5 s); el firewall queda activo segundos después
+DefaultDependencies=no
+Conflicts=shutdown.target
+Before=shutdown.target
 
 [Service]
 Type=oneshot

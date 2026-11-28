@@ -98,7 +98,7 @@ echo '--- Estado de systemd'; systemctl is-system-running
 echo '--- Servicios con error'; systemctl --failed --no-legend --plain || true
 echo '--- Sesiones gráficas'; loginctl list-sessions --no-legend; for id in $(loginctl list-sessions --no-legend | awk '{print $1}'); do loginctl show-session "$id" -p Name -p Type -p State; done
 echo '--- Procesos del escritorio'; pgrep -a sddm | head -3; pgrep -a kwin_wayland | head -2; pgrep -a plasmashell || echo 'plasmashell NO está corriendo'
-echo '--- Tiempo de arranque'; systemd-analyze; systemd-analyze blame --no-pager | head -8
+echo '--- Tiempo de arranque'; systemd-analyze; systemd-analyze blame --no-pager | head -8; systemd-analyze critical-chain graphical.target --no-pager | head -14
 echo '--- Diagnóstico pantalla negra'; sudo journalctl -b --no-pager -o short-monotonic | grep -iE 'sddm|kwin|plasma|portal|timed out|timeout|failed|kwallet|polkit' | head -60; systemctl --user --no-pager --failed; systemd-analyze --user blame --no-pager | head -12
 echo '--- Bienvenida y fondo animado'; pgrep -af moonos-bienvenida || echo 'bienvenida NO está abierta'; ls /usr/share/plasma/wallpapers/ | grep -i moonos
 echo '--- Paneles de Plasma'; export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus; ls ~/.config/moonos-user-setup-done 2>&1; busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s 'print(JSON.stringify(panels().map(function(p){return {lugar:p.location,alto:p.height,flota:p.floating,widgets:p.widgets().map(function(w){return w.type})}})));print(JSON.stringify(desktops().map(function(d){return d.widgets().map(function(w){return w.type})})))' 2>&1 | head -c 1500; echo
