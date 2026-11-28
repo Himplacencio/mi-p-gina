@@ -22,6 +22,7 @@ file_permissions=(
   ["/usr/local/bin/moonos-branding"]="0:0:755"
   ["/usr/local/bin/moonos-demo-musica"]="0:0:755"
   ["/usr/local/bin/moonos-drivers"]="0:0:755"
+  ["/usr/local/bin/moonos-firewall"]="0:0:755"
   ["/usr/local/bin/moonos-gamemode"]="0:0:755"
   ["/usr/local/bin/moonos-gamemode-config"]="0:0:755"
   ["/usr/local/bin/moonos-steam-gamemode"]="0:0:755"

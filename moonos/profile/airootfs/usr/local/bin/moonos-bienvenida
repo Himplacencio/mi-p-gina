@@ -377,6 +377,15 @@ class Bienvenida(QMainWindow):
         c.lay.addWidget(wob); c.lay.addWidget(fast)
         v.addWidget(c)
 
+        # Seguridad
+        c = Card("Seguridad 🔒", "El firewall bloquea las conexiones que intentan entrar a tu PC sin permiso. "
+                                 "Internet, Steam y tus juegos funcionan igual (Steam Remote Play queda permitido).")
+        fw = QCheckBox("Firewall activado (recomendado)")
+        fw.setChecked(firewall_activo())
+        fw.toggled.connect(lambda on, fw=fw: self.firewall(on, fw))
+        c.lay.addWidget(fw)
+        v.addWidget(c)
+
         mas = QPushButton("⚙️  Más opciones (configuración completa de KDE)")
         mas.clicked.connect(lambda: run("systemsettings"))
         v.addWidget(row(mas))
@@ -409,6 +418,20 @@ class Bienvenida(QMainWindow):
         else:
             plasma_script("panels().forEach(p => p.widgets('org.moonos.musica').forEach(w => w.remove()))")
             self.notify("Música quitada de la barra")
+
+    def firewall(self, on, caja):
+        """Prende o apaga ufw; pide la contraseña. Si se cancela, la casilla vuelve a como estaba."""
+        cmd = ["pkexec", "ufw", "--force", "enable" if on else "disable"]
+        print("[moonos-bienvenida]", " ".join(cmd), flush=True)
+        try:  # sin límite corto: la persona tiene que escribir su contraseña
+            ok = DRY or subprocess.run(cmd, check=False, timeout=300).returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            ok = False
+        if ok:
+            self.notify("Firewall " + ("activado 🔒" if on else "desactivado"))
+        else:
+            caja.blockSignals(True); caja.setChecked(not on); caja.blockSignals(False)
+            self.notify("No se cambió el firewall")
 
     def kwin_plugin(self, key, on, label):
         run("kwriteconfig6", "--file", "kwinrc", "--group", "Plugins", "--key", key, "true" if on else "false", detached=False)
@@ -461,6 +484,14 @@ class Bienvenida(QMainWindow):
             c.lay.addWidget(row(b))
         v.addWidget(c); v.addStretch(1)
         return w
+
+
+def firewall_activo():
+    """Lee /etc/ufw/ufw.conf (no hace falta ser administrador)."""
+    try:
+        return "ENABLED=yes" in Path("/etc/ufw/ufw.conf").read_text()
+    except OSError:
+        return True
 
 
 def splash_moonos():

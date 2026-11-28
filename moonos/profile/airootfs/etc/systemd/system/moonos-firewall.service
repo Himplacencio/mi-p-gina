@@ -1,0 +1,13 @@
+[Unit]
+Description=MoonOS: activar el firewall (ufw) la primera vez
+ConditionPathExists=!/var/lib/moonos/firewall-listo
+After=local-fs.target ufw.service
+Before=network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/moonos-firewall
+
+[Install]
+WantedBy=multi-user.target

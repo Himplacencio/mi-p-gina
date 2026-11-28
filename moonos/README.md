@@ -8,6 +8,7 @@
 - **Listo para jugar:** Steam, Lutris, GameMode, MangoHud y Gamescope. Steam descarga Proton por su cuenta. Si quieres Proton-CachyOS: `sudo pacman -S proton-cachyos`.
 - **Instalador gráfico (Calamares)** con sistema de archivos Btrfs y compresión zstd.
 - **Flatpak** preinstalado para instalar más programas fácilmente.
+- **Seguridad:** firewall (ufw) activado de serie: bloquea lo que intenta entrar sin permiso y deja salir todo (internet, Steam y juegos funcionan igual; Steam Remote Play queda permitido). Se apaga o prende en Bienvenida → Hazlo tuyo → Seguridad.
 
 ## Bienvenida y personalización
 

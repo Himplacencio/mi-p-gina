@@ -123,6 +123,7 @@ lutris
 gamemode
 lib32-gamemode
 power-profiles-daemon
+ufw
 libnotify
 mangohud
 lib32-mangohud

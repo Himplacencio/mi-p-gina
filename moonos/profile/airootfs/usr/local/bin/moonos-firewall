@@ -1,0 +1,18 @@
+#!/bin/bash
+# Firewall de MoonOS (ufw): se configura la primera vez que arranca el sistema.
+#   - bloquea las conexiones que entran sin permiso y deja salir todo (internet, Steam y juegos igual que siempre)
+#   - deja abiertos los puertos de Steam Remote Play (jugar desde otro PC o la tele)
+# Se puede apagar y prender en Bienvenida → Hazlo tuyo → Seguridad, o con «sudo ufw disable / enable».
+set -u
+flag=/var/lib/moonos/firewall-listo
+[[ -e "$flag" ]] && exit 0
+command -v ufw >/dev/null || exit 0
+
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 27031:27036/udp comment 'Steam Remote Play'
+ufw allow 27036:27037/tcp comment 'Steam Remote Play'
+ufw --force enable
+
+mkdir -p "$(dirname "$flag")"
+touch "$flag"
